@@ -4,24 +4,21 @@ import { withAuthenticator } from 'aws-amplify-react-native';
 import { Amplify } from 'aws-amplify';
 
 import awsconfig from './src/aws-exports';
+import Navigation from './src/navigation';
 
 Amplify.configure(awsconfig)
 
-export default withAuthenticator(function App() {
-  return (
-    <View style={styles.container}>
-      <Text>Open up App.js to start working on your app!</Text>
-          <StatusBar style="auto" />
-          <Text>Alex Maskeny</Text>
-    </View>
+export default function App() {
+    return (
+        <Navigation />
   );
-})
+}
 
 const styles = StyleSheet.create({
   container: {
     flex: 1,
     backgroundColor: '#fff',
-    alignItems: 'center',
-    justifyContent: 'center',
+    alignItems: 'flex-start',
+    justifyContent: 'flex-start',
   },
 });
