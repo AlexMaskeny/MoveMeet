@@ -7,6 +7,7 @@ import { colors, footerHeight } from './config';
 import LoadingPage from './pages/LoadingPage';
 import LoginPage from './pages/LoginPage';
 import ChatsPage from './pages/ChatsPage';
+import ChatPage from './pages/ChatPage';
 import IconButton from './comps/IconButton';
 import UProfileSettings from './pages/UProfileSettings';
 
@@ -99,11 +100,30 @@ function navigation() {
             screenOptions={{
                 headerShown: true,
                 gestureEnabled: false,
+                headerStyle: {
+                    backgroundColor: colors.container,
+                },
+                headerTintColor: colors.pBeam,
+                headerLeft: ()=><></>
                 
             }}
         >
-            <TChat.Screen name="ChatsPage" component={ChatsPage} />
-            <TChat.Screen name="ChatPage" component={ChatsPage} />
+            <TChat.Screen name="ChatsPage" component={ChatsPage} options={{ title: "Chats" }} />
+            <TChat.Screen name="ChatPage" component={ChatPage} options={({ route, navigation }) => (
+                {
+                    title: route.params.name,
+                    headerLeft: () => (
+                        <IconButton
+                            icon="ios-chevron-back-outline"
+                            color={colors.pBeam}
+                            brand="Ionicons"
+                            size={36}
+                            onPress={() => navigation.goBack()}
+                        />
+                    )
+                }
+               )}
+            />
         </TChat.Navigator>
     );
     return (

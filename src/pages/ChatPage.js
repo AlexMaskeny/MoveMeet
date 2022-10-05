@@ -1,37 +1,28 @@
 import React from 'react';
 import { StyleSheet, Image, ActivityIndicator, View } from 'react-native';
-import { colors, debug } from '../config';
 
 import Screen from '../comps/Screen';
-import Chat from '../comps/Chat';
 import SimpleButton from '../comps/SimpleButton';
 
 //DESCRIPTION: A primary page of the SecondaryNav
 //             is the hub for all localized chats
 
-function ChatsPage({ navigation }) {
+function ChatPage({ navigation }) {
 
     return (
         <>
             <Screen innerStyle={styles.page}>
-                <SimpleButton onPress={() => navigation.navigate("ChatPage",{ name: "Mega Chat" })} title="Navigate" />
+                <SimpleButton onPress={() => navigation.navigate("ChatsPage")} title="Go Back" />
             </Screen>
         </>
     );
 }
 
 const styles = StyleSheet.create({
-    logo: {
-        height: 60,
-        width: "100%"
-    },
     page: {
         padding: 14,
     },
-    header: {
-        backgroundColor: colors.container,
-        height: 100,
-    },
+
 })
 
-export default ChatsPage;
+export default ChatPage;
