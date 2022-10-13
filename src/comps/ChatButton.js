@@ -8,14 +8,15 @@ import { colors, css } from '../config';
 //UTILIZED:    Utilized in basic forms, especially in the Auth
 //             layer of the app
 
-function SimpleButton({
+function ChatButton({
     title,
+    style,
     onPress,
     disabled = false,
     loading = false,
 }) {
     return (
-        <TouchableOpacity style={{ ...styles.bContainer, borderWidth: disabled ? 0 : 3, borderColor: disabled ? colors.pBeamDisabled : colors.pBeam }} onPress={onPress} disabled={disabled}>
+        <TouchableOpacity style={[styles.bContainer,style]} onPress={onPress} disabled={disabled}>
             <View style={styles.innerContainer}>
                 {!loading &&
                     <Text style={styles.text}>{title}</Text>
@@ -30,22 +31,20 @@ function SimpleButton({
 
 const styles = StyleSheet.create({
     bContainer: {
+        width: 160,
         justifyContent: "center",
-        backgroundColor: colors.background,
+        backgroundColor: 'rgba(18, 18, 18,0.3)',
         alignItems: "center",
-        padding: 15,
+        padding: 10,
         marginHorizontal: 10,
         marginVertical: 4,
         elevation: 10,
-        borderColor: colors.pBeam,
-        borderWidth: 3,
-        borderRadius: 30,
-        ...css.beamShadow
+        
     },
     text: {
-        fontSize: 18,
+        fontSize: 16,
         fontWeight: 'bold',
-        color: colors.text1,
+        color: colors.text2,
     },
     innerContainer: {
         width: "100%",
@@ -53,4 +52,4 @@ const styles = StyleSheet.create({
     },
 })
 
-export default SimpleButton;
+export default ChatButton;

@@ -1,38 +1,38 @@
 import React from 'react';
-import { View, StyleSheet, ImageBackground, FlatList } from 'react-native';
+import { Text, View, StyleSheet, ImageBackground, FlatList } from 'react-native';
 
 import { colors, css } from '../config';
+import DarkBeam from './DarkBeam';
 import BeamTitle from './BeamTitle';
 import IconTitle from './IconTitle';
 import PCircleAndTitle from './PCircleAndTitle';
 import ChatButton from './ChatButton';
 import { LinearGradient } from 'expo-linear-gradient';
-import SimpleMessage from './SimpleMessage';
 
 //DESCRIPTION: A generalized chat box which will be embedded
 //             inside of a flatlist on the ChatsPage
 //UTILIZED:    Utilized on the ChatsPage
 
 
-function Chat({
+function DisabledChat({
     background,
     members,
     title,
-    navigation,
     ...props
 }) {
     return (
+        <>
         <View style={styles.container}>
             <ImageBackground
                 source={background}
                 imageStyle={styles.image}
                 style={styles.imageBackground}
                 resizeMode="cover"
-            >
-                <BeamTitle style={styles.title}>{title}</BeamTitle>
+                >
+                    <BeamTitle style={{ ...styles.title, color: colors.text2 }}>{title}</BeamTitle>
             </ImageBackground>
             <View style={styles.sub1}>
-                <View style={styles.listContain}> 
+                <View style={styles.listContain}>
                     <FlatList
                         data={members}
                         showsHorizontalScrollIndicator={false}
@@ -41,7 +41,7 @@ function Chat({
                         {...props}
                         renderItem={({ item }) => (
                             <View style={styles.ppContain}>
-                                <PCircleAndTitle username={item.username} ppic={item.ppic}/>  
+                                <PCircleAndTitle username={item.username} ppic={item.ppic} />
                             </View>
                         )}
                     />
@@ -50,51 +50,38 @@ function Chat({
                     <IconTitle
                         brand="MaterialCommunityIcons"
                         icon="google-maps"
-                        style={{fontSize: 14}}
-                    >0.1 miles</IconTitle>
+                        style={{ fontSize: 14 }}
+                    >2 miles</IconTitle>
                     <IconTitle
                         brand="MaterialCommunityIcons"
                         icon="account"
                         style={{ fontSize: 14 }}
-                    >13 Members</IconTitle>
+                    >2 Members</IconTitle>
                     <IconTitle
                         brand="Ionicons"
                         icon="chatbubble-ellipses"
                         style={{ fontSize: 14 }}
-                    >3m ago</IconTitle>
+                    >24h ago</IconTitle>
                 </View>
-                <View style={styles.chat}>
-                    <View style={styles.chatSub}>
-                        <SimpleMessage ppic={background} username="Alexander" message="bro i like trains sooooooooooooooooooooooo much I" />
-                        <View style={{height: 4} } />
-                        <SimpleMessage ppic={background} username="Alexander" message="bro i like trains sooooooooooooooooooooooo much I" />
-                        <View style={{ height: 4 }} />
-                        <SimpleMessage ppic={background} username="Alexander" message="bro i like trains sooooooooooooooooooooooo much I" />
-                    </View>
-                    <LinearGradient
-                        // Background Linear Gradient
-                        colors={['rgba(18, 18, 18,0.4)', colors.background]}
-                        style={{ flex: 1, marginTop: -156 } }
-                    />
-                </View>
-                <ChatButton
-                    title="Open Chat"
-                    style={{
-                        marginTop: -60,
-                        alignSelf: "center",
-                    }}
-                    onPress={() => navigation.navigate("ChatPage", { name: title })}
-                    
-                />
             </View>
-        </View>
+            </View>
+            <View style={{ ...styles.container, shadowOpacity: 0, backgroundColor: "transparent", overflow: "hidden", marginTop: -188 }}>
+                <LinearGradient
+                    // Background Linear Gradient
+                    colors={['rgba(18, 18, 18,0.7)', 'rgba(18, 18, 18,0.95)', 'rgba(18, 18, 18,0.6)']}
+                    style={{ flex: 1, justifyContent: "center", alignItems: "center" }}
+                >
+                    <BeamTitle style={{ ...styles.title, ...css.beamShadow }}>Out of Range</BeamTitle>
+                </LinearGradient>
+            </View>
+        </>
     );
 }
 
 const styles = StyleSheet.create({
     container: {
         maxWidth: "100%",
-        height: 340,
+        height: 180,
         borderRadius: 20,
         backgroundColor: colors.passiveImg,
         shadowOffset: { width: 0, height: 1 },
@@ -102,9 +89,9 @@ const styles = StyleSheet.create({
         shadowOpacity: 0.3,
         marginHorizontal: 3,
         marginVertical: 8,
-        //...css.beamShadow,
-        //borderColor: colors.pBeam,
-        //borderWidth: 1,
+        borderColor: colors.container,
+        borderWidth: 2
+
     },
     sub1: {
         flex: 1,
@@ -113,7 +100,7 @@ const styles = StyleSheet.create({
         borderBottomStartRadius: 18,
         borderTopColor: colors.pBeam,
         borderTopWidth: 2,
-        
+
     },
     imageBackground: {
         height: 90,
@@ -151,18 +138,6 @@ const styles = StyleSheet.create({
         width: "100%",
 
     },
-    chat: {
-        backgroundColor: colors.background,
-        margin: 10,
-        marginTop: 14,
-        height: 156,
-        borderRadius: 18,
-        overflow: "hidden",
-    },
-    chatSub: {
-        height: 156,
-        padding: 8,
-    }
 });
 
-export default Chat;
+export default DisabledChat;

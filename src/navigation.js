@@ -1,9 +1,10 @@
 import React from 'react';
-import { NavigationContainer } from '@react-navigation/native';
+import { StyleSheet } from 'react-native';
+import { NavigationContainer, getFocusedRouteNameFromRoute } from '@react-navigation/native';
 import { createBottomTabNavigator } from '@react-navigation/bottom-tabs';
 import { createStackNavigator } from '@react-navigation/stack';
 
-import { colors, footerHeight } from './config';
+import { colors, footerHeight, css, debug } from './config';
 import LoadingPage from './pages/LoadingPage';
 import LoginPage from './pages/LoginPage';
 import ChatsPage from './pages/ChatsPage';
@@ -30,35 +31,57 @@ function navigation() {
             <Primary.Screen name="SecondaryNav" component={SecondaryNav} />
         </Primary.Navigator>
     );
+    const SecondNavStyle = StyleSheet.create({
+        tabBarStyle: {
+            height: footerHeight,
+            borderTopColor: colors.pBeam,
+            borderTopWidth: 1,
+            backgroundColor: colors.container,
+            ...css.beamShadow,
+
+        }
+    });
     const Secondary = createBottomTabNavigator();
     const SecondaryNav = () => (
         <Secondary.Navigator
             screenOptions={{
                 headerShown: false,
-                activeTintColor: colors.pBeam,
+                tabBarActiveTintColor: colors.pBeamBright,
                 inactiveTintColor: colors.text2,
                 tabBarShowLabel: false,
-                tabBarStyle: {
-                    height: footerHeight,
-                    backgroundColor: colors.container,
-                }
+                tabBarStyle: SecondNavStyle.tabBarStyle,
             }}
         >
             <Secondary.Screen
                 name="TChatNav"
                 component={TChatNav}
-                options={({ navigation }) => (
-                    {
-                        tabBarIcon: ({ color }) =>
-                            <IconButton
-                                icon="md-chatbubble-ellipses"
-                                color={color}
-                                brand="Ionicons"
-                                size={36}
-                                onPress={() => navigation.navigate("TChatNav")}
-                            />
-                    }
-                )}
+                options={({ navigation, route }) => {
+                    React.useLayoutEffect(() => {
+                        const routeName = getFocusedRouteNameFromRoute(route);
+                        if (debug) console.log(routeName);
+                        if (routeName === "ChatPage") {
+                            navigation.setOptions({ tabBarStyle: { display: 'none' } });
+                        } else {
+                            navigation.setOptions({ tabBarStyle: SecondNavStyle.tabBarStyle });
+                        }
+                    }, [navigation, route]);
+                    return (
+                        {
+                            tabBarIcon: ({ color }) =>
+                                <IconButton
+                                    icon="md-chatbubble-ellipses"
+                                    color={color}
+                                    brand="Ionicons"
+                                    size={36}
+                                    style={{
+                                        ...css.beamShadow,
+                                        shadowColor: color,
+                                    }}
+                                    onPress={() => navigation.navigate("TChatNav")}
+                                />
+                        }
+                    )
+                }}
             />
             <Secondary.Screen
                 name="UProfileSettings"
@@ -71,6 +94,10 @@ function navigation() {
                                 brand="MaterialCommunityIcons"
                                 color={color}
                                 size={36}
+                                style={{
+                                    ...css.beamShadow,
+                                    shadowColor: color,
+                                }}
                                 onPress={() => navigation.navigate("UProfileSettings")}
                             />
                     }
@@ -87,6 +114,10 @@ function navigation() {
                                 color={color}
                                 brand="MaterialCommunityIcons"
                                 size={36}
+                                style={{
+                                    ...css.beamShadow,
+                                    shadowColor: color,
+                                }}
                                 onPress={() => navigation.navigate("OtherScreen2")}
                             />
                     }
@@ -102,11 +133,14 @@ function navigation() {
                 gestureEnabled: false,
                 headerStyle: {
                     backgroundColor: colors.container,
+                    borderBottomColor: colors.pBeam,
+                    borderBottomWidth: 1,
+                    ...css.beamShadow
                 },
-                headerTintColor: colors.pBeam,
-                headerLeft: ()=><></>
-                
+                headerTintColor: colors.pBeamBright,
+                headerLeft: () => <></>,
             }}
+            
         >
             <TChat.Screen name="ChatsPage" component={ChatsPage} options={{ title: "Chats" }} />
             <TChat.Screen name="ChatPage" component={ChatPage} options={({ route, navigation }) => (
@@ -115,7 +149,7 @@ function navigation() {
                     headerLeft: () => (
                         <IconButton
                             icon="ios-chevron-back-outline"
-                            color={colors.pBeam}
+                            color={colors.pBeamBright}
                             brand="Ionicons"
                             size={36}
                             onPress={() => navigation.goBack()}

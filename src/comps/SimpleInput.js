@@ -12,9 +12,9 @@ import BeamTitle from './BeamTitle';
 //NOTE:        To get this component without any icons or text, take container and inputtext styles. 
 //             Remove all non TextInput subcomponents of primary view container
 
-function SimpleInput({reference, icon, text, ...props}) {
+function SimpleInput({reference, icon, text, cStyle, tStyle, ...props}) {
     return (
-        <View style={styles.container}>
+        <View style={[styles.container, cStyle]}>
             {icon &&
                 <MaterialCommunityIcons
                     name={icon}
@@ -25,7 +25,7 @@ function SimpleInput({reference, icon, text, ...props}) {
             <TextInput
                 ref={reference}
                 placeholderTextColor={colors.text1}
-                style={styles.inputText}
+                style={[styles.inputText, tStyle]}
                 {...props}
             />
             {text && <BeamTitle size={16}>{text}</BeamTitle>}

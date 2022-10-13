@@ -1,13 +1,12 @@
 {
   "ExpandedNodes": [
     "",
-    "\\amplify\\backend",
-    "\\amplify\\backend\\api",
-    "\\amplify\\backend\\api\\proxychat",
+    "\\assets",
     "\\src",
     "\\src\\comps",
-    "\\src\\graphql"
+    "\\src\\graphql",
+    "\\src\\pages"
   ],
-  "SelectedNode": "\\src\\comps\\screen.js",
+  "SelectedNode": "\\src\\comps\\ProfileCircle.js",
   "PreviewInSolutionExplorer": false
 }
