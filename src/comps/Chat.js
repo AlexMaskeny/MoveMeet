@@ -1,5 +1,6 @@
 import React from 'react';
 import { View, StyleSheet, ImageBackground, FlatList } from 'react-native';
+import { useKeyboard } from '@react-native-community/hooks';
 
 import { colors, css } from '../config';
 import BeamTitle from './BeamTitle';
@@ -21,6 +22,7 @@ function Chat({
     navigation,
     ...props
 }) {
+    const Keyboard = useKeyboard();
     return (
         <View style={styles.container}>
             <ImageBackground
@@ -83,7 +85,7 @@ function Chat({
                         marginTop: -60,
                         alignSelf: "center",
                     }}
-                    onPress={() => navigation.navigate("ChatPage", { name: title })}
+                    onPress={() => navigation.navigate("ChatPage", { name: title, KeyboardHeight: Keyboard.keyboardHeight })}
                     
                 />
             </View>

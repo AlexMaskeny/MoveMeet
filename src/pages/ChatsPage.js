@@ -1,7 +1,7 @@
 import React from 'react';
 import { StyleSheet, Image, ActivityIndicator, View } from 'react-native';
-import { colors, debug } from '../config';
 
+import { colors, debug } from '../config';
 import Screen from '../comps/Screen';
 import Chat from '../comps/Chat';
 import DisabledChat from '../comps/DisabledChat';
@@ -81,7 +81,6 @@ const testMembers = [
 //REMOVE ON PRODUCTON [END]
 
 function ChatsPage({ navigation }) {
-
     return (
         <>
             <Screen innerStyle={styles.page}>
