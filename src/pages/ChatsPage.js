@@ -18,61 +18,97 @@ const testMembers = [
     {
         id: "1",
         username: "alexander",
-        ppic: {uri: 'https://alexmaskeny.com/wp-content/uploads/2020/11/dragonbackground.jpg'}
+        ppic: {
+            uri: 'https://alexmaskeny.com/wp-content/uploads/2020/11/dragonbackground.jpg',
+            loadImage: 'https://alexmaskeny.com/wp-content/uploads/2022/10/dragonbackground-e1665935077983.jpg',
+        }
     },
     {
         id: "2",
         username: "alex",
-        ppic: { uri: 'https://alexmaskeny.com/wp-content/uploads/2020/11/dragonbackground.jpg' }
+        ppic: {
+            uri: 'https://alexmaskeny.com/wp-content/uploads/2020/11/dragonbackground.jpg',
+            loadImage: 'https://alexmaskeny.com/wp-content/uploads/2022/10/dragonbackground-e1665935077983.jpg',
+        }
     },
     {
         id: "3",
         username: "grace",
-        ppic: { uri: 'https://alexmaskeny.com/wp-content/uploads/2020/11/dragonbackground.jpg' }
+        ppic: {
+            uri: 'https://alexmaskeny.com/wp-content/uploads/2020/11/dragonbackground.jpg',
+            loadImage: 'https://alexmaskeny.com/wp-content/uploads/2022/10/dragonbackground-e1665935077983.jpg',
+        }
     },
     {
         id: "4",
         username: "Grace Suber",
-        ppic: { uri: 'https://alexmaskeny.com/wp-content/uploads/2020/11/dragonbackground.jpg' }
+        ppic: {
+            uri: 'https://alexmaskeny.com/wp-content/uploads/2020/11/dragonbackground.jpg',
+            loadImage: 'https://alexmaskeny.com/wp-content/uploads/2022/10/dragonbackground-e1665935077983.jpg',
+        }
     },
     {
         id: "5",
         username: "Augustus",
-        ppic: { uri: 'https://alexmaskeny.com/wp-content/uploads/2020/11/dragonbackground.jpg' }
+        ppic: {
+            uri: 'https://alexmaskeny.com/wp-content/uploads/2020/11/dragonbackground.jpg',
+            loadImage: 'https://alexmaskeny.com/wp-content/uploads/2022/10/dragonbackground-e1665935077983.jpg',
+        }
     },
     {
         id: "6",
         username: "Augustus",
-        ppic: { uri: 'https://alexmaskeny.com/wp-content/uploads/2020/11/dragonbackground.jpg' }
+        ppic: {
+            uri: 'https://alexmaskeny.com/wp-content/uploads/2020/11/dragonbackground.jpg',
+            loadImage: 'https://alexmaskeny.com/wp-content/uploads/2022/10/dragonbackground-e1665935077983.jpg',
+        }
     },
     {
         id: "7",
         username: "alexander",
-        ppic: { uri: 'https://alexmaskeny.com/wp-content/uploads/2020/11/dragonbackground.jpg' }
+        ppic: {
+            uri: 'https://alexmaskeny.com/wp-content/uploads/2020/11/dragonbackground.jpg',
+            loadImage: 'https://alexmaskeny.com/wp-content/uploads/2022/10/dragonbackground-e1665935077983.jpg',
+        }
     },
     {
         id: "8",
         username: "alex",
-        ppic: { uri: 'https://alexmaskeny.com/wp-content/uploads/2020/11/dragonbackground.jpg' }
+        ppic: {
+            uri: 'https://alexmaskeny.com/wp-content/uploads/2020/11/dragonbackground.jpg',
+            loadImage: 'https://alexmaskeny.com/wp-content/uploads/2022/10/dragonbackground-e1665935077983.jpg',
+        }
     },
     {
         id: "9",
         username: "grace",
-        ppic: { uri: 'https://alexmaskeny.com/wp-content/uploads/2020/11/dragonbackground.jpg' }
+        ppic: {
+            uri: 'https://alexmaskeny.com/wp-content/uploads/2020/11/dragonbackground.jpg',
+            loadImage: 'https://alexmaskeny.com/wp-content/uploads/2022/10/dragonbackground-e1665935077983.jpg',
+        }
     }, {
         id: "10",
         username: "Grace Suber",
-        ppic: { uri: 'https://alexmaskeny.com/wp-content/uploads/2020/11/dragonbackground.jpg' }
+        ppic: {
+            uri: 'https://alexmaskeny.com/wp-content/uploads/2020/11/dragonbackground.jpg',
+            loadImage: 'https://alexmaskeny.com/wp-content/uploads/2022/10/dragonbackground-e1665935077983.jpg',
+        }
     },
     {
         id: "11",
         username: "Augustus",
-        ppic: { uri: 'https://alexmaskeny.com/wp-content/uploads/2020/11/dragonbackground.jpg' }
+        ppic: {
+            uri: 'https://alexmaskeny.com/wp-content/uploads/2020/11/dragonbackground.jpg',
+            loadImage: 'https://alexmaskeny.com/wp-content/uploads/2022/10/dragonbackground-e1665935077983.jpg',
+        }
     },
     {
         id: "12",
         username: "Augustus",
-        ppic: { uri: 'https://alexmaskeny.com/wp-content/uploads/2020/11/dragonbackground.jpg' }
+        ppic: {
+            uri: 'https://alexmaskeny.com/wp-content/uploads/2020/11/dragonbackground.jpg',
+            loadImage: 'https://alexmaskeny.com/wp-content/uploads/2022/10/dragonbackground-e1665935077983.jpg',
+        }
     },
 ]
 //!!!!!!
@@ -85,14 +121,21 @@ function ChatsPage({ navigation }) {
         <>
             <Screen innerStyle={styles.page}>
                 <Chat
-                    background={{ uri: 'https://alexmaskeny.com/wp-content/uploads/2020/11/dragonbackground.jpg' }}
+                    background={{
+                        uri: 'https://alexmaskeny.com/wp-content/uploads/2020/11/dragonbackground.jpg',
+                        loadImage: 'https://alexmaskeny.com/wp-content/uploads/2022/10/dragonbackground-e1665935077983.jpg',
+                    }}
                     members={testMembers}
                     title="Mega Chat"
+                    created="10/16/2022"
                     navigation={navigation}
                     onEndReached={()=>console.log("end")}
                 />
                 <DisabledChat
-                    background={{ uri: 'https://alexmaskeny.com/wp-content/uploads/2020/11/dragonbackground.jpg' }}
+                    background={{
+                        uri: 'https://alexmaskeny.com/wp-content/uploads/2020/11/dragonbackground.jpg',
+                        loadImage: 'https://alexmaskeny.com/wp-content/uploads/2022/10/dragonbackground-e1665935077983.jpg',
+                    }}
                     title="Mega Chat"
                     members={testMembers}
                 />

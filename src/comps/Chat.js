@@ -1,5 +1,5 @@
 import React from 'react';
-import { View, StyleSheet, ImageBackground, FlatList } from 'react-native';
+import { View, StyleSheet, FlatList } from 'react-native';
 
 import { colors, css } from '../config';
 import BeamTitle from './BeamTitle';
@@ -8,6 +8,7 @@ import PCircleAndTitle from './PCircleAndTitle';
 import ChatButton from './ChatButton';
 import { LinearGradient } from 'expo-linear-gradient';
 import SimpleMessage from './SimpleMessage';
+import ImageBackground from './ImageBackgroundLoader'
 
 //DESCRIPTION: A generalized chat box which will be embedded
 //             inside of a flatlist on the ChatsPage
@@ -18,13 +19,15 @@ function Chat({
     background,
     members,
     title,
+    created,
     navigation,
     ...props
 }) {
     return (
         <View style={styles.container}>
             <ImageBackground
-                source={background}
+                source={{ uri: background.uri }}
+                loadImage={{uri: background.loadImage}}
                 imageStyle={styles.image}
                 style={styles.imageBackground}
                 resizeMode="cover"
@@ -83,7 +86,7 @@ function Chat({
                         marginTop: -60,
                         alignSelf: "center",
                     }}
-                    onPress={() => navigation.navigate("ChatPage", { name: title })}
+                    onPress={() => navigation.navigate("ChatPage", { name: title, created: created })}
                     
                 />
             </View>

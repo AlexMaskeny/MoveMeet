@@ -9,6 +9,7 @@ export const colors = {
     text1: "#C4C4C4", //Lighest Grey Text
     text2: "#A6A6A6", //Second Lighest Grey Text
     text3: "#898989", //Third Lighest Grey Text
+    text4: "rgba(137,137,137,0.60)"
 }
 
 export const css = {

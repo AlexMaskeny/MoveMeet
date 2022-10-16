@@ -1,16 +1,19 @@
 import React from 'react';
-import { Text, View, StyleSheet, Image } from 'react-native';
+import { Text, View, StyleSheet } from 'react-native';
 
 import { colors, css } from '../config';
-
+import Image from './ImageLoader';
 
 function ProfileCircle({
-    ppic
+    ppic,
+    style
+    
 }) {
     return (
-        <View style={styles.container}>
+        <View style={{ ...styles.container, ...style }}>
             <Image
-                source={ppic}
+                source={{ uri: ppic.uri }}
+                loadImage={{ uri: ppic.loadImage }}
                 style={styles.image}
                 resizeMode="cover"
             />

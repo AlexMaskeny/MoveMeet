@@ -1,5 +1,6 @@
 import React from 'react';
-import { Text, View, StyleSheet, ImageBackground, FlatList } from 'react-native';
+import { Text, View, StyleSheet, FlatList } from 'react-native';
+import { LinearGradient } from 'expo-linear-gradient';
 
 import { colors, css } from '../config';
 import DarkBeam from './DarkBeam';
@@ -7,7 +8,7 @@ import BeamTitle from './BeamTitle';
 import IconTitle from './IconTitle';
 import PCircleAndTitle from './PCircleAndTitle';
 import ChatButton from './ChatButton';
-import { LinearGradient } from 'expo-linear-gradient';
+import ImageBackground from './ImageBackgroundLoader'
 
 //DESCRIPTION: A generalized chat box which will be embedded
 //             inside of a flatlist on the ChatsPage
@@ -24,11 +25,12 @@ function DisabledChat({
         <>
         <View style={styles.container}>
             <ImageBackground
-                source={background}
+                source={{ uri: background.uri }}
+                loadImage={{ uri: background.loadImage }}
                 imageStyle={styles.image}
                 style={styles.imageBackground}
                 resizeMode="cover"
-                >
+            >
                     <BeamTitle style={{ ...styles.title, color: colors.text2 }}>{title}</BeamTitle>
             </ImageBackground>
             <View style={styles.sub1}>
