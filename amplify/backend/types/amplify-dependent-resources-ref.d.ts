@@ -15,5 +15,11 @@ export type AmplifyDependentResourcesAttributes = {
             "GraphQLAPIIdOutput": "string",
             "GraphQLAPIEndpointOutput": "string"
         }
+    },
+    "storage": {
+        "ProxyChatStorage": {
+            "BucketName": "string",
+            "Region": "string"
+        }
     }
 }

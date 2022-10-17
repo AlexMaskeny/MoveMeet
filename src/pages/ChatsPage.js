@@ -5,7 +5,6 @@ import { colors, debug } from '../config';
 import Screen from '../comps/Screen';
 import Chat from '../comps/Chat';
 import DisabledChat from '../comps/DisabledChat';
-import SimpleButton from '../comps/SimpleButton';
 
 //DESCRIPTION: A primary page of the SecondaryNav
 //             is the hub for all localized chats
@@ -19,95 +18,107 @@ const testMembers = [
         id: "1",
         username: "alexander",
         ppic: {
-            uri: 'https://alexmaskeny.com/wp-content/uploads/2020/11/dragonbackground.jpg',
+            uri: 'https://cbeyondata.com/wp-content/uploads/2020/10/iStock-1237546531-1920x1280.jpg',
             loadImage: 'https://alexmaskeny.com/wp-content/uploads/2022/10/dragonbackground-e1665935077983.jpg',
+            key: "testMembers1",
         }
     },
     {
         id: "2",
         username: "alex",
         ppic: {
-            uri: 'https://alexmaskeny.com/wp-content/uploads/2020/11/dragonbackground.jpg',
+            uri: 'https://cbeyondata.com/wp-content/uploads/2020/10/iStock-1237546531-1920x1280.jpg',
             loadImage: 'https://alexmaskeny.com/wp-content/uploads/2022/10/dragonbackground-e1665935077983.jpg',
+            key: "testMembers2",
         }
     },
     {
         id: "3",
         username: "grace",
         ppic: {
-            uri: 'https://alexmaskeny.com/wp-content/uploads/2020/11/dragonbackground.jpg',
+            uri: 'https://cbeyondata.com/wp-content/uploads/2020/10/iStock-1237546531-1920x1280.jpg',
             loadImage: 'https://alexmaskeny.com/wp-content/uploads/2022/10/dragonbackground-e1665935077983.jpg',
+            key: "testMembers3",
         }
     },
     {
         id: "4",
         username: "Grace Suber",
         ppic: {
-            uri: 'https://alexmaskeny.com/wp-content/uploads/2020/11/dragonbackground.jpg',
+            uri: 'https://cbeyondata.com/wp-content/uploads/2020/10/iStock-1237546531-1920x1280.jpg',
             loadImage: 'https://alexmaskeny.com/wp-content/uploads/2022/10/dragonbackground-e1665935077983.jpg',
+            key: "testMembers4",
         }
     },
     {
         id: "5",
         username: "Augustus",
         ppic: {
-            uri: 'https://alexmaskeny.com/wp-content/uploads/2020/11/dragonbackground.jpg',
+            uri: 'https://cbeyondata.com/wp-content/uploads/2020/10/iStock-1237546531-1920x1280.jpg',
             loadImage: 'https://alexmaskeny.com/wp-content/uploads/2022/10/dragonbackground-e1665935077983.jpg',
+            key: "testMembers5",
         }
     },
     {
         id: "6",
         username: "Augustus",
         ppic: {
-            uri: 'https://alexmaskeny.com/wp-content/uploads/2020/11/dragonbackground.jpg',
+            uri: 'https://cbeyondata.com/wp-content/uploads/2020/10/iStock-1237546531-1920x1280.jpg',
             loadImage: 'https://alexmaskeny.com/wp-content/uploads/2022/10/dragonbackground-e1665935077983.jpg',
+            key: "testMembers6",
         }
     },
     {
         id: "7",
         username: "alexander",
         ppic: {
-            uri: 'https://alexmaskeny.com/wp-content/uploads/2020/11/dragonbackground.jpg',
+            uri: 'https://cbeyondata.com/wp-content/uploads/2020/10/iStock-1237546531-1920x1280.jpg',
             loadImage: 'https://alexmaskeny.com/wp-content/uploads/2022/10/dragonbackground-e1665935077983.jpg',
+            key: "testMembers7",
         }
     },
     {
         id: "8",
         username: "alex",
         ppic: {
-            uri: 'https://alexmaskeny.com/wp-content/uploads/2020/11/dragonbackground.jpg',
+            uri: 'https://cbeyondata.com/wp-content/uploads/2020/10/iStock-1237546531-1920x1280.jpg',
             loadImage: 'https://alexmaskeny.com/wp-content/uploads/2022/10/dragonbackground-e1665935077983.jpg',
+            key: "testMembers8",
         }
     },
     {
         id: "9",
         username: "grace",
         ppic: {
-            uri: 'https://alexmaskeny.com/wp-content/uploads/2020/11/dragonbackground.jpg',
+            uri: 'https://cbeyondata.com/wp-content/uploads/2020/10/iStock-1237546531-1920x1280.jpg',
             loadImage: 'https://alexmaskeny.com/wp-content/uploads/2022/10/dragonbackground-e1665935077983.jpg',
+            key: "testMembers9",
         }
     }, {
         id: "10",
         username: "Grace Suber",
         ppic: {
-            uri: 'https://alexmaskeny.com/wp-content/uploads/2020/11/dragonbackground.jpg',
+            uri: 'https://cbeyondata.com/wp-content/uploads/2020/10/iStock-1237546531-1920x1280.jpg',
             loadImage: 'https://alexmaskeny.com/wp-content/uploads/2022/10/dragonbackground-e1665935077983.jpg',
+            key: "testMembers10",
         }
     },
     {
         id: "11",
         username: "Augustus",
         ppic: {
-            uri: 'https://alexmaskeny.com/wp-content/uploads/2020/11/dragonbackground.jpg',
+            uri: 'https://cbeyondata.com/wp-content/uploads/2020/10/iStock-1237546531-1920x1280.jpg',
             loadImage: 'https://alexmaskeny.com/wp-content/uploads/2022/10/dragonbackground-e1665935077983.jpg',
+            key: "testMembers11",
         }
     },
     {
         id: "12",
         username: "Augustus",
         ppic: {
-            uri: 'https://alexmaskeny.com/wp-content/uploads/2020/11/dragonbackground.jpg',
+            uri: 'https://cbeyondata.com/wp-content/uploads/2020/10/iStock-1237546531-1920x1280.jpg',
             loadImage: 'https://alexmaskeny.com/wp-content/uploads/2022/10/dragonbackground-e1665935077983.jpg',
+            key: "testMembers12",
         }
     },
 ]
@@ -124,6 +135,7 @@ function ChatsPage({ navigation }) {
                     background={{
                         uri: 'https://alexmaskeny.com/wp-content/uploads/2020/11/dragonbackground.jpg',
                         loadImage: 'https://alexmaskeny.com/wp-content/uploads/2022/10/dragonbackground-e1665935077983.jpg',
+                        key: "background1",
                     }}
                     members={testMembers}
                     title="Mega Chat"
@@ -135,6 +147,7 @@ function ChatsPage({ navigation }) {
                     background={{
                         uri: 'https://alexmaskeny.com/wp-content/uploads/2020/11/dragonbackground.jpg',
                         loadImage: 'https://alexmaskeny.com/wp-content/uploads/2022/10/dragonbackground-e1665935077983.jpg',
+                        key: 'background2'
                     }}
                     title="Mega Chat"
                     members={testMembers}

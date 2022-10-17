@@ -50,5 +50,13 @@
         }
       }
     }
+  },
+  "function": {},
+  "storage": {
+    "ProxyChatStorage": {
+      "service": "S3",
+      "providerPlugin": "awscloudformation",
+      "dependsOn": []
+    }
   }
 }

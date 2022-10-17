@@ -26,8 +26,7 @@ function Chat({
     return (
         <View style={styles.container}>
             <ImageBackground
-                source={{ uri: background.uri }}
-                loadImage={{uri: background.loadImage}}
+                source={background}
                 imageStyle={styles.image}
                 style={styles.imageBackground}
                 resizeMode="cover"

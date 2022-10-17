@@ -6,7 +6,9 @@ import { Amplify } from 'aws-amplify';
 import awsconfig from './src/aws-exports';
 import Navigation from './src/navigation';
 
-Amplify.configure(awsconfig)
+
+Amplify.configure(awsconfig);
+
 
 export default function App() {
     return (

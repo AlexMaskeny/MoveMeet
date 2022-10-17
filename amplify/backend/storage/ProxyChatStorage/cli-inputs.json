@@ -1,0 +1,14 @@
+{
+  "resourceName": "ProxyChatStorage",
+  "policyUUID": "f8074fe1",
+  "bucketName": "proxychatf2d762e9bc784204880374b0ca905be4",
+  "storageAccess": "auth",
+  "guestAccess": [],
+  "authAccess": [
+    "CREATE_AND_UPDATE",
+    "READ",
+    "DELETE"
+  ],
+  "triggerFunction": "NONE",
+  "groupAccess": {}
+}

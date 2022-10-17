@@ -1,6 +1,8 @@
 import React from 'react';
-import { StyleSheet, Image, ActivityIndicator, InteractionManager, FlatList, View, KeyboardAvoidingView } from 'react-native';
+import { StyleSheet, Image, ActivityIndicator, Alert, FlatList, View, KeyboardAvoidingView } from 'react-native';
 import { useHeaderHeight } from '@react-navigation/elements';
+import * as ImagePicker from 'expo-image-picker';
+import { Storage } from 'aws-amplify'
 
 import IconButton from '../comps/IconButton';
 import {colors,css,debug } from '../config'
@@ -27,6 +29,7 @@ const chats = [
         ppic: {
             uri: 'https://alexmaskeny.com/wp-content/uploads/2020/11/dragonbackground.jpg',
             loadImage: 'https://alexmaskeny.com/wp-content/uploads/2022/10/dragonbackground-e1665935077983.jpg',
+            key: "Chats1"
         },
         username: "Alexander",
         message: "Hey this is alex, what's up?"
@@ -36,6 +39,7 @@ const chats = [
         ppic: {
             uri: 'https://alexmaskeny.com/wp-content/uploads/2020/11/dragonbackground.jpg',
             loadImage: 'https://alexmaskeny.com/wp-content/uploads/2022/10/dragonbackground-e1665935077983.jpg',
+            key: "Chats2"
         },
         username: "Alexander",
         message: "Hey this is alex, what's up?"
@@ -45,6 +49,7 @@ const chats = [
         ppic: {
             uri: 'https://alexmaskeny.com/wp-content/uploads/2020/11/dragonbackground.jpg',
             loadImage: 'https://alexmaskeny.com/wp-content/uploads/2022/10/dragonbackground-e1665935077983.jpg',
+            key: "Chats3"
         },
         username: "Alexander",
         message: "Hey this is alex, what's up?"
@@ -54,6 +59,7 @@ const chats = [
         ppic: {
             uri: 'https://alexmaskeny.com/wp-content/uploads/2020/11/dragonbackground.jpg',
             loadImage: 'https://alexmaskeny.com/wp-content/uploads/2022/10/dragonbackground-e1665935077983.jpg',
+            key: "Chats4"
         },
         username: "Alexander",
         message: "Hey this is alex, what's up?"
@@ -63,6 +69,7 @@ const chats = [
         ppic: {
             uri: 'https://alexmaskeny.com/wp-content/uploads/2020/11/dragonbackground.jpg',
             loadImage: 'https://alexmaskeny.com/wp-content/uploads/2022/10/dragonbackground-e1665935077983.jpg',
+            key: "Chats5"
         },
         username: "Alexander",
         message: "Hey this is alex, what's up?"
@@ -72,6 +79,7 @@ const chats = [
         ppic: {
             uri: 'https://alexmaskeny.com/wp-content/uploads/2020/11/dragonbackground.jpg',
             loadImage: 'https://alexmaskeny.com/wp-content/uploads/2022/10/dragonbackground-e1665935077983.jpg',
+            key: "Chats6"
         },
         username: "Alexander",
         message: "Hey this is alex, what's up?"
@@ -81,6 +89,7 @@ const chats = [
         ppic: {
             uri: 'https://alexmaskeny.com/wp-content/uploads/2020/11/dragonbackground.jpg',
             loadImage: 'https://alexmaskeny.com/wp-content/uploads/2022/10/dragonbackground-e1665935077983.jpg',
+            key: "Chats7"
         },
         username: "Alexander",
         message: "Hey this is alex, what's up?"
@@ -90,6 +99,7 @@ const chats = [
         ppic: {
             uri: 'https://alexmaskeny.com/wp-content/uploads/2020/11/dragonbackground.jpg',
             loadImage: 'https://alexmaskeny.com/wp-content/uploads/2022/10/dragonbackground-e1665935077983.jpg',
+            key: "Chats8"
         },
         username: "Alexander",
         message: "Hey this is alex, what's up?"
@@ -99,6 +109,7 @@ const chats = [
         ppic: {
             uri: 'https://alexmaskeny.com/wp-content/uploads/2020/11/dragonbackground.jpg',
             loadImage: 'https://alexmaskeny.com/wp-content/uploads/2022/10/dragonbackground-e1665935077983.jpg',
+            key: "Chats9"
         },
         username: "Alexander",
         message: "Hey this is alex, what's up?"
@@ -108,6 +119,7 @@ const chats = [
         ppic: {
             uri: 'https://alexmaskeny.com/wp-content/uploads/2020/11/dragonbackground.jpg',
             loadImage: 'https://alexmaskeny.com/wp-content/uploads/2022/10/dragonbackground-e1665935077983.jpg',
+            key: "Chats10"
         },
         username: "Alexander",
         message: "Hey this is alex, what's up?"
@@ -117,6 +129,7 @@ const chats = [
         ppic: {
             uri: 'https://alexmaskeny.com/wp-content/uploads/2020/11/dragonbackground.jpg',
             loadImage: 'https://alexmaskeny.com/wp-content/uploads/2022/10/dragonbackground-e1665935077983.jpg',
+            key: "Chats11"
         },
         username: "Alexander",
         message: "Hey this is alex, what's up?"
@@ -126,6 +139,7 @@ const chats = [
         ppic: {
             uri: 'https://alexmaskeny.com/wp-content/uploads/2020/11/dragonbackground.jpg',
             loadImage: 'https://alexmaskeny.com/wp-content/uploads/2022/10/dragonbackground-e1665935077983.jpg',
+            key: "Chats12"
         },
         username: "Alexander",
         message: "Hey this is alex, what's up?"
@@ -135,6 +149,7 @@ const chats = [
         ppic: {
             uri: 'https://alexmaskeny.com/wp-content/uploads/2020/11/dragonbackground.jpg',
             loadImage: 'https://alexmaskeny.com/wp-content/uploads/2022/10/dragonbackground-e1665935077983.jpg',
+            key: "Chats13"
         },
         username: "Alexander",
         message: "Hey this is alex, what's upssssssssssssssssssssssssssssssssssssssssssss?\nHey this is alex, what's up?\nHey this is alex, what's up?"
@@ -145,6 +160,7 @@ const chats = [
         ppic: {
             uri: 'https://alexmaskeny.com/wp-content/uploads/2020/11/dragonbackground.jpg',
             loadImage: 'https://alexmaskeny.com/wp-content/uploads/2022/10/dragonbackground-e1665935077983.jpg',
+            key: "Chats14"
         },
         username: "Gracee",
         message: "Hey this is Graceeeee, what's upssssssssssssssssssssssssssssssssssssssssssss?\nHey this is graceeee, what's up?\nHey this is grace, what's up?"
@@ -155,17 +171,48 @@ const chats = [
 //!!!!!!
 //REMOVE ON PRODUCTON [END]
 
+
 function ChatPage({ route, navigation }) {
     const [msg, setMsg] = React.useState("");
     const msgRef = React.useRef();
     const chatsRef = React.useRef();
     const headerHeight = useHeaderHeight();
+
     React.useEffect(() => {
         const unsubscribe = navigation.addListener('transitionEnd', () => {
             msgRef.current.focus();
         })
         return unsubscribe;
     }, [navigation])
+
+    const selectImage = async () => {
+        const cameraRollStatus = await ImagePicker.requestMediaLibraryPermissionsAsync();
+        if (cameraRollStatus.granted) {
+            const result = await ImagePicker.launchImageLibraryAsync({
+                mediaTypes: "Images",
+                aspect: [4, 3],
+                quality: 1,
+            })
+            await uploadImage(result);
+        } else {
+            Alert.alert("No Permsision");
+        }
+    }
+    const uploadImage = async (pickerResult) => {
+        try {
+            if (pickerResult.cancelled) {
+                return
+            } else {
+                const response = await fetch(pickerResult.uri);
+                const img = await response.blob();
+                
+                const result = await Storage.put("TestImage.jpg", img);
+                if (debug) console.log(result);
+            }
+        } catch (error) {
+            if (debug) console.log(error);
+        }
+    }
     return (
         <Screen innerStyle={styles.page}>
             <KeyboardAvoidingView style={{ flex: 1, justifyContent: "flex-end" }} behavior="padding" keyboardVerticalOffset={headerHeight+4}>
@@ -243,7 +290,7 @@ function ChatPage({ route, navigation }) {
                         color={colors.text3}
                         size={34}
                         style={{ marginBottom: 6, } }
-                        onPress={() => { if (debug) console.log("Open Camera Roll") }}
+                        onPress={() => { selectImage() }}
                     />
                     <SimpleInput
                         reference={msgRef}

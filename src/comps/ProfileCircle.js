@@ -12,8 +12,7 @@ function ProfileCircle({
     return (
         <View style={{ ...styles.container, ...style }}>
             <Image
-                source={{ uri: ppic.uri }}
-                loadImage={{ uri: ppic.loadImage }}
+                source={ppic}
                 style={styles.image}
                 resizeMode="cover"
             />
