@@ -11,6 +11,7 @@ import ChatsPage from './pages/ChatsPage';
 import ChatPage from './pages/ChatPage';
 import IconButton from './comps/IconButton';
 import UProfileSettings from './pages/UProfileSettings';
+import TestPage from './pages/TestPage';
 
 //The navigation screen starts on the loading screen which uses
 //the useEffect hook immediately calling an inner async function
@@ -105,14 +106,14 @@ function navigation() {
             />
             <Secondary.Screen
                 name="OtherScreen2"
-                component={TChatNav}
+                component={TestPage}
                 options={({ navigation }) => (
                     {
                         tabBarIcon: ({ color }) =>
                             <IconButton
-                                icon="baby-face"
+                                icon="nuclear"
                                 color={color}
-                                brand="MaterialCommunityIcons"
+                                brand="Ionicons"
                                 size={36}
                                 style={{
                                     ...css.beamShadow,

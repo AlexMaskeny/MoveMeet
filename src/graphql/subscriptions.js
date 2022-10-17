@@ -1,12 +1,31 @@
 /* eslint-disable */
 // this is an auto generated file. This will be overwritten
 
-export const onCreateBlog = /* GraphQL */ `
-  subscription OnCreateBlog {
-    onCreateBlog {
+export const onCreateUser = /* GraphQL */ `
+  subscription OnCreateUser($owner: String) {
+    onCreateUser(owner: $owner) {
       id
-      name
+      profilePicture {
+        bucket
+        region
+        loadFull
+        thumbFull
+        full
+        loadSquare
+        thumbSquare
+        square
+      }
+      owner
+      cognitoID
       posts {
+        nextToken
+      }
+      friends {
+        friendID
+        status
+        chatID
+      }
+      messages {
         nextToken
       }
       createdAt
@@ -14,12 +33,31 @@ export const onCreateBlog = /* GraphQL */ `
     }
   }
 `;
-export const onUpdateBlog = /* GraphQL */ `
-  subscription OnUpdateBlog {
-    onUpdateBlog {
+export const onUpdateUser = /* GraphQL */ `
+  subscription OnUpdateUser($owner: String) {
+    onUpdateUser(owner: $owner) {
       id
-      name
+      profilePicture {
+        bucket
+        region
+        loadFull
+        thumbFull
+        full
+        loadSquare
+        thumbSquare
+        square
+      }
+      owner
+      cognitoID
       posts {
+        nextToken
+      }
+      friends {
+        friendID
+        status
+        chatID
+      }
+      messages {
         nextToken
       }
       createdAt
@@ -27,12 +65,109 @@ export const onUpdateBlog = /* GraphQL */ `
     }
   }
 `;
-export const onDeleteBlog = /* GraphQL */ `
-  subscription OnDeleteBlog {
-    onDeleteBlog {
+export const onDeleteUser = /* GraphQL */ `
+  subscription OnDeleteUser($owner: String) {
+    onDeleteUser(owner: $owner) {
       id
-      name
+      profilePicture {
+        bucket
+        region
+        loadFull
+        thumbFull
+        full
+        loadSquare
+        thumbSquare
+        square
+      }
+      owner
+      cognitoID
       posts {
+        nextToken
+      }
+      friends {
+        friendID
+        status
+        chatID
+      }
+      messages {
+        nextToken
+      }
+      createdAt
+      updatedAt
+    }
+  }
+`;
+export const onCreateChat = /* GraphQL */ `
+  subscription OnCreateChat($owner: String) {
+    onCreateChat(owner: $owner) {
+      id
+      owner
+      name
+      type
+      location
+      background {
+        bucket
+        region
+        loadFull
+        thumbFull
+        full
+        loadSquare
+        thumbSquare
+        square
+      }
+      messages {
+        nextToken
+      }
+      createdAt
+      updatedAt
+    }
+  }
+`;
+export const onUpdateChat = /* GraphQL */ `
+  subscription OnUpdateChat($owner: String) {
+    onUpdateChat(owner: $owner) {
+      id
+      owner
+      name
+      type
+      location
+      background {
+        bucket
+        region
+        loadFull
+        thumbFull
+        full
+        loadSquare
+        thumbSquare
+        square
+      }
+      messages {
+        nextToken
+      }
+      createdAt
+      updatedAt
+    }
+  }
+`;
+export const onDeleteChat = /* GraphQL */ `
+  subscription OnDeleteChat($owner: String) {
+    onDeleteChat(owner: $owner) {
+      id
+      owner
+      name
+      type
+      location
+      background {
+        bucket
+        region
+        loadFull
+        thumbFull
+        full
+        loadSquare
+        thumbSquare
+        square
+      }
+      messages {
         nextToken
       }
       createdAt
@@ -41,116 +176,206 @@ export const onDeleteBlog = /* GraphQL */ `
   }
 `;
 export const onCreatePost = /* GraphQL */ `
-  subscription OnCreatePost {
-    onCreatePost {
+  subscription OnCreatePost($owner: String) {
+    onCreatePost(owner: $owner) {
       id
-      title
-      blog {
+      owner
+      user {
         id
-        name
+        owner
+        cognitoID
         createdAt
         updatedAt
       }
-      comments {
-        nextToken
+      image {
+        bucket
+        region
+        loadFull
+        thumbFull
+        full
+        loadSquare
+        thumbSquare
+        square
       }
       createdAt
       updatedAt
-      blogPostsId
+      userPostsId
     }
   }
 `;
 export const onUpdatePost = /* GraphQL */ `
-  subscription OnUpdatePost {
-    onUpdatePost {
+  subscription OnUpdatePost($owner: String) {
+    onUpdatePost(owner: $owner) {
       id
-      title
-      blog {
+      owner
+      user {
         id
-        name
+        owner
+        cognitoID
         createdAt
         updatedAt
       }
-      comments {
-        nextToken
+      image {
+        bucket
+        region
+        loadFull
+        thumbFull
+        full
+        loadSquare
+        thumbSquare
+        square
       }
       createdAt
       updatedAt
-      blogPostsId
+      userPostsId
     }
   }
 `;
 export const onDeletePost = /* GraphQL */ `
-  subscription OnDeletePost {
-    onDeletePost {
+  subscription OnDeletePost($owner: String) {
+    onDeletePost(owner: $owner) {
       id
-      title
-      blog {
+      owner
+      user {
         id
+        owner
+        cognitoID
+        createdAt
+        updatedAt
+      }
+      image {
+        bucket
+        region
+        loadFull
+        thumbFull
+        full
+        loadSquare
+        thumbSquare
+        square
+      }
+      createdAt
+      updatedAt
+      userPostsId
+    }
+  }
+`;
+export const onCreateMessage = /* GraphQL */ `
+  subscription OnCreateMessage($owner: String) {
+    onCreateMessage(owner: $owner) {
+      id
+      chat {
+        id
+        owner
         name
+        type
+        location
         createdAt
         updatedAt
       }
-      comments {
-        nextToken
-      }
-      createdAt
-      updatedAt
-      blogPostsId
-    }
-  }
-`;
-export const onCreateComment = /* GraphQL */ `
-  subscription OnCreateComment {
-    onCreateComment {
-      id
-      post {
+      user {
         id
-        title
+        owner
+        cognitoID
         createdAt
         updatedAt
-        blogPostsId
+      }
+      owner
+      type
+      Image {
+        bucket
+        region
+        loadFull
+        thumbFull
+        full
+        loadSquare
+        thumbSquare
+        square
       }
       content
       createdAt
       updatedAt
-      postCommentsId
+      userMessagesId
+      chatMessagesId
     }
   }
 `;
-export const onUpdateComment = /* GraphQL */ `
-  subscription OnUpdateComment {
-    onUpdateComment {
+export const onUpdateMessage = /* GraphQL */ `
+  subscription OnUpdateMessage($owner: String) {
+    onUpdateMessage(owner: $owner) {
       id
-      post {
+      chat {
         id
-        title
+        owner
+        name
+        type
+        location
         createdAt
         updatedAt
-        blogPostsId
+      }
+      user {
+        id
+        owner
+        cognitoID
+        createdAt
+        updatedAt
+      }
+      owner
+      type
+      Image {
+        bucket
+        region
+        loadFull
+        thumbFull
+        full
+        loadSquare
+        thumbSquare
+        square
       }
       content
       createdAt
       updatedAt
-      postCommentsId
+      userMessagesId
+      chatMessagesId
     }
   }
 `;
-export const onDeleteComment = /* GraphQL */ `
-  subscription OnDeleteComment {
-    onDeleteComment {
+export const onDeleteMessage = /* GraphQL */ `
+  subscription OnDeleteMessage($owner: String) {
+    onDeleteMessage(owner: $owner) {
       id
-      post {
+      chat {
         id
-        title
+        owner
+        name
+        type
+        location
         createdAt
         updatedAt
-        blogPostsId
+      }
+      user {
+        id
+        owner
+        cognitoID
+        createdAt
+        updatedAt
+      }
+      owner
+      type
+      Image {
+        bucket
+        region
+        loadFull
+        thumbFull
+        full
+        loadSquare
+        thumbSquare
+        square
       }
       content
       createdAt
       updatedAt
-      postCommentsId
+      userMessagesId
+      chatMessagesId
     }
   }
 `;

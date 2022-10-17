@@ -1,12 +1,31 @@
 /* eslint-disable */
 // this is an auto generated file. This will be overwritten
 
-export const getBlog = /* GraphQL */ `
-  query GetBlog($id: ID!) {
-    getBlog(id: $id) {
+export const getUser = /* GraphQL */ `
+  query GetUser($id: ID!) {
+    getUser(id: $id) {
       id
-      name
+      profilePicture {
+        bucket
+        region
+        loadFull
+        thumbFull
+        full
+        loadSquare
+        thumbSquare
+        square
+      }
+      owner
+      cognitoID
       posts {
+        nextToken
+      }
+      friends {
+        friendID
+        status
+        chatID
+      }
+      messages {
         nextToken
       }
       createdAt
@@ -14,16 +33,63 @@ export const getBlog = /* GraphQL */ `
     }
   }
 `;
-export const listBlogs = /* GraphQL */ `
-  query ListBlogs(
-    $filter: ModelBlogFilterInput
+export const listUsers = /* GraphQL */ `
+  query ListUsers(
+    $filter: ModelUserFilterInput
     $limit: Int
     $nextToken: String
   ) {
-    listBlogs(filter: $filter, limit: $limit, nextToken: $nextToken) {
+    listUsers(filter: $filter, limit: $limit, nextToken: $nextToken) {
       items {
         id
+        owner
+        cognitoID
+        createdAt
+        updatedAt
+      }
+      nextToken
+    }
+  }
+`;
+export const getChat = /* GraphQL */ `
+  query GetChat($id: ID!) {
+    getChat(id: $id) {
+      id
+      owner
+      name
+      type
+      location
+      background {
+        bucket
+        region
+        loadFull
+        thumbFull
+        full
+        loadSquare
+        thumbSquare
+        square
+      }
+      messages {
+        nextToken
+      }
+      createdAt
+      updatedAt
+    }
+  }
+`;
+export const listChats = /* GraphQL */ `
+  query ListChats(
+    $filter: ModelChatFilterInput
+    $limit: Int
+    $nextToken: String
+  ) {
+    listChats(filter: $filter, limit: $limit, nextToken: $nextToken) {
+      items {
+        id
+        owner
         name
+        type
+        location
         createdAt
         updatedAt
       }
@@ -35,19 +101,27 @@ export const getPost = /* GraphQL */ `
   query GetPost($id: ID!) {
     getPost(id: $id) {
       id
-      title
-      blog {
+      owner
+      user {
         id
-        name
+        owner
+        cognitoID
         createdAt
         updatedAt
       }
-      comments {
-        nextToken
+      image {
+        bucket
+        region
+        loadFull
+        thumbFull
+        full
+        loadSquare
+        thumbSquare
+        square
       }
       createdAt
       updatedAt
-      blogPostsId
+      userPostsId
     }
   }
 `;
@@ -60,46 +134,71 @@ export const listPosts = /* GraphQL */ `
     listPosts(filter: $filter, limit: $limit, nextToken: $nextToken) {
       items {
         id
-        title
+        owner
         createdAt
         updatedAt
-        blogPostsId
+        userPostsId
       }
       nextToken
     }
   }
 `;
-export const getComment = /* GraphQL */ `
-  query GetComment($id: ID!) {
-    getComment(id: $id) {
+export const getMessage = /* GraphQL */ `
+  query GetMessage($id: ID!) {
+    getMessage(id: $id) {
       id
-      post {
+      chat {
         id
-        title
+        owner
+        name
+        type
+        location
         createdAt
         updatedAt
-        blogPostsId
+      }
+      user {
+        id
+        owner
+        cognitoID
+        createdAt
+        updatedAt
+      }
+      owner
+      type
+      Image {
+        bucket
+        region
+        loadFull
+        thumbFull
+        full
+        loadSquare
+        thumbSquare
+        square
       }
       content
       createdAt
       updatedAt
-      postCommentsId
+      userMessagesId
+      chatMessagesId
     }
   }
 `;
-export const listComments = /* GraphQL */ `
-  query ListComments(
-    $filter: ModelCommentFilterInput
+export const listMessages = /* GraphQL */ `
+  query ListMessages(
+    $filter: ModelMessageFilterInput
     $limit: Int
     $nextToken: String
   ) {
-    listComments(filter: $filter, limit: $limit, nextToken: $nextToken) {
+    listMessages(filter: $filter, limit: $limit, nextToken: $nextToken) {
       items {
         id
+        owner
+        type
         content
         createdAt
         updatedAt
-        postCommentsId
+        userMessagesId
+        chatMessagesId
       }
       nextToken
     }

@@ -1,22 +1,59 @@
-# This "input" configures a global authorization rule to enable public access to
-# all models in this schema. Learn more about authorization rules here: https://docs.amplify.aws/cli/graphql/authorization-rules
-
-
-type Blog @model {
-  id: ID!
-  name: String!
-  posts: [Post] @hasMany
+type User @model @auth(rules: [{allow: owner}]){
+	id: ID! 
+	profilePicture: Image
+	owner: String @auth(rules: [{allow: owner, operations: [read, create, delete]}])
+	cognitoID: String! @index(name: "byCognito") 
+	posts: [Post] @hasMany
+	friends: [Friend] 
+	messages: [Message] @hasMany
 }
 
-type Post @model {
-  id: ID!
-  title: String!
-  blog: Blog @belongsTo
-  comments: [Comment] @hasMany
+type Chat @model @auth(rules: [
+		{allow: groups, groups: ["User"], operations: [read, update]},
+		{allow: owner, operations: [create, read, update]}
+]){
+	id: ID!
+	owner: String @auth(rules: [{allow: owner, operations: [read, create, delete]}])
+	name: String
+	type: String
+	location: String @index(name: "byLocation")
+	background: Image 
+	messages: [Message] @hasMany
 }
 
-type Comment @model {
-  id: ID!
-  post: Post @belongsTo
-  content: String!
+type Post @model @auth(rules: [
+		{allow: groups, groups: ["User"], operations: [read]},
+		{allow: owner}
+]){
+	id: ID!
+	owner: String @auth(rules: [{allow: owner, operations: [read, create, delete]}])
+	user: User @belongsTo 
+	image: Image 
+}
+
+type Message @model @auth(rules: [
+		{allow: groups, groups: ["User"], operations: [read]},
+		{allow: owner, operations: [create, read, update]}
+]){
+	id: ID!
+	chat: Chat @belongsTo
+	user: User @belongsTo
+	owner: String @auth(rules: [{allow: owner, operations: [read, create, delete]}])
+	type: String
+	Image: Image
+	content: String
+}
+
+type Image {
+	bucket: String!
+	region: String!
+	loadFull: String
+	thumbFull: String
+	full: String
+}
+
+type Friend {
+	friendID: String!
+	status: String
+	chatID: String
 }

@@ -206,7 +206,7 @@ function ChatPage({ route, navigation }) {
                 const response = await fetch(pickerResult.uri);
                 const img = await response.blob();
                 
-                const result = await Storage.put("TestImage.jpg", img);
+                const result = await Storage.put("Alexander.jpg", img);
                 if (debug) console.log(result);
             }
         } catch (error) {

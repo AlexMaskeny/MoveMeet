@@ -1,15 +1,34 @@
 /* eslint-disable */
 // this is an auto generated file. This will be overwritten
 
-export const createBlog = /* GraphQL */ `
-  mutation CreateBlog(
-    $input: CreateBlogInput!
-    $condition: ModelBlogConditionInput
+export const createUser = /* GraphQL */ `
+  mutation CreateUser(
+    $input: CreateUserInput!
+    $condition: ModelUserConditionInput
   ) {
-    createBlog(input: $input, condition: $condition) {
+    createUser(input: $input, condition: $condition) {
       id
-      name
+      profilePicture {
+        bucket
+        region
+        loadFull
+        thumbFull
+        full
+        loadSquare
+        thumbSquare
+        square
+      }
+      owner
+      cognitoID
       posts {
+        nextToken
+      }
+      friends {
+        friendID
+        status
+        chatID
+      }
+      messages {
         nextToken
       }
       createdAt
@@ -17,15 +36,34 @@ export const createBlog = /* GraphQL */ `
     }
   }
 `;
-export const updateBlog = /* GraphQL */ `
-  mutation UpdateBlog(
-    $input: UpdateBlogInput!
-    $condition: ModelBlogConditionInput
+export const updateUser = /* GraphQL */ `
+  mutation UpdateUser(
+    $input: UpdateUserInput!
+    $condition: ModelUserConditionInput
   ) {
-    updateBlog(input: $input, condition: $condition) {
+    updateUser(input: $input, condition: $condition) {
       id
-      name
+      profilePicture {
+        bucket
+        region
+        loadFull
+        thumbFull
+        full
+        loadSquare
+        thumbSquare
+        square
+      }
+      owner
+      cognitoID
       posts {
+        nextToken
+      }
+      friends {
+        friendID
+        status
+        chatID
+      }
+      messages {
         nextToken
       }
       createdAt
@@ -33,15 +71,121 @@ export const updateBlog = /* GraphQL */ `
     }
   }
 `;
-export const deleteBlog = /* GraphQL */ `
-  mutation DeleteBlog(
-    $input: DeleteBlogInput!
-    $condition: ModelBlogConditionInput
+export const deleteUser = /* GraphQL */ `
+  mutation DeleteUser(
+    $input: DeleteUserInput!
+    $condition: ModelUserConditionInput
   ) {
-    deleteBlog(input: $input, condition: $condition) {
+    deleteUser(input: $input, condition: $condition) {
       id
-      name
+      profilePicture {
+        bucket
+        region
+        loadFull
+        thumbFull
+        full
+        loadSquare
+        thumbSquare
+        square
+      }
+      owner
+      cognitoID
       posts {
+        nextToken
+      }
+      friends {
+        friendID
+        status
+        chatID
+      }
+      messages {
+        nextToken
+      }
+      createdAt
+      updatedAt
+    }
+  }
+`;
+export const createChat = /* GraphQL */ `
+  mutation CreateChat(
+    $input: CreateChatInput!
+    $condition: ModelChatConditionInput
+  ) {
+    createChat(input: $input, condition: $condition) {
+      id
+      owner
+      name
+      type
+      location
+      background {
+        bucket
+        region
+        loadFull
+        thumbFull
+        full
+        loadSquare
+        thumbSquare
+        square
+      }
+      messages {
+        nextToken
+      }
+      createdAt
+      updatedAt
+    }
+  }
+`;
+export const updateChat = /* GraphQL */ `
+  mutation UpdateChat(
+    $input: UpdateChatInput!
+    $condition: ModelChatConditionInput
+  ) {
+    updateChat(input: $input, condition: $condition) {
+      id
+      owner
+      name
+      type
+      location
+      background {
+        bucket
+        region
+        loadFull
+        thumbFull
+        full
+        loadSquare
+        thumbSquare
+        square
+      }
+      messages {
+        nextToken
+      }
+      createdAt
+      updatedAt
+    }
+  }
+`;
+export const deleteChat = /* GraphQL */ `
+  mutation DeleteChat(
+    $input: DeleteChatInput!
+    $condition: ModelChatConditionInput
+  ) {
+    deleteChat(input: $input, condition: $condition) {
+      id
+      owner
+      name
+      type
+      location
+      background {
+        bucket
+        region
+        loadFull
+        thumbFull
+        full
+        loadSquare
+        thumbSquare
+        square
+      }
+      messages {
         nextToken
       }
       createdAt
@@ -56,19 +200,27 @@ export const createPost = /* GraphQL */ `
   ) {
     createPost(input: $input, condition: $condition) {
       id
-      title
-      blog {
+      owner
+      user {
         id
-        name
+        owner
+        cognitoID
         createdAt
         updatedAt
       }
-      comments {
-        nextToken
+      image {
+        bucket
+        region
+        loadFull
+        thumbFull
+        full
+        loadSquare
+        thumbSquare
+        square
       }
       createdAt
       updatedAt
-      blogPostsId
+      userPostsId
     }
   }
 `;
@@ -79,19 +231,27 @@ export const updatePost = /* GraphQL */ `
   ) {
     updatePost(input: $input, condition: $condition) {
       id
-      title
-      blog {
+      owner
+      user {
         id
-        name
+        owner
+        cognitoID
         createdAt
         updatedAt
       }
-      comments {
-        nextToken
+      image {
+        bucket
+        region
+        loadFull
+        thumbFull
+        full
+        loadSquare
+        thumbSquare
+        square
       }
       createdAt
       updatedAt
-      blogPostsId
+      userPostsId
     }
   }
 `;
@@ -102,82 +262,156 @@ export const deletePost = /* GraphQL */ `
   ) {
     deletePost(input: $input, condition: $condition) {
       id
-      title
-      blog {
+      owner
+      user {
         id
+        owner
+        cognitoID
+        createdAt
+        updatedAt
+      }
+      image {
+        bucket
+        region
+        loadFull
+        thumbFull
+        full
+        loadSquare
+        thumbSquare
+        square
+      }
+      createdAt
+      updatedAt
+      userPostsId
+    }
+  }
+`;
+export const createMessage = /* GraphQL */ `
+  mutation CreateMessage(
+    $input: CreateMessageInput!
+    $condition: ModelMessageConditionInput
+  ) {
+    createMessage(input: $input, condition: $condition) {
+      id
+      chat {
+        id
+        owner
         name
+        type
+        location
         createdAt
         updatedAt
       }
-      comments {
-        nextToken
-      }
-      createdAt
-      updatedAt
-      blogPostsId
-    }
-  }
-`;
-export const createComment = /* GraphQL */ `
-  mutation CreateComment(
-    $input: CreateCommentInput!
-    $condition: ModelCommentConditionInput
-  ) {
-    createComment(input: $input, condition: $condition) {
-      id
-      post {
+      user {
         id
-        title
+        owner
+        cognitoID
         createdAt
         updatedAt
-        blogPostsId
+      }
+      owner
+      type
+      Image {
+        bucket
+        region
+        loadFull
+        thumbFull
+        full
+        loadSquare
+        thumbSquare
+        square
       }
       content
       createdAt
       updatedAt
-      postCommentsId
+      userMessagesId
+      chatMessagesId
     }
   }
 `;
-export const updateComment = /* GraphQL */ `
-  mutation UpdateComment(
-    $input: UpdateCommentInput!
-    $condition: ModelCommentConditionInput
+export const updateMessage = /* GraphQL */ `
+  mutation UpdateMessage(
+    $input: UpdateMessageInput!
+    $condition: ModelMessageConditionInput
   ) {
-    updateComment(input: $input, condition: $condition) {
+    updateMessage(input: $input, condition: $condition) {
       id
-      post {
+      chat {
         id
-        title
+        owner
+        name
+        type
+        location
         createdAt
         updatedAt
-        blogPostsId
+      }
+      user {
+        id
+        owner
+        cognitoID
+        createdAt
+        updatedAt
+      }
+      owner
+      type
+      Image {
+        bucket
+        region
+        loadFull
+        thumbFull
+        full
+        loadSquare
+        thumbSquare
+        square
       }
       content
       createdAt
       updatedAt
-      postCommentsId
+      userMessagesId
+      chatMessagesId
     }
   }
 `;
-export const deleteComment = /* GraphQL */ `
-  mutation DeleteComment(
-    $input: DeleteCommentInput!
-    $condition: ModelCommentConditionInput
+export const deleteMessage = /* GraphQL */ `
+  mutation DeleteMessage(
+    $input: DeleteMessageInput!
+    $condition: ModelMessageConditionInput
   ) {
-    deleteComment(input: $input, condition: $condition) {
+    deleteMessage(input: $input, condition: $condition) {
       id
-      post {
+      chat {
         id
-        title
+        owner
+        name
+        type
+        location
         createdAt
         updatedAt
-        blogPostsId
+      }
+      user {
+        id
+        owner
+        cognitoID
+        createdAt
+        updatedAt
+      }
+      owner
+      type
+      Image {
+        bucket
+        region
+        loadFull
+        thumbFull
+        full
+        loadSquare
+        thumbSquare
+        square
       }
       content
       createdAt
       updatedAt
-      postCommentsId
+      userMessagesId
+      chatMessagesId
     }
   }
 `;
