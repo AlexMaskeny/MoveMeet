@@ -8,7 +8,7 @@ import BeamTitle from './BeamTitle';
 import IconTitle from './IconTitle';
 import PCircleAndTitle from './PCircleAndTitle';
 import ChatButton from './ChatButton';
-import ImageBackground from './ImageBackgroundLoader'
+import ImageBackground from './ImageLoader'
 
 //DESCRIPTION: A generalized chat box which will be embedded
 //             inside of a flatlist on the ChatsPage
@@ -25,8 +25,8 @@ function DisabledChat({
         <>
         <View style={styles.container}>
             <ImageBackground
-                source={{ uri: background.uri }}
-                loadImage={{ uri: background.loadImage }}
+                source={background}
+                isBackground={true}
                 imageStyle={styles.image}
                 style={styles.imageBackground}
                 resizeMode="cover"

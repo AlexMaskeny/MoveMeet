@@ -1,5 +1,6 @@
 import React from 'react';
 import { View, Image } from 'react-native'
+import CachedImage from 'react-native-expo-cached-image';
 
 import { debug } from '../config';
 
@@ -8,12 +9,15 @@ function ImageLoader({
     source,
     ...otherProps
 }) {
-    //const [loading, setLoading] = React.useState(true);
+    const [loading, setLoading] = React.useState(true);
     return (
-        <Image 
-            source={{ uri: source.uri }}
+        <>
+        <CachedImage
+            onLoadEnd={()=>setLoading(false)}
+            source={{ uri: loading ? source.loadImage : source.uri }}
             {...otherProps}
-        />      
+            />  
+        </>
     );
     
 }

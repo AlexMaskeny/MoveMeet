@@ -8,7 +8,7 @@ import PCircleAndTitle from './PCircleAndTitle';
 import ChatButton from './ChatButton';
 import { LinearGradient } from 'expo-linear-gradient';
 import SimpleMessage from './SimpleMessage';
-import ImageBackground from './ImageBackgroundLoader'
+import ImageBackground from './ImageLoader'
 
 //DESCRIPTION: A generalized chat box which will be embedded
 //             inside of a flatlist on the ChatsPage
@@ -27,6 +27,7 @@ function Chat({
         <View style={styles.container}>
             <ImageBackground
                 source={background}
+                isBackground={true}
                 imageStyle={styles.image}
                 style={styles.imageBackground}
                 resizeMode="cover"

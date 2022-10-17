@@ -27,8 +27,8 @@ const chats = [
         id: "1", 
         isFirst: true,
         ppic: {
-            uri: 'https://alexmaskeny.com/wp-content/uploads/2020/11/dragonbackground.jpg',
-            loadImage: 'https://alexmaskeny.com/wp-content/uploads/2022/10/dragonbackground-e1665935077983.jpg',
+            uri: 'https://cbeyondata.com/wp-content/uploads/2020/10/iStock-1237546531-1920x1280.jpg',
+            loadImage: 'https://th.bing.com/th/id/R.4ef44de48283a70c345215439710e076?rik=DbmjSu8b4rFcmQ&riu=http%3a%2f%2fwww.kneson.com%2fnews%2fIII3%2fKELSEY_AD_example1.jpg&ehk=5jg5ZditRXiSNMQ9tGa0nhrMY8OnQBmFdvwW%2f%2bGfiCU%3d&risl=&pid=ImgRaw&r=0',
             key: "Chats1"
         },
         username: "Alexander",
@@ -37,8 +37,8 @@ const chats = [
     {
         id: "2",
         ppic: {
-            uri: 'https://alexmaskeny.com/wp-content/uploads/2020/11/dragonbackground.jpg',
-            loadImage: 'https://alexmaskeny.com/wp-content/uploads/2022/10/dragonbackground-e1665935077983.jpg',
+            uri: 'https://imgsv.imaging.nikon.com/lineup/dslr/df/img/sample/img_01_l.jpg',
+            loadImage: 'https://th.bing.com/th/id/R.4ef44de48283a70c345215439710e076?rik=DbmjSu8b4rFcmQ&riu=http%3a%2f%2fwww.kneson.com%2fnews%2fIII3%2fKELSEY_AD_example1.jpg&ehk=5jg5ZditRXiSNMQ9tGa0nhrMY8OnQBmFdvwW%2f%2bGfiCU%3d&risl=&pid=ImgRaw&r=0',
             key: "Chats2"
         },
         username: "Alexander",
@@ -47,8 +47,8 @@ const chats = [
     {
         id: "3",
         ppic: {
-            uri: 'https://alexmaskeny.com/wp-content/uploads/2020/11/dragonbackground.jpg',
-            loadImage: 'https://alexmaskeny.com/wp-content/uploads/2022/10/dragonbackground-e1665935077983.jpg',
+            uri: 'https://www.tei.org/sites/default/files/styles/1920w_x_860h/public/NebraskaImage_small.jpg?itok=dxdvUhed',
+            loadImage: 'https://th.bing.com/th/id/R.4ef44de48283a70c345215439710e076?rik=DbmjSu8b4rFcmQ&riu=http%3a%2f%2fwww.kneson.com%2fnews%2fIII3%2fKELSEY_AD_example1.jpg&ehk=5jg5ZditRXiSNMQ9tGa0nhrMY8OnQBmFdvwW%2f%2bGfiCU%3d&risl=&pid=ImgRaw&r=0',
             key: "Chats3"
         },
         username: "Alexander",
@@ -57,8 +57,8 @@ const chats = [
     {
         id: "4",
         ppic: {
-            uri: 'https://alexmaskeny.com/wp-content/uploads/2020/11/dragonbackground.jpg',
-            loadImage: 'https://alexmaskeny.com/wp-content/uploads/2022/10/dragonbackground-e1665935077983.jpg',
+            uri: 'https://cdn57.picsart.com/179951678001202.jpg',
+            loadImage: 'https://th.bing.com/th/id/R.4ef44de48283a70c345215439710e076?rik=DbmjSu8b4rFcmQ&riu=http%3a%2f%2fwww.kneson.com%2fnews%2fIII3%2fKELSEY_AD_example1.jpg&ehk=5jg5ZditRXiSNMQ9tGa0nhrMY8OnQBmFdvwW%2f%2bGfiCU%3d&risl=&pid=ImgRaw&r=0',
             key: "Chats4"
         },
         username: "Alexander",
@@ -67,9 +67,9 @@ const chats = [
     {
         id: "5",
         ppic: {
-            uri: 'https://alexmaskeny.com/wp-content/uploads/2020/11/dragonbackground.jpg',
-            loadImage: 'https://alexmaskeny.com/wp-content/uploads/2022/10/dragonbackground-e1665935077983.jpg',
-            key: "Chats5"
+            uri: 'https://cbeyondata.com/wp-content/uploads/2020/10/iStock-1237546531-1920x1280.jpg',
+            loadImage: 'https://th.bing.com/th/id/R.4ef44de48283a70c345215439710e076?rik=DbmjSu8b4rFcmQ&riu=http%3a%2f%2fwww.kneson.com%2fnews%2fIII3%2fKELSEY_AD_example1.jpg&ehk=5jg5ZditRXiSNMQ9tGa0nhrMY8OnQBmFdvwW%2f%2bGfiCU%3d&risl=&pid=ImgRaw&r=0',
+            key: "Chats1"
         },
         username: "Alexander",
         message: "Hey this is alex, what's up?"
@@ -77,9 +77,9 @@ const chats = [
     {
         id: "6",
         ppic: {
-            uri: 'https://alexmaskeny.com/wp-content/uploads/2020/11/dragonbackground.jpg',
-            loadImage: 'https://alexmaskeny.com/wp-content/uploads/2022/10/dragonbackground-e1665935077983.jpg',
-            key: "Chats6"
+            uri: 'https://imgsv.imaging.nikon.com/lineup/dslr/df/img/sample/img_01_l.jpg',
+            loadImage: 'https://th.bing.com/th/id/R.4ef44de48283a70c345215439710e076?rik=DbmjSu8b4rFcmQ&riu=http%3a%2f%2fwww.kneson.com%2fnews%2fIII3%2fKELSEY_AD_example1.jpg&ehk=5jg5ZditRXiSNMQ9tGa0nhrMY8OnQBmFdvwW%2f%2bGfiCU%3d&risl=&pid=ImgRaw&r=0',
+            key: "Chats2"
         },
         username: "Alexander",
         message: "Hey this is alex, what's up?"
@@ -87,83 +87,23 @@ const chats = [
     {
         id: "7",
         ppic: {
-            uri: 'https://alexmaskeny.com/wp-content/uploads/2020/11/dragonbackground.jpg',
-            loadImage: 'https://alexmaskeny.com/wp-content/uploads/2022/10/dragonbackground-e1665935077983.jpg',
-            key: "Chats7"
+            uri: 'https://www.tei.org/sites/default/files/styles/1920w_x_860h/public/NebraskaImage_small.jpg?itok=dxdvUhed',
+            loadImage: 'https://th.bing.com/th/id/R.4ef44de48283a70c345215439710e076?rik=DbmjSu8b4rFcmQ&riu=http%3a%2f%2fwww.kneson.com%2fnews%2fIII3%2fKELSEY_AD_example1.jpg&ehk=5jg5ZditRXiSNMQ9tGa0nhrMY8OnQBmFdvwW%2f%2bGfiCU%3d&risl=&pid=ImgRaw&r=0',
+            key: "Chats3"
         },
         username: "Alexander",
         message: "Hey this is alex, what's up?"
     },
     {
         id: "8",
-        ppic: {
-            uri: 'https://alexmaskeny.com/wp-content/uploads/2020/11/dragonbackground.jpg',
-            loadImage: 'https://alexmaskeny.com/wp-content/uploads/2022/10/dragonbackground-e1665935077983.jpg',
-            key: "Chats8"
-        },
-        username: "Alexander",
-        message: "Hey this is alex, what's up?"
-    },
-    {
-        id: "9",
-        ppic: {
-            uri: 'https://alexmaskeny.com/wp-content/uploads/2020/11/dragonbackground.jpg',
-            loadImage: 'https://alexmaskeny.com/wp-content/uploads/2022/10/dragonbackground-e1665935077983.jpg',
-            key: "Chats9"
-        },
-        username: "Alexander",
-        message: "Hey this is alex, what's up?"
-    },
-    {
-        id: "10",
-        ppic: {
-            uri: 'https://alexmaskeny.com/wp-content/uploads/2020/11/dragonbackground.jpg',
-            loadImage: 'https://alexmaskeny.com/wp-content/uploads/2022/10/dragonbackground-e1665935077983.jpg',
-            key: "Chats10"
-        },
-        username: "Alexander",
-        message: "Hey this is alex, what's up?"
-    },
-    {
-        id: "11",
-        ppic: {
-            uri: 'https://alexmaskeny.com/wp-content/uploads/2020/11/dragonbackground.jpg',
-            loadImage: 'https://alexmaskeny.com/wp-content/uploads/2022/10/dragonbackground-e1665935077983.jpg',
-            key: "Chats11"
-        },
-        username: "Alexander",
-        message: "Hey this is alex, what's up?"
-    },
-    {
-        id: "12",
-        ppic: {
-            uri: 'https://alexmaskeny.com/wp-content/uploads/2020/11/dragonbackground.jpg',
-            loadImage: 'https://alexmaskeny.com/wp-content/uploads/2022/10/dragonbackground-e1665935077983.jpg',
-            key: "Chats12"
-        },
-        username: "Alexander",
-        message: "Hey this is alex, what's up?"
-    },
-    {
-        id: "13",
-        ppic: {
-            uri: 'https://alexmaskeny.com/wp-content/uploads/2020/11/dragonbackground.jpg',
-            loadImage: 'https://alexmaskeny.com/wp-content/uploads/2022/10/dragonbackground-e1665935077983.jpg',
-            key: "Chats13"
-        },
-        username: "Alexander",
-        message: "Hey this is alex, what's upssssssssssssssssssssssssssssssssssssssssssss?\nHey this is alex, what's up?\nHey this is alex, what's up?"
-    },
-    {
-        id: "14",
         isLast: true,
         ppic: {
-            uri: 'https://alexmaskeny.com/wp-content/uploads/2020/11/dragonbackground.jpg',
-            loadImage: 'https://alexmaskeny.com/wp-content/uploads/2022/10/dragonbackground-e1665935077983.jpg',
-            key: "Chats14"
+            uri: 'https://cdn57.picsart.com/179951678001202.jpg',
+            loadImage: 'https://th.bing.com/th/id/R.4ef44de48283a70c345215439710e076?rik=DbmjSu8b4rFcmQ&riu=http%3a%2f%2fwww.kneson.com%2fnews%2fIII3%2fKELSEY_AD_example1.jpg&ehk=5jg5ZditRXiSNMQ9tGa0nhrMY8OnQBmFdvwW%2f%2bGfiCU%3d&risl=&pid=ImgRaw&r=0',
+            key: "Chats4"
         },
-        username: "Gracee",
-        message: "Hey this is Graceeeee, what's upssssssssssssssssssssssssssssssssssssssssssss?\nHey this is graceeee, what's up?\nHey this is grace, what's up?"
+        username: "Alexander",
+        message: "Hey this is alex, what's up?"
     },
 ]
 //!!!!!!

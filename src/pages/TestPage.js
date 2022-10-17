@@ -1,6 +1,7 @@
 import React from 'react';
-import { StyleSheet, View, Image } from 'react-native';
+import { StyleSheet, View} from 'react-native';
 import { API, Auth, graphqlOperation, Storage } from 'aws-amplify';
+import Image from "../comps/ImageLoader";
 
 import { colors, debug } from '../config';
 import { createUser } from '../api/calls';
@@ -44,7 +45,12 @@ function TestScreen({ navigation }) {
     return (
         <Screen innerStyle={styles.page}>
             <BeamTitle>Alexander</BeamTitle>
-            <Image source={{ uri: image }} style={{width: 200, height: 200} }/>
+            <Image
+                source={{
+                    uri: image,
+                    loadImage: "https://th.bing.com/th/id/R.4ef44de48283a70c345215439710e076?rik=DbmjSu8b4rFcmQ&riu=http%3a%2f%2fwww.kneson.com%2fnews%2fIII3%2fKELSEY_AD_example1.jpg&ehk=5jg5ZditRXiSNMQ9tGa0nhrMY8OnQBmFdvwW%2f%2bGfiCU%3d&risl=&pid=ImgRaw&r=0" 
+                }}
+                style={{ width: 200, height: 200 }} />
             <SimpleButton title="Test" onPress={()=>test()} />
         </Screen>
     );
