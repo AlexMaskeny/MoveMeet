@@ -8,15 +8,13 @@ export const createUser = /* GraphQL */ `
   ) {
     createUser(input: $input, condition: $condition) {
       id
+      username
       profilePicture {
         bucket
         region
         loadFull
         thumbFull
         full
-        loadSquare
-        thumbSquare
-        square
       }
       owner
       cognitoID
@@ -43,15 +41,13 @@ export const updateUser = /* GraphQL */ `
   ) {
     updateUser(input: $input, condition: $condition) {
       id
+      username
       profilePicture {
         bucket
         region
         loadFull
         thumbFull
         full
-        loadSquare
-        thumbSquare
-        square
       }
       owner
       cognitoID
@@ -78,15 +74,13 @@ export const deleteUser = /* GraphQL */ `
   ) {
     deleteUser(input: $input, condition: $condition) {
       id
+      username
       profilePicture {
         bucket
         region
         loadFull
         thumbFull
         full
-        loadSquare
-        thumbSquare
-        square
       }
       owner
       cognitoID
@@ -123,9 +117,6 @@ export const createChat = /* GraphQL */ `
         loadFull
         thumbFull
         full
-        loadSquare
-        thumbSquare
-        square
       }
       messages {
         nextToken
@@ -152,9 +143,6 @@ export const updateChat = /* GraphQL */ `
         loadFull
         thumbFull
         full
-        loadSquare
-        thumbSquare
-        square
       }
       messages {
         nextToken
@@ -181,9 +169,6 @@ export const deleteChat = /* GraphQL */ `
         loadFull
         thumbFull
         full
-        loadSquare
-        thumbSquare
-        square
       }
       messages {
         nextToken
@@ -203,6 +188,7 @@ export const createPost = /* GraphQL */ `
       owner
       user {
         id
+        username
         owner
         cognitoID
         createdAt
@@ -214,9 +200,6 @@ export const createPost = /* GraphQL */ `
         loadFull
         thumbFull
         full
-        loadSquare
-        thumbSquare
-        square
       }
       createdAt
       updatedAt
@@ -234,6 +217,7 @@ export const updatePost = /* GraphQL */ `
       owner
       user {
         id
+        username
         owner
         cognitoID
         createdAt
@@ -245,9 +229,6 @@ export const updatePost = /* GraphQL */ `
         loadFull
         thumbFull
         full
-        loadSquare
-        thumbSquare
-        square
       }
       createdAt
       updatedAt
@@ -265,6 +246,7 @@ export const deletePost = /* GraphQL */ `
       owner
       user {
         id
+        username
         owner
         cognitoID
         createdAt
@@ -276,9 +258,6 @@ export const deletePost = /* GraphQL */ `
         loadFull
         thumbFull
         full
-        loadSquare
-        thumbSquare
-        square
       }
       createdAt
       updatedAt
@@ -304,6 +283,7 @@ export const createMessage = /* GraphQL */ `
       }
       user {
         id
+        username
         owner
         cognitoID
         createdAt
@@ -317,9 +297,6 @@ export const createMessage = /* GraphQL */ `
         loadFull
         thumbFull
         full
-        loadSquare
-        thumbSquare
-        square
       }
       content
       createdAt
@@ -347,6 +324,7 @@ export const updateMessage = /* GraphQL */ `
       }
       user {
         id
+        username
         owner
         cognitoID
         createdAt
@@ -360,9 +338,6 @@ export const updateMessage = /* GraphQL */ `
         loadFull
         thumbFull
         full
-        loadSquare
-        thumbSquare
-        square
       }
       content
       createdAt
@@ -390,6 +365,7 @@ export const deleteMessage = /* GraphQL */ `
       }
       user {
         id
+        username
         owner
         cognitoID
         createdAt
@@ -403,9 +379,6 @@ export const deleteMessage = /* GraphQL */ `
         loadFull
         thumbFull
         full
-        loadSquare
-        thumbSquare
-        square
       }
       content
       createdAt

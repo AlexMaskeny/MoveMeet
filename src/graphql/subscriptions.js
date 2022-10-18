@@ -5,15 +5,13 @@ export const onCreateUser = /* GraphQL */ `
   subscription OnCreateUser($owner: String) {
     onCreateUser(owner: $owner) {
       id
+      username
       profilePicture {
         bucket
         region
         loadFull
         thumbFull
         full
-        loadSquare
-        thumbSquare
-        square
       }
       owner
       cognitoID
@@ -37,15 +35,13 @@ export const onUpdateUser = /* GraphQL */ `
   subscription OnUpdateUser($owner: String) {
     onUpdateUser(owner: $owner) {
       id
+      username
       profilePicture {
         bucket
         region
         loadFull
         thumbFull
         full
-        loadSquare
-        thumbSquare
-        square
       }
       owner
       cognitoID
@@ -69,15 +65,13 @@ export const onDeleteUser = /* GraphQL */ `
   subscription OnDeleteUser($owner: String) {
     onDeleteUser(owner: $owner) {
       id
+      username
       profilePicture {
         bucket
         region
         loadFull
         thumbFull
         full
-        loadSquare
-        thumbSquare
-        square
       }
       owner
       cognitoID
@@ -111,9 +105,6 @@ export const onCreateChat = /* GraphQL */ `
         loadFull
         thumbFull
         full
-        loadSquare
-        thumbSquare
-        square
       }
       messages {
         nextToken
@@ -137,9 +128,6 @@ export const onUpdateChat = /* GraphQL */ `
         loadFull
         thumbFull
         full
-        loadSquare
-        thumbSquare
-        square
       }
       messages {
         nextToken
@@ -163,9 +151,6 @@ export const onDeleteChat = /* GraphQL */ `
         loadFull
         thumbFull
         full
-        loadSquare
-        thumbSquare
-        square
       }
       messages {
         nextToken
@@ -182,6 +167,7 @@ export const onCreatePost = /* GraphQL */ `
       owner
       user {
         id
+        username
         owner
         cognitoID
         createdAt
@@ -193,9 +179,6 @@ export const onCreatePost = /* GraphQL */ `
         loadFull
         thumbFull
         full
-        loadSquare
-        thumbSquare
-        square
       }
       createdAt
       updatedAt
@@ -210,6 +193,7 @@ export const onUpdatePost = /* GraphQL */ `
       owner
       user {
         id
+        username
         owner
         cognitoID
         createdAt
@@ -221,9 +205,6 @@ export const onUpdatePost = /* GraphQL */ `
         loadFull
         thumbFull
         full
-        loadSquare
-        thumbSquare
-        square
       }
       createdAt
       updatedAt
@@ -238,6 +219,7 @@ export const onDeletePost = /* GraphQL */ `
       owner
       user {
         id
+        username
         owner
         cognitoID
         createdAt
@@ -249,9 +231,6 @@ export const onDeletePost = /* GraphQL */ `
         loadFull
         thumbFull
         full
-        loadSquare
-        thumbSquare
-        square
       }
       createdAt
       updatedAt
@@ -274,6 +253,7 @@ export const onCreateMessage = /* GraphQL */ `
       }
       user {
         id
+        username
         owner
         cognitoID
         createdAt
@@ -287,9 +267,6 @@ export const onCreateMessage = /* GraphQL */ `
         loadFull
         thumbFull
         full
-        loadSquare
-        thumbSquare
-        square
       }
       content
       createdAt
@@ -314,6 +291,7 @@ export const onUpdateMessage = /* GraphQL */ `
       }
       user {
         id
+        username
         owner
         cognitoID
         createdAt
@@ -327,9 +305,6 @@ export const onUpdateMessage = /* GraphQL */ `
         loadFull
         thumbFull
         full
-        loadSquare
-        thumbSquare
-        square
       }
       content
       createdAt
@@ -354,6 +329,7 @@ export const onDeleteMessage = /* GraphQL */ `
       }
       user {
         id
+        username
         owner
         cognitoID
         createdAt
@@ -367,9 +343,6 @@ export const onDeleteMessage = /* GraphQL */ `
         loadFull
         thumbFull
         full
-        loadSquare
-        thumbSquare
-        square
       }
       content
       createdAt

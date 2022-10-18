@@ -5,15 +5,13 @@ export const getUser = /* GraphQL */ `
   query GetUser($id: ID!) {
     getUser(id: $id) {
       id
+      username
       profilePicture {
         bucket
         region
         loadFull
         thumbFull
         full
-        loadSquare
-        thumbSquare
-        square
       }
       owner
       cognitoID
@@ -42,6 +40,7 @@ export const listUsers = /* GraphQL */ `
     listUsers(filter: $filter, limit: $limit, nextToken: $nextToken) {
       items {
         id
+        username
         owner
         cognitoID
         createdAt
@@ -65,9 +64,6 @@ export const getChat = /* GraphQL */ `
         loadFull
         thumbFull
         full
-        loadSquare
-        thumbSquare
-        square
       }
       messages {
         nextToken
@@ -104,6 +100,7 @@ export const getPost = /* GraphQL */ `
       owner
       user {
         id
+        username
         owner
         cognitoID
         createdAt
@@ -115,9 +112,6 @@ export const getPost = /* GraphQL */ `
         loadFull
         thumbFull
         full
-        loadSquare
-        thumbSquare
-        square
       }
       createdAt
       updatedAt
@@ -158,6 +152,7 @@ export const getMessage = /* GraphQL */ `
       }
       user {
         id
+        username
         owner
         cognitoID
         createdAt
@@ -171,9 +166,6 @@ export const getMessage = /* GraphQL */ `
         loadFull
         thumbFull
         full
-        loadSquare
-        thumbSquare
-        square
       }
       content
       createdAt

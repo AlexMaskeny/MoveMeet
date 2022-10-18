@@ -6,24 +6,26 @@ import * as ImagePicker from 'expo-image-picker';
 
 
 import { colors, debug } from '../config';
-import { createUser } from '../api/calls';
+import { createUser, updateUser } from '../api/calls';
 import BeamTitle from '../comps/BeamTitle';
 import SimpleButton from '../comps/SimpleButton';
 import Screen from '../comps/Screen';
+import SimpleInput from '../comps/SimpleInput';
 
 function TestScreen({ navigation }) {
-    const [image, setImage] = React.useState("https://www.tamiu.edu/newsinfo/images/student-life/campus-scenery.JPG");
-    const [userID, setUserID] = React.useState("");
-    React.useEffect(() => {
-        const initialFunction = async () => {
-            try {
+    //const [image, setImage] = React.useState("https://www.tamiu.edu/newsinfo/images/student-life/campus-scenery.JPG");
+    const [username, setUsername] = React.useState("");
+    const [code, setCode] = React.useState("");
+    //React.useEffect(() => {
+    //    const initialFunction = async () => {
+    //        try {
 
-            } catch (error) {
-                if (debug) console.log(error);
-            }
-        }
-        initialFunction();
-    }, []);
+    //        } catch (error) {
+    //            if (debug) console.log(error);
+    //        }
+    //    }
+    //    initialFunction();
+    //}, []);
 
     const selectImage = async () => {
         const cameraRollStatus = await ImagePicker.requestMediaLibraryPermissionsAsync();
@@ -41,6 +43,13 @@ function TestScreen({ navigation }) {
     const createNewUser = async () => {
         try {
             console.log("Creating new user...");
+            const user = await Auth.signUp({
+                username: username,
+                password: ",.1!qweR",
+                attributes: {
+                    email: "alex@maskeny.com"
+                }
+            })
             const pickerResult = await selectImage();
             if (pickerResult.cancelled) {
                 console.log("Canceled User Creation");
@@ -49,34 +58,41 @@ function TestScreen({ navigation }) {
             const response = await fetch(pickerResult.uri);
             const img = await response.blob();
 
-            const fullPicture = await Storage.put("FULLprofilePicture"+userID+".jpg", img);    
-            //const newUser = await API.graphql(graphqlOperation(createUser, {
-            //    input: {
-            //        profilePicture: {
-            //            full: image,
-            //            bucket: "proxychatf2d762e9bc784204880374b0ca905be4120629-dev",
-            //            region: "us-east-2",
-            //        },
-            //        cognitoID: user.ID,
-            //    }
-            //}))
-
+            const newUser = await API.graphql(graphqlOperation(createUser, {
+                input: {
+                    username: username,
+                    cognitoID: user.userSub,
+                }
+            }))
+            const userID = newUser.data.createUser.id;
+            const fullPicture = await Storage.put("FULLprofilePicture" + userID + ".jpg", img);    
+            const image = await Storage.get("FULLprofilePicture" + userID + ".jpg");
+            setTimeout(async function () {
+                const loadImage = await Storage.get("LOADFULLprofilePicture" + userID + ".jpg");
+                const updatedUser = await API.graphql(graphqlOperation(updateUser, {
+                    input: {
+                        id: userID,
+                        profilePicture: {
+                            bucket: "proxychatf2d762e9bc784204880374b0ca905be4120629-dev",
+                            region: "us-east-2",
+                            full: image,
+                            loadFull: loadImage
+                        }
+                    }
+                }))
+            }, 7);
+            console.log(image);
         } catch (error) {
             console.log(error);
         }
     };
 
-    const createAuthUser = async () => {
+    const confirmUser = async () => {
         try {
-            const user = await Auth.signUp({
-                username: "Alexander1",
-                password: ",.1!qweR",
-                attributes: {
-                    email: "alex@maskeny.com"
-                }
-            })
-            setUserID(user.userSub);
-            console.log(user.userSub);
+            const result = await Auth.confirmSignUp(username, code);
+            if (result) {
+                console.log('Confirmed');
+            }
         } catch (error) {
             console.log(error);
         }
@@ -91,8 +107,10 @@ function TestScreen({ navigation }) {
             {/*        loadImage: "https://th.bing.com/th/id/R.4ef44de48283a70c345215439710e076?rik=DbmjSu8b4rFcmQ&riu=http%3a%2f%2fwww.kneson.com%2fnews%2fIII3%2fKELSEY_AD_example1.jpg&ehk=5jg5ZditRXiSNMQ9tGa0nhrMY8OnQBmFdvwW%2f%2bGfiCU%3d&risl=&pid=ImgRaw&r=0" */}
             {/*    }}*/}
             {/*    style={{ width: 200, height: 200 }} />*/}
-            <SimpleButton title="Create Auth User" onPress={() => createAuthUser()} />
-            <SimpleButton title="Create DynamoDB user" onPress={() => createNewUser()} />
+            <SimpleInput placeholder="username" onChangeText={(text) => { setUsername(text) }} />
+            <SimpleButton title="Create user" onPress={() => createNewUser()} />
+            <SimpleInput placeholder="code" onChangeText={(text) => { setCode(text) }} />
+            <SimpleButton title="Confirm User" onPress={() => confirmUser()} />
         </Screen>
     );
 }

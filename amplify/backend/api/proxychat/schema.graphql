@@ -1,5 +1,6 @@
 type User @model @auth(rules: [{allow: owner}]){
 	id: ID! 
+	username: String!
 	profilePicture: Image
 	owner: String @auth(rules: [{allow: owner, operations: [read, create, delete]}])
 	cognitoID: String! @index(name: "byCognito") 
