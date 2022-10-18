@@ -117,6 +117,7 @@ function ChatPage({ route, navigation }) {
     const msgRef = React.useRef();
     const chatsRef = React.useRef();
     const headerHeight = useHeaderHeight();
+    const [refresh, setRefresh] = React.useState(false);
 
     React.useEffect(() => {
         const unsubscribe = navigation.addListener('transitionEnd', () => {
@@ -160,6 +161,8 @@ function ChatPage({ route, navigation }) {
                     <FlatList
                         data={chats}
                         ref={chatsRef}
+                        refreshing={refresh}
+                        onRefresh={() => { if(debug) console.log("Refreshing Chats...")}}
                         keyExtractor={item => item.id}
                         renderItem={({ item, index }) => {
                             if (item.isFirst) {
