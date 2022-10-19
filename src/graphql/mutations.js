@@ -29,6 +29,8 @@ export const createUser = /* GraphQL */ `
       messages {
         nextToken
       }
+      lat
+      long
       createdAt
       updatedAt
     }
@@ -62,6 +64,8 @@ export const updateUser = /* GraphQL */ `
       messages {
         nextToken
       }
+      lat
+      long
       createdAt
       updatedAt
     }
@@ -95,6 +99,8 @@ export const deleteUser = /* GraphQL */ `
       messages {
         nextToken
       }
+      lat
+      long
       createdAt
       updatedAt
     }
@@ -110,7 +116,8 @@ export const createChat = /* GraphQL */ `
       owner
       name
       type
-      location
+      lat
+      long
       background {
         bucket
         region
@@ -136,7 +143,8 @@ export const updateChat = /* GraphQL */ `
       owner
       name
       type
-      location
+      lat
+      long
       background {
         bucket
         region
@@ -162,7 +170,8 @@ export const deleteChat = /* GraphQL */ `
       owner
       name
       type
-      location
+      lat
+      long
       background {
         bucket
         region
@@ -191,6 +200,8 @@ export const createPost = /* GraphQL */ `
         username
         owner
         cognitoID
+        lat
+        long
         createdAt
         updatedAt
       }
@@ -201,6 +212,8 @@ export const createPost = /* GraphQL */ `
         thumbFull
         full
       }
+      lat
+      long
       createdAt
       updatedAt
       userPostsId
@@ -220,6 +233,8 @@ export const updatePost = /* GraphQL */ `
         username
         owner
         cognitoID
+        lat
+        long
         createdAt
         updatedAt
       }
@@ -230,6 +245,8 @@ export const updatePost = /* GraphQL */ `
         thumbFull
         full
       }
+      lat
+      long
       createdAt
       updatedAt
       userPostsId
@@ -249,6 +266,8 @@ export const deletePost = /* GraphQL */ `
         username
         owner
         cognitoID
+        lat
+        long
         createdAt
         updatedAt
       }
@@ -259,6 +278,8 @@ export const deletePost = /* GraphQL */ `
         thumbFull
         full
       }
+      lat
+      long
       createdAt
       updatedAt
       userPostsId
@@ -277,7 +298,8 @@ export const createMessage = /* GraphQL */ `
         owner
         name
         type
-        location
+        lat
+        long
         createdAt
         updatedAt
       }
@@ -286,18 +308,21 @@ export const createMessage = /* GraphQL */ `
         username
         owner
         cognitoID
+        lat
+        long
         createdAt
         updatedAt
       }
       owner
       type
-      Image {
+      image {
         bucket
         region
         loadFull
         thumbFull
         full
       }
+      index
       content
       createdAt
       updatedAt
@@ -318,7 +343,8 @@ export const updateMessage = /* GraphQL */ `
         owner
         name
         type
-        location
+        lat
+        long
         createdAt
         updatedAt
       }
@@ -327,18 +353,21 @@ export const updateMessage = /* GraphQL */ `
         username
         owner
         cognitoID
+        lat
+        long
         createdAt
         updatedAt
       }
       owner
       type
-      Image {
+      image {
         bucket
         region
         loadFull
         thumbFull
         full
       }
+      index
       content
       createdAt
       updatedAt
@@ -359,7 +388,8 @@ export const deleteMessage = /* GraphQL */ `
         owner
         name
         type
-        location
+        lat
+        long
         createdAt
         updatedAt
       }
@@ -368,18 +398,21 @@ export const deleteMessage = /* GraphQL */ `
         username
         owner
         cognitoID
+        lat
+        long
         createdAt
         updatedAt
       }
       owner
       type
-      Image {
+      image {
         bucket
         region
         loadFull
         thumbFull
         full
       }
+      index
       content
       createdAt
       updatedAt

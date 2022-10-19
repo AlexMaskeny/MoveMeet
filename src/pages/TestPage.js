@@ -3,10 +3,11 @@ import { StyleSheet, View } from 'react-native';
 import { API, Auth, graphqlOperation, Storage } from 'aws-amplify';
 import Image from "../comps/ImageLoader";
 import * as ImagePicker from 'expo-image-picker';
+import * as Location from 'expo-location';
 
 
 import { colors, debug } from '../config';
-import { createUser, updateUser } from '../api/calls';
+import { createUser, updateUser, createChat, updateChat, createMessage, getMessage, getChat } from '../api/calls';
 import BeamTitle from '../comps/BeamTitle';
 import SimpleButton from '../comps/SimpleButton';
 import Screen from '../comps/Screen';
@@ -16,6 +17,7 @@ function TestScreen({ navigation }) {
     //const [image, setImage] = React.useState("https://www.tamiu.edu/newsinfo/images/student-life/campus-scenery.JPG");
     const [username, setUsername] = React.useState("");
     const [code, setCode] = React.useState("");
+    const [chatName, setChatName] = React.useState("");
     //React.useEffect(() => {
     //    const initialFunction = async () => {
     //        try {
@@ -47,7 +49,8 @@ function TestScreen({ navigation }) {
                 username: username,
                 password: ",.1!qweR",
                 attributes: {
-                    email: "alex@maskeny.com"
+                    email: "alex@maskeny.com",
+                    phone_number: "+15867702686",
                 }
             })
             const pickerResult = await selectImage();
@@ -80,8 +83,9 @@ function TestScreen({ navigation }) {
                         }
                     }
                 }))
+                console.log("User Generated");
             }, 7);
-            console.log(image);
+            //console.log(image);
         } catch (error) {
             console.log(error);
         }
@@ -97,7 +101,145 @@ function TestScreen({ navigation }) {
             console.log(error);
         }
     }
+    const createNewChat = async () => {
+        try {
+            const perm = await Location.requestForegroundPermissionsAsync();
+            console.log("Creating new chat...");
+            const loc = await Location.getCurrentPositionAsync({ accuracy: 25 });
+            const currentLong = loc.coords.longitude;
+            const currentLat = loc.coords.latitude;
+            const pickerResult = await selectImage();
+            if (pickerResult.cancelled) {
+                console.log("Canceled Chat Creation");
+                return
+            }
+            const response = await fetch(pickerResult.uri);
+            const img = await response.blob();
+            const newChat = await API.graphql(graphqlOperation(createChat, {
+                input: {
+                    name: chatName,
+                    lat: currentLat,
+                    long: currentLong,
+                }
+            }))
+            const chatID = newChat.data.createChat.id;
+            const fullBackground = await Storage.put("FULLchatBackground" + chatID + ".jpg", img);
+            const image = await Storage.get("FULLchatBackground" + chatID + ".jpg");
+            //const loadImage = await Storage.get("LOADFULLchatBackground" + chatID + ".jpg"); //Program fails if images are too large. >7
+            const updatedChat = await API.graphql(graphqlOperation(updateChat, {
+                input: {
+                    id: chatID,
+                    background: {
+                        bucket: "proxychatf2d762e9bc784204880374b0ca905be4120629-dev",
+                        region: "us-east-2",
+                        full: image,
+                    }
+                }
+            }))
+            console.log("Chat Generated");
+            console.log(updatedChat);
+        } catch (error){
+            console.log(error);
+        }
+    }
 
+    const createRegularMessage = async (userID, chatID, j) => {
+        try {
+            const content = ""+j+"Alexander is a big fan of Grace Suber.";
+            const type = "Regular";
+            const index = j;
+            //const chatID = "fd30caf6-06c7-43a1-9f2d-408e4f0ac3c8";
+            //const userID = "d98f090b-c0fa-4f4d-a3d4-f8a5190a06b5";
+            const newMessage = await API.graphql(graphqlOperation(createMessage, {
+                input: {
+                    userMessagesId: userID,
+                    chatMessagesId: chatID,
+                    content: content,
+                    type: type,
+                    index: index,
+                }
+            }))
+            console.log(newMessage);
+        } catch (error) {
+            console.log(error);
+        }
+    }
+
+    const createImageMessage = async () => {
+        try {
+            const content = "Alexander is a big fan of Grace Suber.";
+            const type = "Image";
+            const index = 0;
+            const chatID = "df45ab06-cf1e-4730-bf2f-0b6f2db21844";
+            const userID = "d98f090b-c0fa-4f4d-a3d4-f8a5190a06b5";
+            const newMessage = await API.graphql(graphqlOperation(createMessage, {
+                input: {
+                    userMessagesId: userID,
+                    chatMessagesId: chatID,
+                    image: {
+                        bucket: "proxychatf2d762e9bc784204880374b0ca905be4120629-dev",
+                        region: "us-east-2",
+                        full: "https://proxychatf2d762e9bc784204880374b0ca905be4120629-dev.s3.us-east-2.amazonaws.com/public/FULLprofilePicture7b1c2e2b-aeea-4450-87b0-3de9113b8e4e.jpg?X-Amz-Algorithm=AWS4-HMAC-SHA256&X-Amz-Content-Sha256=UNSIGNED-PAYLOAD&X-Amz-Credential=ASIAUE2X27T22UPUSU6N%2F20221018%2Fus-east-2%2Fs3%2Faws4_request&X-Amz-Date=20221018T214027Z&X-Amz-Expires=900&X-Amz-Security-Token=IQoJb3JpZ2luX2VjEF4aCXVzLWVhc3QtMiJHMEUCIQCCLf8vu8mp5JsHv9LxMgynoVigchQJO5GxPPgUHTSijQIgOte445Ctia%2FTLuSEVTtPj%2F8MzDDlAuH2NW2VHpuKSnYqxAQINxAAGgwyODUyNjI2NzUxODkiDHwChFsZJp0NtBxd8yqhBCxko16B2svxWJECGsMNiIgxOOxRsW%2Fr6Y1rILCiAeQqVEJOfMihi9mnRUu4QFF5WFKZq4gvMVvbYnhHfmVuUpI7ON0nP77OGUi1CniTplyzdKY%2BisorUOeGDn7efuul2AwAulvimKGFwMDF%2FVAB8ftQYpSKmMQhNi%2BChcB8axZ7Z3VyNj%2Feo1V0mEZrhjy%2BI%2BeK5cxZY7BBxtnRcyFg0Qq4NjmUlwrlWV8Pzt5H6Hm6NxZwcreZC%2Bnlgbkd2c4M5eiaGhrIAvJaLrpFL6eNnAq6FZJcpAjnYrvAcwUTJEMOe8K52ymImmoSENso1TrQ%2BUfNjizOcRwyl5DugzaUKIzfpVL%2B2X3u4WzZXMhq1dLq2Mx6aPwxSjWaE3Yc6OzqKlYh9zNvu7Y1n9A8gtyYOuCDgVjpDoa5ee5DESK6H5WXerOQVLUL0fWz7P0Pwiz24ftoTRBrmuU6w7FAUczL%2BqdzGlzU2v7MqyUP9FHsfo%2F4NVF3OxL48JNwQsIkHX2CMiaclMGZNpWCc1QSSDw0Y9d2vCgmHl6eBS%2FiXyT4gdrNCXGypcrRi%2Bv6Zij2zcezOE5aCbMMjyUsHmbMURgHHe6iZkcxDFuCfsUtH5tk5BpqD8%2BuRJszmPe6i13IZyf36BUzfeL6RZnq1ke0N94c3xiOAboNv6DZ6Kj6805FV5cbtVgG67kZ5d5erNoZ%2FuLsc8y9faSlI%2F7pS60owhq7V8o0MMq6vJoGOoUC%2BGWFMTZvn9Doy0752X4%2F7qu5zKhayO2dJrj82iCYVPQ88BHWfblujwqD4R%2FtFFJTSZ8uEMaylMpxs1cHMz66BD48zHY6dNPsSbjc4bARjzbbCQ%2Fy8u6fqDWfKt%2BqHY%2FGcYgyeapBOwBQFtwopPfWTEUPK%2FjgY6Ik9TZA1GF2KrvGbiaeWxwaxT6GepUipUBx4ZNLWZCuz7pSzKHwT40wR6SuYdKYaSDsJ%2BTACMXq3oNkVJN3tI6fXiTq%2FA0Y5YKBazuddetjuffWYnA9ffvwVLUUnc4iaIerEPRvZQUtA85n1IHwtMyD%2Bzg6qmq08TnCvcUkGt%2F%2Btu92TdijnCdri9mvoIyD&X-Amz-Signature=57b82de792640b7d6170025b4986953b25667613a1b521d8ecb141b6fea3867c&X-Amz-SignedHeaders=host&x-amz-user-agent=aws-sdk-js%2F3.6.1%20os%2Fother%20lang%2Fjs%20md%2Fbrowser%2Funknown_unknown%20api%2Fs3%2F3.6.1%20aws-amplify%2F4.7.5_react-native&x-id=GetObject",
+                        loadFull: "https://proxychatf2d762e9bc784204880374b0ca905be4120629-dev.s3.us-east-2.amazonaws.com/public/LOADFULLprofilePicture7b1c2e2b-aeea-4450-87b0-3de9113b8e4e.jpg?X-Amz-Algorithm=AWS4-HMAC-SHA256&X-Amz-Content-Sha256=UNSIGNED-PAYLOAD&X-Amz-Credential=ASIAUE2X27T22UPUSU6N%2F20221018%2Fus-east-2%2Fs3%2Faws4_request&X-Amz-Date=20221018T214027Z&X-Amz-Expires=900&X-Amz-Security-Token=IQoJb3JpZ2luX2VjEF4aCXVzLWVhc3QtMiJHMEUCIQCCLf8vu8mp5JsHv9LxMgynoVigchQJO5GxPPgUHTSijQIgOte445Ctia%2FTLuSEVTtPj%2F8MzDDlAuH2NW2VHpuKSnYqxAQINxAAGgwyODUyNjI2NzUxODkiDHwChFsZJp0NtBxd8yqhBCxko16B2svxWJECGsMNiIgxOOxRsW%2Fr6Y1rILCiAeQqVEJOfMihi9mnRUu4QFF5WFKZq4gvMVvbYnhHfmVuUpI7ON0nP77OGUi1CniTplyzdKY%2BisorUOeGDn7efuul2AwAulvimKGFwMDF%2FVAB8ftQYpSKmMQhNi%2BChcB8axZ7Z3VyNj%2Feo1V0mEZrhjy%2BI%2BeK5cxZY7BBxtnRcyFg0Qq4NjmUlwrlWV8Pzt5H6Hm6NxZwcreZC%2Bnlgbkd2c4M5eiaGhrIAvJaLrpFL6eNnAq6FZJcpAjnYrvAcwUTJEMOe8K52ymImmoSENso1TrQ%2BUfNjizOcRwyl5DugzaUKIzfpVL%2B2X3u4WzZXMhq1dLq2Mx6aPwxSjWaE3Yc6OzqKlYh9zNvu7Y1n9A8gtyYOuCDgVjpDoa5ee5DESK6H5WXerOQVLUL0fWz7P0Pwiz24ftoTRBrmuU6w7FAUczL%2BqdzGlzU2v7MqyUP9FHsfo%2F4NVF3OxL48JNwQsIkHX2CMiaclMGZNpWCc1QSSDw0Y9d2vCgmHl6eBS%2FiXyT4gdrNCXGypcrRi%2Bv6Zij2zcezOE5aCbMMjyUsHmbMURgHHe6iZkcxDFuCfsUtH5tk5BpqD8%2BuRJszmPe6i13IZyf36BUzfeL6RZnq1ke0N94c3xiOAboNv6DZ6Kj6805FV5cbtVgG67kZ5d5erNoZ%2FuLsc8y9faSlI%2F7pS60owhq7V8o0MMq6vJoGOoUC%2BGWFMTZvn9Doy0752X4%2F7qu5zKhayO2dJrj82iCYVPQ88BHWfblujwqD4R%2FtFFJTSZ8uEMaylMpxs1cHMz66BD48zHY6dNPsSbjc4bARjzbbCQ%2Fy8u6fqDWfKt%2BqHY%2FGcYgyeapBOwBQFtwopPfWTEUPK%2FjgY6Ik9TZA1GF2KrvGbiaeWxwaxT6GepUipUBx4ZNLWZCuz7pSzKHwT40wR6SuYdKYaSDsJ%2BTACMXq3oNkVJN3tI6fXiTq%2FA0Y5YKBazuddetjuffWYnA9ffvwVLUUnc4iaIerEPRvZQUtA85n1IHwtMyD%2Bzg6qmq08TnCvcUkGt%2F%2Btu92TdijnCdri9mvoIyD&X-Amz-Signature=677ab32887a30e2514f265635b10c6b4e13f3d13ce5e1c3e21609754509611a1&X-Amz-SignedHeaders=host&x-amz-user-agent=aws-sdk-js%2F3.6.1%20os%2Fother%20lang%2Fjs%20md%2Fbrowser%2Funknown_unknown%20api%2Fs3%2F3.6.1%20aws-amplify%2F4.7.5_react-native&x-id=GetObject"
+                    },
+                    type: type,
+                    index: index,
+                }
+            }))
+            console.log(newMessage);
+        } catch (error) {
+            console.log(error);
+        }
+    }
+
+    const getMsg = async () => {
+        try {
+            const message = await API.graphql(graphqlOperation(getMessage, {
+                id: "fa596b9d-eb81-4e8c-827f-1a61fb2f7b44"
+            }))
+            console.log(message.data.getMessage.user);
+        } catch (error) {
+            console.log(error);
+        }
+    }
+
+    const getCh = async () => {
+        try {
+            const chat = await API.graphql(graphqlOperation(getChat, {
+                id: "e4643d94-2c8d-46ae-a29e-47d594b347bc"
+            }))
+            console.log(chat.data.getChat.messages.items[0]);
+        } catch (error) {
+            console.log(error);
+        }
+    }
+
+    const userIDS = [
+        "befbb1d2-cc43-4651-80cf-126591e2e589",
+        "d9b6c3eb-470a-4aef-b326-419a267653da",
+        "0fdd1b57-5cc2-4bf9-81c6-736e097b5810",
+        "c9bab0cc-430d-405e-a9ee-44b0a6364f82",
+        "c9c41e76-73b7-43e3-be8f-3ddf24d18ff6",
+    ]
+    const chatIDS = [
+        "fd30caf6-06c7-43a1-9f2d-408e4f0ac3c8",
+        "e4643d94-2c8d-46ae-a29e-47d594b347bc",
+        "a96b3fe5-d240-436c-afff-57ee982a2dd3",
+        "df45ab06-cf1e-4730-bf2f-0b6f2db21844",
+        "c56016ef-a56a-46db-852a-743c030bd5f8",
+    ]
+    const fillData = async () => {
+        try {
+            for (i = 0; i < 5; i++) {
+                for (j = 0; j < 5; j++) {
+                    await createRegularMessage(userIDS[j], chatIDS[i], j);
+                    console.log("I: " + i + ", J" + j + " completed...");
+                }
+            }
+        } catch (error) {
+            console.log(error);
+        }
+    }
     return (
         <Screen innerStyle={styles.page}>
             {/*<BeamTitle>Alexander</BeamTitle>*/}
@@ -107,10 +249,20 @@ function TestScreen({ navigation }) {
             {/*        loadImage: "https://th.bing.com/th/id/R.4ef44de48283a70c345215439710e076?rik=DbmjSu8b4rFcmQ&riu=http%3a%2f%2fwww.kneson.com%2fnews%2fIII3%2fKELSEY_AD_example1.jpg&ehk=5jg5ZditRXiSNMQ9tGa0nhrMY8OnQBmFdvwW%2f%2bGfiCU%3d&risl=&pid=ImgRaw&r=0" */}
             {/*    }}*/}
             {/*    style={{ width: 200, height: 200 }} />*/}
-            <SimpleInput placeholder="username" onChangeText={(text) => { setUsername(text) }} />
-            <SimpleButton title="Create user" onPress={() => createNewUser()} />
-            <SimpleInput placeholder="code" onChangeText={(text) => { setCode(text) }} />
-            <SimpleButton title="Confirm User" onPress={() => confirmUser()} />
+
+            {/*<SimpleInput placeholder="username" onChangeText={(text) => { setUsername(text) }} />*/}
+            {/*<SimpleButton title="Create user" onPress={() => createNewUser()} />*/}
+            {/*<SimpleInput placeholder="code" onChangeText={(text) => { setCode(text) }} />*/}
+            {/*<SimpleButton title="Confirm User" onPress={() => confirmUser()} />*/}
+
+            {/*<SimpleInput placeholder="chatName" onChangeText={(text) => { setChatName(text) }} />*/}
+            {/*<SimpleButton title="Create Chat" onPress={() => createNewChat()} />*/}
+
+            <SimpleButton title="Create Regular Message" onPress={() => createRegularMessage()} />
+            <SimpleButton title="Create Image Message" onPress={() => createImageMessage()} />
+            {/*<SimpleButton title="Get Message" onPress={() => getMsg()} />*/}
+            {/*<SimpleButton title="Get Chat" onPress={() => getCh()} />*/}
+            {/*<SimpleButton title="Fill Data" onPress={() => fillData()} />*/}
         </Screen>
     );
 }

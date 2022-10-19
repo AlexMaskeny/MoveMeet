@@ -26,6 +26,8 @@ export const getUser = /* GraphQL */ `
       messages {
         nextToken
       }
+      lat
+      long
       createdAt
       updatedAt
     }
@@ -43,6 +45,8 @@ export const listUsers = /* GraphQL */ `
         username
         owner
         cognitoID
+        lat
+        long
         createdAt
         updatedAt
       }
@@ -57,7 +61,8 @@ export const getChat = /* GraphQL */ `
       owner
       name
       type
-      location
+      lat
+      long
       background {
         bucket
         region
@@ -85,7 +90,8 @@ export const listChats = /* GraphQL */ `
         owner
         name
         type
-        location
+        lat
+        long
         createdAt
         updatedAt
       }
@@ -103,6 +109,8 @@ export const getPost = /* GraphQL */ `
         username
         owner
         cognitoID
+        lat
+        long
         createdAt
         updatedAt
       }
@@ -113,6 +121,8 @@ export const getPost = /* GraphQL */ `
         thumbFull
         full
       }
+      lat
+      long
       createdAt
       updatedAt
       userPostsId
@@ -129,6 +139,8 @@ export const listPosts = /* GraphQL */ `
       items {
         id
         owner
+        lat
+        long
         createdAt
         updatedAt
         userPostsId
@@ -146,7 +158,8 @@ export const getMessage = /* GraphQL */ `
         owner
         name
         type
-        location
+        lat
+        long
         createdAt
         updatedAt
       }
@@ -155,18 +168,21 @@ export const getMessage = /* GraphQL */ `
         username
         owner
         cognitoID
+        lat
+        long
         createdAt
         updatedAt
       }
       owner
       type
-      Image {
+      image {
         bucket
         region
         loadFull
         thumbFull
         full
       }
+      index
       content
       createdAt
       updatedAt
@@ -186,6 +202,7 @@ export const listMessages = /* GraphQL */ `
         id
         owner
         type
+        index
         content
         createdAt
         updatedAt
