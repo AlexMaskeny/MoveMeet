@@ -28,6 +28,10 @@ export const getUser = /* GraphQL */ `
       }
       lat
       long
+      latf1
+      longf1
+      latf2
+      longf2
       createdAt
       updatedAt
     }
@@ -47,6 +51,10 @@ export const listUsers = /* GraphQL */ `
         cognitoID
         lat
         long
+        latf1
+        longf1
+        latf2
+        longf2
         createdAt
         updatedAt
       }
@@ -119,6 +127,10 @@ export const getPost = /* GraphQL */ `
         cognitoID
         lat
         long
+        latf1
+        longf1
+        latf2
+        longf2
         createdAt
         updatedAt
       }
@@ -131,6 +143,10 @@ export const getPost = /* GraphQL */ `
       }
       lat
       long
+      latf1
+      longf1
+      latf2
+      longf2
       createdAt
       updatedAt
       userPostsId
@@ -149,6 +165,10 @@ export const listPosts = /* GraphQL */ `
         owner
         lat
         long
+        latf1
+        longf1
+        latf2
+        longf2
         createdAt
         updatedAt
         userPostsId
@@ -182,6 +202,10 @@ export const getMessage = /* GraphQL */ `
         cognitoID
         lat
         long
+        latf1
+        longf1
+        latf2
+        longf2
         createdAt
         updatedAt
       }

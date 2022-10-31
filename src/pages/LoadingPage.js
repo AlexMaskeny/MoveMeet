@@ -4,6 +4,19 @@ import { colors, debug } from '../config';
 import { Auth } from 'aws-amplify';
 
 import Screen from '../comps/Screen';
+import AsyncStorage from '@react-native-async-storage/async-storage';
+
+//Efficent GetData Stack: 
+//Given first run of app -> LoadingPage ->
+//    Check if authed user. 
+//	If not send to login page -> If click signup go to signup[DELAY] -> Once signed up log in and go back to LoadingPage
+//	If logged in yet not verified -> go to verification -> When verified -> Go Back to LoadingPAge
+//	If logged in and okay -> Go back to LoadingPage
+//Get current user info that may have changed. (Location, friends, messages,)
+//Preload chat page, get first 10 chats near user, get first 10 user chats + convos, fill user profile screen.
+//	Store that gotten data in asyncstorage if reasonable. (avoid outdated data)
+//[DELAY]Begin subscriptions if reasonable. 
+//navigate to local chats page with some default radius
 
 function LoadingPage({navigation}) {
     //REQUIRES: this page was navigated to by the initial Primary Navigator
@@ -15,20 +28,33 @@ function LoadingPage({navigation}) {
         const initialFunction = async () => {
             if (debug) console.log("Initiating...");
             //Get data during this interval
-            setTimeout(async function () {
+            //setTimeout(async function () {
                 try {
                     const currentUser = await Auth.currentAuthenticatedUser();
                     if (currentUser) {
                         //if (debug) console.log(currentUser);
+                        //Now continue Process above...
+                        //Get Chat Data, friend data, near you chat data, dynamodb user data
+                        //Pass above data into secondarynav / store in storage. Must think on that.
                         navigation.navigate("SecondaryNav");
                     }
                 } catch (error) {
                     if (debug) console.log(error);
                     if (error == "The user is not authenticated") {
+                        //Check If Unconfirmed User
+                        const result = await AsyncStorage.getItem("unconfirmed");
+                        if (result) {
+                            const parsed = JSON.parse(result);
+                            if (parsed.val) {
+                                if (debug) console.log("Unconfirmed User Exists");
+                                //navigate to signup with unconfirmed route.
+                            }
+                        }
+                        //else navigate to loginpage, possibly a general page if you want.
                         navigation.navigate("LoginPage");
 					}
 			    }
-            }, 20);
+            //}, 20);
         }
         initialFunction();
     }, []);

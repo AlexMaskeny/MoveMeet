@@ -49,6 +49,7 @@ function navigation() {
                 headerShown: false,
                 tabBarActiveTintColor: colors.pBeamBright,
                 inactiveTintColor: colors.text2,
+                lazy: false,
                 tabBarShowLabel: false,
                 tabBarStyle: SecondNavStyle.tabBarStyle,
             }}

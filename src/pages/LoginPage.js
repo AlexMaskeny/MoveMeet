@@ -6,6 +6,7 @@ import { Auth } from 'aws-amplify';
 import Screen from '../comps/Screen';
 import SimpleInput from '../comps/SimpleInput';
 import SimpleButton from '../comps/SimpleButton';
+import AsyncStorage from '@react-native-async-storage/async-storage';
 
 //current potential problems:
 //1. When clicking off of password text input, something occurs that clears
@@ -45,12 +46,14 @@ function LoginPage({navigation}) {
             const response = await Auth.signIn(user, pass);
             if (response) {
                 if (debug) console.log("Login Successful");
-                navigation.navigate("SecondaryNav")
+                // If user terminates after vertication but before setting things up, thats okay we'll tutorial a blank profile.
+                navigation.navigate("SecondaryNav") //ACtually navigate to loadingpage
             }
         } catch (error) {
             if (debug) console.log(error.code);
             if (error.code == "UserNotConfirmedException") {
-                //Do a thing
+                await AsyncStorage.setItem('unconfirmed', JSON.stringify({ val: true })); //Also add this line the moment a user is created in SignUpPage. Potentially can even remove this line.
+                //SEND TO SIGNUPPAGE with route UserNotConfirmedException
             } else if (error.code == "NotAuthorizedException" || error.code == "UserNotFoundException") {
                 Alert.alert("Incorrect Username or Password", "The username or password you entered was incorrect.", [
                     { text: "Try Again" },

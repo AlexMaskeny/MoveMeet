@@ -7,8 +7,12 @@ type User @model @auth(rules: [{allow: owner}]){
 	posts: [Post] @hasMany
 	friends: [Friend] 
 	messages: [Message] @hasMany
-	lat: String @index(name: "byLat", sortKeyFields: ["long"])
+	lat: String
 	long: String
+	latf1: String @index(name: "byLatf1", sortKeyFields: ["longf1", "longf2"])
+	longf1: String
+	latf2: String @index(name: "byLatf2", sortKeyFields: ["longf1", "longf2"])
+	longf2: String
 }
 
 type Chat @model @auth(rules: [
@@ -37,8 +41,12 @@ type Post @model @auth(rules: [
 	owner: String @auth(rules: [{allow: owner, operations: [read, create, delete]}])
 	user: User @belongsTo 
 	image: Image 
-	lat: String @index(name: "byLat", sortKeyFields: ["long"])
+	lat: String
 	long: String
+	latf1: String @index(name: "byLatf1", sortKeyFields: ["longf1", "longf2"])
+	longf1: String
+	latf2: String @index(name: "byLatf2", sortKeyFields: ["longf1", "longf2"])
+	longf2: String
 }
 
 type Message @model @auth(rules: [

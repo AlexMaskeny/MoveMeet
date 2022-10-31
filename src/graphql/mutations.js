@@ -31,6 +31,10 @@ export const createUser = /* GraphQL */ `
       }
       lat
       long
+      latf1
+      longf1
+      latf2
+      longf2
       createdAt
       updatedAt
     }
@@ -66,6 +70,10 @@ export const updateUser = /* GraphQL */ `
       }
       lat
       long
+      latf1
+      longf1
+      latf2
+      longf2
       createdAt
       updatedAt
     }
@@ -101,6 +109,10 @@ export const deleteUser = /* GraphQL */ `
       }
       lat
       long
+      latf1
+      longf1
+      latf2
+      longf2
       createdAt
       updatedAt
     }
@@ -214,6 +226,10 @@ export const createPost = /* GraphQL */ `
         cognitoID
         lat
         long
+        latf1
+        longf1
+        latf2
+        longf2
         createdAt
         updatedAt
       }
@@ -226,6 +242,10 @@ export const createPost = /* GraphQL */ `
       }
       lat
       long
+      latf1
+      longf1
+      latf2
+      longf2
       createdAt
       updatedAt
       userPostsId
@@ -247,6 +267,10 @@ export const updatePost = /* GraphQL */ `
         cognitoID
         lat
         long
+        latf1
+        longf1
+        latf2
+        longf2
         createdAt
         updatedAt
       }
@@ -259,6 +283,10 @@ export const updatePost = /* GraphQL */ `
       }
       lat
       long
+      latf1
+      longf1
+      latf2
+      longf2
       createdAt
       updatedAt
       userPostsId
@@ -280,6 +308,10 @@ export const deletePost = /* GraphQL */ `
         cognitoID
         lat
         long
+        latf1
+        longf1
+        latf2
+        longf2
         createdAt
         updatedAt
       }
@@ -292,6 +324,10 @@ export const deletePost = /* GraphQL */ `
       }
       lat
       long
+      latf1
+      longf1
+      latf2
+      longf2
       createdAt
       updatedAt
       userPostsId
@@ -326,6 +362,10 @@ export const createMessage = /* GraphQL */ `
         cognitoID
         lat
         long
+        latf1
+        longf1
+        latf2
+        longf2
         createdAt
         updatedAt
       }
@@ -375,6 +415,10 @@ export const updateMessage = /* GraphQL */ `
         cognitoID
         lat
         long
+        latf1
+        longf1
+        latf2
+        longf2
         createdAt
         updatedAt
       }
@@ -424,6 +468,10 @@ export const deleteMessage = /* GraphQL */ `
         cognitoID
         lat
         long
+        latf1
+        longf1
+        latf2
+        longf2
         createdAt
         updatedAt
       }
