@@ -118,6 +118,10 @@ export const createChat = /* GraphQL */ `
       type
       lat
       long
+      latf1
+      longf1
+      latf2
+      longf2
       background {
         bucket
         region
@@ -145,6 +149,10 @@ export const updateChat = /* GraphQL */ `
       type
       lat
       long
+      latf1
+      longf1
+      latf2
+      longf2
       background {
         bucket
         region
@@ -172,6 +180,10 @@ export const deleteChat = /* GraphQL */ `
       type
       lat
       long
+      latf1
+      longf1
+      latf2
+      longf2
       background {
         bucket
         region
@@ -300,6 +312,10 @@ export const createMessage = /* GraphQL */ `
         type
         lat
         long
+        latf1
+        longf1
+        latf2
+        longf2
         createdAt
         updatedAt
       }
@@ -345,6 +361,10 @@ export const updateMessage = /* GraphQL */ `
         type
         lat
         long
+        latf1
+        longf1
+        latf2
+        longf2
         createdAt
         updatedAt
       }
@@ -390,6 +410,10 @@ export const deleteMessage = /* GraphQL */ `
         type
         lat
         long
+        latf1
+        longf1
+        latf2
+        longf2
         createdAt
         updatedAt
       }

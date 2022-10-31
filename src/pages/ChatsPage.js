@@ -127,7 +127,7 @@ const testMembers = [
 //!!!!!!
 //REMOVE ON PRODUCTON [END]
 
-function ChatsPage({ navigation }) {
+function ChatsPage({ navigation, route }) {
     return (
         <>
             <Screen innerStyle={styles.page}>

@@ -161,3 +161,20 @@ export const getChat = /* GraphQL */ `
     }
   }
 `;
+
+export const listChats = /* GraphQL */ `
+  query ListChats(
+    $filter: ModelChatFilterInput
+    $limit: Int
+    $nextToken: String
+  ) {
+    listChats(filter: $filter, limit: $limit, nextToken: $nextToken) {
+      items {
+        id
+        lat
+        long
+      }
+      nextToken
+    }
+  }
+`;

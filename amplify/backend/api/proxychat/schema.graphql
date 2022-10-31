@@ -19,8 +19,12 @@ type Chat @model @auth(rules: [
 	owner: String @auth(rules: [{allow: owner, operations: [read, create, delete]}])
 	name: String
 	type: String
-	lat: String @index(name: "byLat", sortKeyFields: ["long"])
+	lat: String
 	long: String
+	latf1: String @index(name: "byLatf1", sortKeyFields: ["longf1", "longf2"])
+	longf1: String
+	latf2: String @index(name: "byLatf2", sortKeyFields: ["longf1", "longf2"])
+	longf2: String
 	background: Image 
 	messages: [Message] @hasMany
 }
@@ -63,9 +67,4 @@ type Friend {
 	friendID: String!
 	status: String
 	chatID: String
-}
-
-type Location {
-	lat: String!
-	long: String!
 }

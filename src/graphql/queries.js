@@ -63,6 +63,10 @@ export const getChat = /* GraphQL */ `
       type
       lat
       long
+      latf1
+      longf1
+      latf2
+      longf2
       background {
         bucket
         region
@@ -92,6 +96,10 @@ export const listChats = /* GraphQL */ `
         type
         lat
         long
+        latf1
+        longf1
+        latf2
+        longf2
         createdAt
         updatedAt
       }
@@ -160,6 +168,10 @@ export const getMessage = /* GraphQL */ `
         type
         lat
         long
+        latf1
+        longf1
+        latf2
+        longf2
         createdAt
         updatedAt
       }

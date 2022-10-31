@@ -7,7 +7,7 @@ import * as Location from 'expo-location';
 
 
 import { colors, debug } from '../config';
-import { createUser, updateUser, createChat, updateChat, createMessage, getMessage, getChat } from '../api/calls';
+import { createUser, updateUser, createChat, updateChat, createMessage, getMessage, getChat, listChats } from '../api/calls';
 import BeamTitle from '../comps/BeamTitle';
 import SimpleButton from '../comps/SimpleButton';
 import Screen from '../comps/Screen';
@@ -68,7 +68,7 @@ function TestScreen({ navigation }) {
                 }
             }))
             const userID = newUser.data.createUser.id;
-            const fullPicture = await Storage.put("FULLprofilePicture" + userID + ".jpg", img);    
+            const fullPicture = await Storage.put("FULLprofilePicture" + userID + ".jpg", img);
             const image = await Storage.get("FULLprofilePicture" + userID + ".jpg");
             setTimeout(async function () {
                 const loadImage = await Storage.get("LOADFULLprofilePicture" + userID + ".jpg");
@@ -138,14 +138,14 @@ function TestScreen({ navigation }) {
             }))
             console.log("Chat Generated");
             console.log(updatedChat);
-        } catch (error){
+        } catch (error) {
             console.log(error);
         }
     }
 
     const createRegularMessage = async (userID, chatID, j) => {
         try {
-            const content = ""+j+"Alexander is a big fan of Grace Suber.";
+            const content = "" + j + "Alexander is a big fan of Grace Suber.";
             const type = "Regular";
             const index = j;
             //const chatID = "fd30caf6-06c7-43a1-9f2d-408e4f0ac3c8";
@@ -240,6 +240,45 @@ function TestScreen({ navigation }) {
             console.log(error);
         }
     }
+    const updateChats = async () => {
+        try {
+            const result = await API.graphql(graphqlOperation(listChats));
+            const items = result.data.listChats.items;
+            for (i = 0; i < items.length; i++) {
+                const lat = items.at(i).lat;
+                const long = items.at(i).long;
+                const nLat = lat * 364011.1;
+                const nLong = long * 365221.0 * Math.cos(lat * Math.PI/180.0);
+                const latf = round(nLat);
+                const longf = round(nLong);
+                const updatedChat = await API.graphql(graphqlOperation(updateChat, {
+                    input: {
+                        id: items.at(i).id,
+                        lat: nLat,
+                        long: nLong,
+                        latf1: latf.f1,
+                        longf1: longf.f1,
+                        latf2: latf.f2,
+                        longf2: longf.f2,
+                    }
+                }))
+                console.log(updatedChat);
+            }
+        } catch (error) {
+            console.log(error);
+        }
+    }
+    const round = (iNumber) => {
+        const number = iNumber / 1000.0;
+        const multiplicity = number / Math.abs(number);
+        const f1 = 1000.0 * multiplicity * Math.floor(Math.abs(number));
+        const f2 = 1000.0* multiplicity * Math.ceil(Math.abs(number));
+        return {
+            f1: f1,
+            f2: f2,
+        }
+    }
+
     return (
         <Screen innerStyle={styles.page}>
             {/*<BeamTitle>Alexander</BeamTitle>*/}
@@ -258,11 +297,12 @@ function TestScreen({ navigation }) {
             {/*<SimpleInput placeholder="chatName" onChangeText={(text) => { setChatName(text) }} />*/}
             {/*<SimpleButton title="Create Chat" onPress={() => createNewChat()} />*/}
 
-            <SimpleButton title="Create Regular Message" onPress={() => createRegularMessage()} />
-            <SimpleButton title="Create Image Message" onPress={() => createImageMessage()} />
+            {/*<SimpleButton title="Create Regular Message" onPress={() => createRegularMessage()} />*/}
+            {/*<SimpleButton title="Create Image Message" onPress={() => createImageMessage()} />*/}
             {/*<SimpleButton title="Get Message" onPress={() => getMsg()} />*/}
             {/*<SimpleButton title="Get Chat" onPress={() => getCh()} />*/}
             {/*<SimpleButton title="Fill Data" onPress={() => fillData()} />*/}
+            <SimpleButton title="Update Chats" onPress={() => updateChats()} /> 
         </Screen>
     );
 }
