@@ -5,9 +5,8 @@ import Image from "../comps/ImageLoader";
 import * as ImagePicker from 'expo-image-picker';
 import * as Location from 'expo-location';
 
-
 import { colors, debug } from '../config';
-import { createUser, updateUser, createChat, updateChat, createMessage, getMessage, getChat, listChats } from '../api/calls';
+import { createUser, updateUser, createChat, updateChat, createMessage, getMessage, getChat, listChats, listUsers } from '../api/calls';
 import BeamTitle from '../comps/BeamTitle';
 import SimpleButton from '../comps/SimpleButton';
 import Screen from '../comps/Screen';
@@ -279,15 +278,79 @@ function TestScreen({ navigation }) {
         }
     }
 
+    const chats = [
+        "fd30caf6-06c7-43a1-9f2d-408e4f0ac3c8",
+        "c56016ef-a56a-46db-852a-743c030bd5f8",
+        "df45ab06-cf1e-4730-bf2f-0b6f2db21844",
+        "c365546f-ab12-485d-b144-960ecedf840f",
+        "e4643d94-2c8d-46ae-a29e-47d594b347bc",
+        "ad4ecacd-a85f-4774-9d96-b23ec9480e29",
+        "a96b3fe5-d240-436c-afff-57ee982a2dd3",
+        "ca0177b1-bb0b-42eb-b119-d50fb194d593",
+        "0b56e6a2-1251-4c34-9dd0-b8bb862aec6b",
+        "cdf3fa65-28a7-43b2-a042-e332fdc60c3e",
+        "9bfdfdc1-397e-4551-bf4c-5132bbc3d4f7",
+        "9f7915b3-852a-484e-be56-898bb7d47336",
+        "1a000e54-4fe6-46f9-8cb1-3fa8a3f36ad7",
+        "57a7d895-2993-46a3-a49f-6d56b5a8a8fb",
+        "997ac289-10ef-4d3a-8d9a-2b1b7fc41152",
+
+    ]
+
+    const updateChatBackgrounds = async () => {
+        try {
+            const result = await API.graphql(graphqlOperation(listChats));
+            const items = result.data.listChats.items;
+            for (i = 0; i < items.length; i++) {
+                const updatedChat = await API.graphql(graphqlOperation(updateChat, {
+                    input: {
+                        id: items.at(i).id,
+                        background: {
+                            bucket: "proxychatf2d762e9bc784204880374b0ca905be4120629-dev",
+                            region: "us-east-2",
+                            full: "FULLchatBackground" + items.at(i).id + ".jpg",
+                            loadFull: "LOADFULLchatBackground" + items.at(i).id + ".jpg",
+                        }
+                    }
+                }))
+            }
+        } catch (error){
+            console.log(error);
+        }
+    }
+
+    const updateUserBackgrounds = async () => {
+        try {
+            const result = await API.graphql(graphqlOperation(listUsers));
+            const items = result.data.listUsers.items;
+            for (i = 0; i < items.length; i++) {
+                const updatedUser = await API.graphql(graphqlOperation(updateUser, {
+                    input: {
+                        id: items.at(i).id,
+                        profilePicture: {
+                            bucket: "proxychatf2d762e9bc784204880374b0ca905be4120629-dev",
+                            region: "us-east-2",
+                            full: "FULLprofilePicture" + items.at(i).id + ".jpg",
+                            loadFull: "LOADFULLprofilePicture" + items.at(i).id + ".jpg",
+                        }
+                    }
+                }))
+            }
+        } catch (error) {
+            console.log(error);
+        }
+    }
+
     return (
         <Screen innerStyle={styles.page}>
             {/*<BeamTitle>Alexander</BeamTitle>*/}
-            {/*<Image*/}
-            {/*    source={{*/}
-            {/*        uri: image,*/}
-            {/*        loadImage: "https://th.bing.com/th/id/R.4ef44de48283a70c345215439710e076?rik=DbmjSu8b4rFcmQ&riu=http%3a%2f%2fwww.kneson.com%2fnews%2fIII3%2fKELSEY_AD_example1.jpg&ehk=5jg5ZditRXiSNMQ9tGa0nhrMY8OnQBmFdvwW%2f%2bGfiCU%3d&risl=&pid=ImgRaw&r=0" */}
-            {/*    }}*/}
-            {/*    style={{ width: 200, height: 200 }} />*/}
+            <Image
+                source={{
+                    uri: 'https://th.bing.com/th/id/R.f6876a4ceeeadaac3322dbd8595122d1?rik=dxcwQ8nRUO9W6A&pid=ImgRaw&r=0',
+                    loadImage: "https://th.bing.com/th/id/R.4ef44de48283a70c345215439710e076?rik=DbmjSu8b4rFcmQ&riu=http%3a%2f%2fwww.kneson.com%2fnews%2fIII3%2fKELSEY_AD_example1.jpg&ehk=5jg5ZditRXiSNMQ9tGa0nhrMY8OnQBmFdvwW%2f%2bGfiCU%3d&risl=&pid=ImgRaw&r=0" 
+                }}
+                style={{ width: 200, height: 200 }}
+            />
 
             {/*<SimpleInput placeholder="username" onChangeText={(text) => { setUsername(text) }} />*/}
             {/*<SimpleButton title="Create user" onPress={() => createNewUser()} />*/}
@@ -302,7 +365,7 @@ function TestScreen({ navigation }) {
             {/*<SimpleButton title="Get Message" onPress={() => getMsg()} />*/}
             {/*<SimpleButton title="Get Chat" onPress={() => getCh()} />*/}
             {/*<SimpleButton title="Fill Data" onPress={() => fillData()} />*/}
-            <SimpleButton title="Update Chats" onPress={() => updateChats()} /> 
+            <SimpleButton title="Update Users" onPress={() => updateUserBackgrounds()} /> 
         </Screen>
     );
 }

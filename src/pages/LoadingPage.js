@@ -1,10 +1,11 @@
-import React from 'react';
+import React, { useContext } from 'react';
 import { StyleSheet, Image, ActivityIndicator, View } from 'react-native';
-import { colors, debug } from '../config';
-import { Auth } from 'aws-amplify';
-
-import Screen from '../comps/Screen';
+import { API, Auth, graphqlOperation } from 'aws-amplify';
 import AsyncStorage from '@react-native-async-storage/async-storage';
+
+import timeout from '../api/timeout';
+import { colors, debug } from '../config';
+import Screen from '../comps/Screen';
 
 //Efficent GetData Stack: 
 //Given first run of app -> LoadingPage ->
@@ -24,6 +25,7 @@ function LoadingPage({navigation}) {
     //EFFECTS: attains data from database and triggers an inner function
     //         that will redirect user to appropriate page upon profile
     //         data attainment
+
     React.useEffect(() => {
         const initialFunction = async () => {
             if (debug) console.log("Initiating...");
@@ -32,10 +34,6 @@ function LoadingPage({navigation}) {
                 try {
                     const currentUser = await Auth.currentAuthenticatedUser();
                     if (currentUser) {
-                        //if (debug) console.log(currentUser);
-                        //Now continue Process above...
-                        //Get Chat Data, friend data, near you chat data, dynamodb user data
-                        //Pass above data into secondarynav / store in storage. Must think on that.
                         navigation.navigate("SecondaryNav");
                     }
                 } catch (error) {

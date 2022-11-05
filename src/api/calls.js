@@ -178,3 +178,82 @@ export const listChats = /* GraphQL */ `
     }
   }
 `;
+
+export const listChatsByLocation = /* GraphQL */ `
+  query ListChatsByLocation(
+    $lat: String
+    $long: String
+    $latf1: String
+    $latf2: String
+    $long1: String
+    $long2: String
+    $long3: String
+    $radius: Int
+    $numMessages: Int
+  ) {
+    listChatsByLocation(latf1: $latf1, latf2: $latf2, lat: $lat, long: $long, long1: $long1, long2: $long2, long3: $long3, radius: $radius) {
+      items {
+        id
+        lat
+        long
+        name
+        owner
+        type
+        background {
+            full
+            loadFull
+        }
+        messages(limit: $numMessages) {
+          items {
+            index
+            owner
+            type
+            content
+          }
+          nextToken
+        }
+      }
+    }
+  }
+`;
+
+export const listUsersByLocation = /* GraphQL */ `
+  query ListUsersByLocation(
+    $lat: String
+    $long: String
+    $latf1: String
+    $latf2: String
+    $long1: String
+    $long2: String
+    $long3: String
+    $radius: Int
+  ) {
+    listUsersByLocation(latf1: $latf1, latf2: $latf2, lat: $lat, long: $long, long1: $long1, long2: $long2, long3: $long3, radius: $radius) {
+      items {
+        id
+        lat
+        long
+        username
+        profilePicture {
+            full
+            loadFull
+        }
+      }
+    }
+  }
+`;
+
+export const listUsers = /* GraphQL */ `
+  query ListUsers(
+    $filter: ModelUserFilterInput
+    $limit: Int
+    $nextToken: String
+  ) {
+    listUsers(filter: $filter, limit: $limit, nextToken: $nextToken) {
+      items {
+        id
+        username
+      }
+    }
+  }
+`;
