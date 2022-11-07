@@ -1,11 +1,15 @@
 {
   "ExpandedNodes": [
     "",
+    "\\amplify\\backend",
+    "\\amplify\\backend\\api",
+    "\\amplify\\backend\\api\\proxychat",
     "\\src",
     "\\src\\api",
+    "\\src\\comps",
     "\\src\\graphql",
     "\\src\\pages"
   ],
-  "SelectedNode": "\\src\\ctx.js",
+  "SelectedNode": "\\src\\pages\\LoadingPage.js",
   "PreviewInSolutionExplorer": false
 }

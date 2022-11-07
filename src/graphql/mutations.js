@@ -9,6 +9,7 @@ export const createUser = /* GraphQL */ `
     createUser(input: $input, condition: $condition) {
       id
       username
+      bio
       profilePicture {
         bucket
         region
@@ -27,6 +28,9 @@ export const createUser = /* GraphQL */ `
         chatID
       }
       messages {
+        nextToken
+      }
+      chats {
         nextToken
       }
       lat
@@ -48,6 +52,7 @@ export const updateUser = /* GraphQL */ `
     updateUser(input: $input, condition: $condition) {
       id
       username
+      bio
       profilePicture {
         bucket
         region
@@ -66,6 +71,9 @@ export const updateUser = /* GraphQL */ `
         chatID
       }
       messages {
+        nextToken
+      }
+      chats {
         nextToken
       }
       lat
@@ -87,6 +95,7 @@ export const deleteUser = /* GraphQL */ `
     deleteUser(input: $input, condition: $condition) {
       id
       username
+      bio
       profilePicture {
         bucket
         region
@@ -105,6 +114,9 @@ export const deleteUser = /* GraphQL */ `
         chatID
       }
       messages {
+        nextToken
+      }
+      chats {
         nextToken
       }
       lat
@@ -129,6 +141,9 @@ export const createChat = /* GraphQL */ `
       name
       type
       lat
+      members {
+        nextToken
+      }
       long
       latf1
       longf1
@@ -160,6 +175,9 @@ export const updateChat = /* GraphQL */ `
       name
       type
       lat
+      members {
+        nextToken
+      }
       long
       latf1
       longf1
@@ -191,6 +209,9 @@ export const deleteChat = /* GraphQL */ `
       name
       type
       lat
+      members {
+        nextToken
+      }
       long
       latf1
       longf1
@@ -222,6 +243,7 @@ export const createPost = /* GraphQL */ `
       user {
         id
         username
+        bio
         owner
         cognitoID
         lat
@@ -241,13 +263,13 @@ export const createPost = /* GraphQL */ `
         full
       }
       lat
+      createdAt
+      updatedAt
       long
       latf1
       longf1
       latf2
       longf2
-      createdAt
-      updatedAt
       userPostsId
     }
   }
@@ -263,6 +285,7 @@ export const updatePost = /* GraphQL */ `
       user {
         id
         username
+        bio
         owner
         cognitoID
         lat
@@ -282,13 +305,13 @@ export const updatePost = /* GraphQL */ `
         full
       }
       lat
+      createdAt
+      updatedAt
       long
       latf1
       longf1
       latf2
       longf2
-      createdAt
-      updatedAt
       userPostsId
     }
   }
@@ -304,6 +327,7 @@ export const deletePost = /* GraphQL */ `
       user {
         id
         username
+        bio
         owner
         cognitoID
         lat
@@ -323,13 +347,13 @@ export const deletePost = /* GraphQL */ `
         full
       }
       lat
+      createdAt
+      updatedAt
       long
       latf1
       longf1
       latf2
       longf2
-      createdAt
-      updatedAt
       userPostsId
     }
   }
@@ -358,6 +382,7 @@ export const createMessage = /* GraphQL */ `
       user {
         id
         username
+        bio
         owner
         cognitoID
         lat
@@ -369,6 +394,8 @@ export const createMessage = /* GraphQL */ `
         createdAt
         updatedAt
       }
+      createdAt
+      updatedAt
       owner
       type
       image {
@@ -380,8 +407,6 @@ export const createMessage = /* GraphQL */ `
       }
       index
       content
-      createdAt
-      updatedAt
       userMessagesId
       chatMessagesId
     }
@@ -411,6 +436,7 @@ export const updateMessage = /* GraphQL */ `
       user {
         id
         username
+        bio
         owner
         cognitoID
         lat
@@ -422,6 +448,8 @@ export const updateMessage = /* GraphQL */ `
         createdAt
         updatedAt
       }
+      createdAt
+      updatedAt
       owner
       type
       image {
@@ -433,8 +461,6 @@ export const updateMessage = /* GraphQL */ `
       }
       index
       content
-      createdAt
-      updatedAt
       userMessagesId
       chatMessagesId
     }
@@ -464,6 +490,7 @@ export const deleteMessage = /* GraphQL */ `
       user {
         id
         username
+        bio
         owner
         cognitoID
         lat
@@ -475,6 +502,8 @@ export const deleteMessage = /* GraphQL */ `
         createdAt
         updatedAt
       }
+      createdAt
+      updatedAt
       owner
       type
       image {
@@ -486,10 +515,140 @@ export const deleteMessage = /* GraphQL */ `
       }
       index
       content
-      createdAt
-      updatedAt
       userMessagesId
       chatMessagesId
+    }
+  }
+`;
+export const createChatMembers = /* GraphQL */ `
+  mutation CreateChatMembers(
+    $input: CreateChatMembersInput!
+    $condition: ModelChatMembersConditionInput
+  ) {
+    createChatMembers(input: $input, condition: $condition) {
+      id
+      userID
+      chatID
+      user {
+        id
+        username
+        bio
+        owner
+        cognitoID
+        lat
+        long
+        latf1
+        longf1
+        latf2
+        longf2
+        createdAt
+        updatedAt
+      }
+      chat {
+        id
+        owner
+        name
+        type
+        lat
+        long
+        latf1
+        longf1
+        latf2
+        longf2
+        createdAt
+        updatedAt
+      }
+      createdAt
+      updatedAt
+      owner
+    }
+  }
+`;
+export const updateChatMembers = /* GraphQL */ `
+  mutation UpdateChatMembers(
+    $input: UpdateChatMembersInput!
+    $condition: ModelChatMembersConditionInput
+  ) {
+    updateChatMembers(input: $input, condition: $condition) {
+      id
+      userID
+      chatID
+      user {
+        id
+        username
+        bio
+        owner
+        cognitoID
+        lat
+        long
+        latf1
+        longf1
+        latf2
+        longf2
+        createdAt
+        updatedAt
+      }
+      chat {
+        id
+        owner
+        name
+        type
+        lat
+        long
+        latf1
+        longf1
+        latf2
+        longf2
+        createdAt
+        updatedAt
+      }
+      createdAt
+      updatedAt
+      owner
+    }
+  }
+`;
+export const deleteChatMembers = /* GraphQL */ `
+  mutation DeleteChatMembers(
+    $input: DeleteChatMembersInput!
+    $condition: ModelChatMembersConditionInput
+  ) {
+    deleteChatMembers(input: $input, condition: $condition) {
+      id
+      userID
+      chatID
+      user {
+        id
+        username
+        bio
+        owner
+        cognitoID
+        lat
+        long
+        latf1
+        longf1
+        latf2
+        longf2
+        createdAt
+        updatedAt
+      }
+      chat {
+        id
+        owner
+        name
+        type
+        lat
+        long
+        latf1
+        longf1
+        latf2
+        longf2
+        createdAt
+        updatedAt
+      }
+      createdAt
+      updatedAt
+      owner
     }
   }
 `;

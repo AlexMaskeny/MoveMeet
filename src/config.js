@@ -1,3 +1,7 @@
+import { API, graphqlOperation } from 'aws-amplify';
+import { getLatestMessagesByTime } from './api/calls';
+
+
 export const colors = {
     background: "#121212", //A dark grey rgba(18, 18, 18,1)
     container: "#1E1E1E", //A dark grey, but less dark than background
@@ -57,4 +61,31 @@ export const locConversion = (lat, long) => {
     };
 
  
+}
+
+export const distance = (lat1, long1, lat2, long2) => {
+    const dis = Math.sqrt(Math.pow(lat1 - lat2, 2) + Math.pow(long1 - long2, 2));
+    const miles = dis * 0.0001893939;
+    const rounded = ("" + miles).substring(0, 3);
+    if (miles < 0.1) {
+        return Math.ceil(dis)+ " Feet";
+    }
+    return rounded + " Miles";
+}
+
+
+export const timeLogic = (diffSeconds) => {
+    if (diffSeconds <= 5) {
+        return "now"
+    } else if (diffSeconds < 60) {
+        return "" + Math.floor(diffSeconds) + "s"
+    } else if (diffSeconds < (60 * 60)) {
+        return "" + Math.floor(diffSeconds / 60) + "m";
+    } else if (diffSeconds < (60 * 60 * 24)) {
+        return "" + Math.floor(diffSeconds / (60 * 60)) + "h";
+    } else if (diffSeconds < (60 * 60 * 24 * 7)) {
+        return "" + Math.floor(diffSeconds / (60 * 60 * 24)) + "d";
+    } else {
+        return "" + Math.floor(diffSeconds / (60 * 60 * 24 * 7)) + "w";
+    }
 }

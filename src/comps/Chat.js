@@ -1,4 +1,4 @@
-import React from 'react';
+import React, { useEffect } from 'react';
 import { View, StyleSheet, FlatList } from 'react-native';
 
 import { colors, css } from '../config';
@@ -18,13 +18,42 @@ import ImageBackground from './ImageLoader'
 function Chat({
     background,
     members,
+    latest,
+    last3,
+    numMembers,
+    distance,
     title,
     created,
     navigation,
     ...props
 }) {
+    const keyExtractor = React.useCallback((item) => item.user.id, [])
+    const renderItem = React.useCallback(({ item }) => (
+        <View style={styles.ppContain}>
+            <PCircleAndTitle username={item.user.username} ppic={{
+                uri: item.user.picture,
+                loadImage: item.user.picture,
+            }} />
+        </View>
+    ), [])
+    const onEndReached = React.useCallback(() => {
+        console.log("End!!!");
+    }, [])
+    const getChatsHeight = () => {
+        if (last3.length == 3) return 156
+        if (last3.length == 2) return 104
+        if (last3.length == 1) return 104
+        if (last3.length == 0) return 60
+    }
+    const getHeight = () => {
+        return 340 - (156 - getChatsHeight());
+    }
+    //useEffect(() => console.log(previewChatBackground),[])
     return (
-        <View style={styles.container}>
+        <View style={{
+            ...styles.container,
+            height: getHeight()
+        }}>
             <ImageBackground
                 source={background}
                 isBackground={true}
@@ -39,14 +68,11 @@ function Chat({
                     <FlatList
                         data={members}
                         showsHorizontalScrollIndicator={false}
-                        keyExtractor={item => item.id}
-                        horizontal={true}
+                        keyExtractor={keyExtractor}
+                        horizontal={true} 
                         {...props}
-                        renderItem={({ item }) => (
-                            <View style={styles.ppContain}>
-                                <PCircleAndTitle username={item.username} ppic={item.ppic}/>  
-                            </View>
-                        )}
+                        onEndReached={onEndReached}
+                        renderItem={renderItem}
                     />
                 </View>
                 <View style={styles.details}>
@@ -54,31 +80,49 @@ function Chat({
                         brand="MaterialCommunityIcons"
                         icon="google-maps"
                         style={{fontSize: 14}}
-                    >0.1 miles</IconTitle>
+                    >{distance}</IconTitle>
                     <IconTitle
                         brand="MaterialCommunityIcons"
                         icon="account"
                         style={{ fontSize: 14 }}
-                    >13 Members</IconTitle>
+                    >{numMembers > 1 ? numMembers : ""} {numMembers == 1 ? "It's Just You" : "Members"}</IconTitle>
                     <IconTitle
                         brand="Ionicons"
                         icon="chatbubble-ellipses"
                         style={{ fontSize: 14 }}
-                    >3m ago</IconTitle>
+                    >{latest}</IconTitle>
                 </View>
-                <View style={styles.chat}>
+                <View style={{
+                    ...styles.chat,
+                    height: getChatsHeight()
+                }}>
                     <View style={styles.chatSub}>
-                        <SimpleMessage ppic={background} username="Alexander" message="bro i like trains sooooooooooooooooooooooo much I" />
-                        <View style={{height: 4} } />
-                        <SimpleMessage ppic={background} username="Alexander" message="bro i like trains sooooooooooooooooooooooo much I" />
-                        <View style={{ height: 4 }} />
-                        <SimpleMessage ppic={background} username="Alexander" message="bro i like trains sooooooooooooooooooooooo much I" />
+                        {last3.length >= 1 &&
+                            <>
+                                <SimpleMessage ppic={background} username="Alexander" message={last3[0].content} />
+                                <View style={{height: 4} } />
+                            </>
+                        }
+                        {last3.length >= 2 &&
+                            <>
+                                <SimpleMessage ppic={background} username="Alexander" message={last3[1].content} />
+                                <View style={{ height: 4 }} />
+                            </>
+                        }
+                        {last3.length >= 3 &&
+                            <>
+                                <SimpleMessage ppic={background} username="Alexander" message={last3[2].content} />
+                                <View style={{ height: 4 }} />
+                            </>
+                        }
                     </View>
-                    <LinearGradient
-                        // Background Linear Gradient
-                        colors={['rgba(18, 18, 18,0.4)', colors.background]}
-                        style={{ flex: 1, marginTop: -156 } }
-                    />
+                    {last3.length > 0 &&
+                        <LinearGradient
+                            // Background Linear Gradient
+                            colors={['rgba(18, 18, 18,0.4)', colors.background]}
+                            style={{ flex: 1, marginTop: -156 } }
+                        />
+                    }
                 </View>
                 <ChatButton
                     title="Open Chat"

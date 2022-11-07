@@ -14,7 +14,8 @@ function ImageLoader({
         <>
         <CachedImage
             onLoadEnd={()=>setLoading(false)}
-            source={{ uri: loading ? source.loadImage : source.uri }}
+                source={{ uri: loading ? source.loadImage : source.uri }}
+                key={source.key }
             {...otherProps}
             />  
         </>

@@ -1,12 +1,12 @@
 import React from 'react';
-import { StyleSheet, View } from 'react-native';
+import { StyleSheet, View, Text } from 'react-native';
 import { API, Auth, graphqlOperation, Storage } from 'aws-amplify';
 import Image from "../comps/ImageLoader";
 import * as ImagePicker from 'expo-image-picker';
 import * as Location from 'expo-location';
 
 import { colors, debug } from '../config';
-import { createUser, updateUser, createChat, updateChat, createMessage, getMessage, getChat, listChats, listUsers } from '../api/calls';
+import { createUser, updateUser, createChat, updateChat, createMessage, getMessage, getChat, listChats, listUsers, createChatMembers, getLatestMessagesByTime, listMessagesByTime } from '../api/calls';
 import BeamTitle from '../comps/BeamTitle';
 import SimpleButton from '../comps/SimpleButton';
 import Screen from '../comps/Screen';
@@ -17,6 +17,7 @@ function TestScreen({ navigation }) {
     const [username, setUsername] = React.useState("");
     const [code, setCode] = React.useState("");
     const [chatName, setChatName] = React.useState("");
+    const [loc, setLoc] = React.useState("");
     //React.useEffect(() => {
     //    const initialFunction = async () => {
     //        try {
@@ -341,6 +342,81 @@ function TestScreen({ navigation }) {
         }
     }
 
+    const testObjectUpdate = async () => {
+        try {
+            const updatedChat = await API.graphql(graphqlOperation(createChatMembers, {
+                input: {
+                    chatID: "fd30caf6-06c7-43a1-9f2d-408e4f0ac3c8",
+                    userID: "befbb1d2-cc43-4651-80cf-126591e2e589",
+                }
+            }))
+            console.log(updatedChat.data.createChatMembers);
+        } catch (error) {
+            console.log(error);
+        }
+    }
+
+    const getLoc = async () => {
+
+        const location = await Location.getLastKnownPositionAsync();
+        console.log(location);
+        setLoc(JSON.stringify(location));
+    }
+
+    const getTime = async () => {
+        //const messageTime = await API.graphql(graphqlOperation(listMessagesByTime, {
+        //    chatMessagesId: "df45ab06-cf1e-4730-bf2f-0b6f2db21844",
+        //    limit: 10,
+     
+        //}))
+        const messageTime = await API.graphql(graphqlOperation(getLatestMessagesByTime, {
+            chatMessagesId: "df45ab06-cf1e-4730-bf2f-0b6f2db21844",
+            limit: 1,
+        }))
+        //console.log(messageTime.data.listMessagesByTime.items);
+        const now = Date.now();
+        const msg = Date.parse(messageTime.data.listMessagesByTime.items[0].createdAt);
+        const diff = now - msg;
+        console.log("=============[ TIME ]============");
+        const latest = timeLogic(diff / 1000);
+        //console.log("[Now] " + now + ", [Message] " + msg + ", [Diff] " + diff);
+        console.log(latest);
+    }
+    const timeLogic = (diffSeconds) => {
+        if (diffSeconds <= 5) {
+            return "now"
+        } else if (diffSeconds < 60) {
+            return "" + Math.floor(diffSeconds) + "s"
+        } else if (diffSeconds < (60 * 60)) {
+            return "" + Math.floor(diffSeconds / 60) + "m";
+        } else if (diffSeconds < (60 * 60 * 24)) {
+            return "" + Math.floor(diffSeconds / (60 * 60)) + "h";
+        } else if (diffSeconds < (60 * 60 * 24 * 7)) {
+            return "" + Math.floor(diffSeconds / (60 * 60 * 24)) + "d";
+        } else {
+            return "" + Math.floor(diffSeconds / (60 * 60 * 24 * 7)) + "w";
+        }
+    }
+
+    const sendMessage = async () => {
+        try {
+            const content = chatName;
+            const type = "Regular";
+            const chatID = "9bfdfdc1-397e-4551-bf4c-5132bbc3d4f7";
+            const userID = "d98f090b-c0fa-4f4d-a3d4-f8a5190a06b5";
+            const newMessage = await API.graphql(graphqlOperation(createMessage, {
+                input: {
+                    userMessagesId: userID,
+                    chatMessagesId: chatID,
+                    content: content,
+                    type: type,
+                }
+            }))
+            console.log(newMessage);
+        } catch (error) {
+            console.log(error);
+        }
+    }
     return (
         <Screen innerStyle={styles.page}>
             {/*<BeamTitle>Alexander</BeamTitle>*/}
@@ -357,7 +433,7 @@ function TestScreen({ navigation }) {
             {/*<SimpleInput placeholder="code" onChangeText={(text) => { setCode(text) }} />*/}
             {/*<SimpleButton title="Confirm User" onPress={() => confirmUser()} />*/}
 
-            {/*<SimpleInput placeholder="chatName" onChangeText={(text) => { setChatName(text) }} />*/}
+            <SimpleInput placeholder="chatName" onChangeText={(text) => { setChatName(text) }} />
             {/*<SimpleButton title="Create Chat" onPress={() => createNewChat()} />*/}
 
             {/*<SimpleButton title="Create Regular Message" onPress={() => createRegularMessage()} />*/}
@@ -365,7 +441,9 @@ function TestScreen({ navigation }) {
             {/*<SimpleButton title="Get Message" onPress={() => getMsg()} />*/}
             {/*<SimpleButton title="Get Chat" onPress={() => getCh()} />*/}
             {/*<SimpleButton title="Fill Data" onPress={() => fillData()} />*/}
-            <SimpleButton title="Update Users" onPress={() => updateUserBackgrounds()} /> 
+            {/*<SimpleButton title="Update Chat" onPress={() => testObjectUpdate()} /> */}
+            <SimpleButton title="Send" onPress={() => sendMessage()} /> 
+            {/*<SimpleButton title="Get Time" onPress={() => getTime()} /> */}
         </Screen>
     );
 }

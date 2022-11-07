@@ -6,6 +6,7 @@ export const getUser = /* GraphQL */ `
     getUser(id: $id) {
       id
       username
+      bio
       profilePicture {
         bucket
         region
@@ -24,6 +25,9 @@ export const getUser = /* GraphQL */ `
         chatID
       }
       messages {
+        nextToken
+      }
+      chats {
         nextToken
       }
       lat
@@ -47,6 +51,7 @@ export const listUsers = /* GraphQL */ `
       items {
         id
         username
+        bio
         owner
         cognitoID
         lat
@@ -70,6 +75,9 @@ export const getChat = /* GraphQL */ `
       name
       type
       lat
+      members {
+        nextToken
+      }
       long
       latf1
       longf1
@@ -123,6 +131,7 @@ export const getPost = /* GraphQL */ `
       user {
         id
         username
+        bio
         owner
         cognitoID
         lat
@@ -142,13 +151,13 @@ export const getPost = /* GraphQL */ `
         full
       }
       lat
+      createdAt
+      updatedAt
       long
       latf1
       longf1
       latf2
       longf2
-      createdAt
-      updatedAt
       userPostsId
     }
   }
@@ -164,13 +173,13 @@ export const listPosts = /* GraphQL */ `
         id
         owner
         lat
+        createdAt
+        updatedAt
         long
         latf1
         longf1
         latf2
         longf2
-        createdAt
-        updatedAt
         userPostsId
       }
       nextToken
@@ -198,6 +207,7 @@ export const getMessage = /* GraphQL */ `
       user {
         id
         username
+        bio
         owner
         cognitoID
         lat
@@ -209,6 +219,8 @@ export const getMessage = /* GraphQL */ `
         createdAt
         updatedAt
       }
+      createdAt
+      updatedAt
       owner
       type
       image {
@@ -220,8 +232,6 @@ export const getMessage = /* GraphQL */ `
       }
       index
       content
-      createdAt
-      updatedAt
       userMessagesId
       chatMessagesId
     }
@@ -236,14 +246,74 @@ export const listMessages = /* GraphQL */ `
     listMessages(filter: $filter, limit: $limit, nextToken: $nextToken) {
       items {
         id
+        createdAt
+        updatedAt
         owner
         type
         index
         content
-        createdAt
-        updatedAt
         userMessagesId
         chatMessagesId
+      }
+      nextToken
+    }
+  }
+`;
+export const getChatMembers = /* GraphQL */ `
+  query GetChatMembers($id: ID!) {
+    getChatMembers(id: $id) {
+      id
+      userID
+      chatID
+      user {
+        id
+        username
+        bio
+        owner
+        cognitoID
+        lat
+        long
+        latf1
+        longf1
+        latf2
+        longf2
+        createdAt
+        updatedAt
+      }
+      chat {
+        id
+        owner
+        name
+        type
+        lat
+        long
+        latf1
+        longf1
+        latf2
+        longf2
+        createdAt
+        updatedAt
+      }
+      createdAt
+      updatedAt
+      owner
+    }
+  }
+`;
+export const listChatMembers = /* GraphQL */ `
+  query ListChatMembers(
+    $filter: ModelChatMembersFilterInput
+    $limit: Int
+    $nextToken: String
+  ) {
+    listChatMembers(filter: $filter, limit: $limit, nextToken: $nextToken) {
+      items {
+        id
+        userID
+        chatID
+        createdAt
+        updatedAt
+        owner
       }
       nextToken
     }

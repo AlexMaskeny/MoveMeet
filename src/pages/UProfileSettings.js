@@ -20,7 +20,6 @@ function UProfileSettings({ navigation }) {
                 if (debug) console.log("[UProfileSettings] Fetching User Data...");
                 const currentUser = await Auth.currentUserInfo();
                 if (currentUser) {
-                    if (debug) console.log(currentUser);
                     setUsername(currentUser.username);
                     setEmail(currentUser.attributes.email);
                 }

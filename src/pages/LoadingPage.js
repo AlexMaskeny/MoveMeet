@@ -2,6 +2,7 @@ import React, { useContext } from 'react';
 import { StyleSheet, Image, ActivityIndicator, View } from 'react-native';
 import { API, Auth, graphqlOperation } from 'aws-amplify';
 import AsyncStorage from '@react-native-async-storage/async-storage';
+import * as Location from 'expo-location';
 
 import timeout from '../api/timeout';
 import { colors, debug } from '../config';
@@ -27,6 +28,8 @@ function LoadingPage({navigation}) {
     //         data attainment
 
     React.useEffect(() => {
+        //var mounted = true;
+        var loc;
         const initialFunction = async () => {
             if (debug) console.log("Initiating...");
             //Get data during this interval
@@ -34,6 +37,13 @@ function LoadingPage({navigation}) {
                 try {
                     const currentUser = await Auth.currentAuthenticatedUser();
                     if (currentUser) {
+                        const perm = await Location.getForegroundPermissionsAsync();
+                        if (perm.granted) {
+                            loc = await Location.watchPositionAsync({ accuracy: 6, distanceInterval: 0, timeInterval: 500, }, (location) => {
+                                //console.log("Location:");
+                                //console.log(location);
+                            })
+                        }
                         navigation.navigate("SecondaryNav");
                     }
                 } catch (error) {
@@ -55,6 +65,13 @@ function LoadingPage({navigation}) {
             //}, 20);
         }
         initialFunction();
+        return () => {
+            if (loc) {
+                loc.remove();
+            }
+        //    mounted = false;
+
+        }
     }, []);
 
     return (

@@ -51,7 +51,6 @@ export const createMessage = /* GraphQL */ `
       id
       chat {
         id
-        owner
         name
         type
         lat
@@ -62,14 +61,12 @@ export const createMessage = /* GraphQL */ `
       user {
         id
         username
-        owner
         cognitoID
         lat
         long
         createdAt
         updatedAt
       }
-      owner
       type
       image {
         bucket
@@ -94,7 +91,6 @@ export const getMessage = /* GraphQL */ `
       id
       chat {
         id
-        owner
         name
         type
         lat
@@ -112,7 +108,6 @@ export const getMessage = /* GraphQL */ `
         createdAt
         updatedAt
       }
-      owner
       type
       image {
         bucket
@@ -135,7 +130,6 @@ export const getChat = /* GraphQL */ `
   query GetChat($id: ID!) {
     getChat(id: $id) {
       id
-      owner
       name
       type
       lat
@@ -189,7 +183,6 @@ export const listChatsByLocation = /* GraphQL */ `
     $long2: String
     $long3: String
     $radius: Int
-    $numMessages: Int
   ) {
     listChatsByLocation(latf1: $latf1, latf2: $latf2, lat: $lat, long: $long, long1: $long1, long2: $long2, long3: $long3, radius: $radius) {
       items {
@@ -197,20 +190,23 @@ export const listChatsByLocation = /* GraphQL */ `
         lat
         long
         name
-        owner
         type
+        members {
+            items {
+                user {
+                    id
+                    username
+                    profilePicture {
+                        full
+                        loadFull
+                    }
+                }
+
+            }
+        }
         background {
             full
             loadFull
-        }
-        messages(limit: $numMessages) {
-          items {
-            index
-            owner
-            type
-            content
-          }
-          nextToken
         }
       }
     }
@@ -257,3 +253,96 @@ export const listUsers = /* GraphQL */ `
     }
   }
 `;
+
+export const createChatMembers = /* GraphQL */ `
+  mutation CreateChatMembers(
+    $input: CreateChatMembersInput!
+    $condition: ModelChatMembersConditionInput
+  ) {
+    createChatMembers(input: $input, condition: $condition) {
+      id
+      userID
+      chatID
+      user {
+        id
+        username
+        cognitoID
+        lat
+        long
+        latf1
+        longf1
+        latf2
+        longf2
+        createdAt
+        updatedAt
+      }
+      chat {
+        id
+        name
+        type
+        lat
+        long
+        latf1
+        longf1
+        latf2
+        longf2
+        createdAt
+        updatedAt
+      }
+      createdAt
+      updatedAt
+      owner
+    }
+  }
+`;
+
+export const getUserByCognito = /* GraphQL */ `
+  query GetUserByCognito($id: String!) {
+    getUserByCognito(id: $id) {
+      id
+      username
+      profilePicture {
+        bucket
+        region
+        loadFull
+        thumbFull
+        full
+      }
+    }
+  }
+`;
+
+export const listMessagesByTime = /* GraphQL */ `
+    query ListMessagesByTime (
+        $chatMessagesId: String!, 
+        $limit: Int,
+        $nextToken: String
+    ) {
+      listMessagesByTime(limit: $limit, chatMessagesId: $chatMessagesId, nextToken: $nextToken) {
+        items {
+          id
+          type
+          userMessagesId
+          content
+          createdAt
+        }
+        nextToken
+      }
+    }
+
+`
+
+export const getLatestMessagesByTime = /* GraphQL */ `
+    query ListMessagesByTime (
+        $chatMessagesId: String!, 
+        $limit: Int,
+    ) {
+      listMessagesByTime(limit: $limit, chatMessagesId: $chatMessagesId) {
+        items {
+          id
+          createdAt
+        }
+      }
+    }
+
+`
