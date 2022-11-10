@@ -22,7 +22,7 @@ function ChatsPage({ navigation, route }) {
     const [refresh, setRefresh] = React.useState(false);
     const [locEnabled, setLocEnabled] = React.useState(true);
     const [chats, setChats] = React.useState([]);
-    const [users, setUsers] = React.useState([]);
+    const user = React.useRef();
 
     const onRefresh = async () => {
         try {
@@ -55,6 +55,7 @@ function ChatsPage({ navigation, route }) {
                     const dbUser = await API.graphql(graphqlOperation(getUserByCognito, {
                         id: currentUser.attributes.sub
                     }))
+                    user.current = dbUser.data.getUserByCognito;
                     //console.log(JSON.parse(dbUser.data.getUserByCognito));
 
                     // use nested loop to add remote uris to the local chat array.
@@ -67,6 +68,7 @@ function ChatsPage({ navigation, route }) {
                         cs[i].background.loadFull = loadFull;
                         var userPresent = false;
                         var thisChat = cs[i];
+                        thisChat.createdAt = thisChat.createdAt.substring(0, 10);
                         const last3 = await API.graphql(graphqlOperation(listMessagesByTime, {
                             chatMessagesId: cs[i].id,
                             limit: 3,
@@ -82,14 +84,15 @@ function ChatsPage({ navigation, route }) {
                             thisChat.last3 = []
                         }
                         if (!thisChat.latest) {
-                            thisChat.latest = null;
+                            thisChat.latest = "New Chat";
                         }
                         var num = 0;
                         for (var j = 0; j < cs[i].members.items.length; j++) {
+                            const loadFull = await Storage.get(cs[i].members.items[j].user.profilePicture.loadFull);
                             if (cs[i].members.items[j].user.id == dbUser.data.getUserByCognito.id) {
                                 userPresent = true;
+                                user.current.profilePicture.loadFull = loadFull;
                             }
-                            const loadFull = await Storage.get(cs[i].members.items[j].user.profilePicture.loadFull);
                             thisChat.members.items[j].user.picture = loadFull;
                             num++;
                         }
@@ -102,7 +105,8 @@ function ChatsPage({ navigation, route }) {
                                     chatID: ""+cs[i].id
                                 }
                             }));
-                            const loadFull = await Storage.get("LOADFULLprofilePicture" + dbUser.data.getUserByCognito.id+".jpg");
+                            const loadFull = await Storage.get("LOADFULLprofilePicture" + dbUser.data.getUserByCognito.id + ".jpg");
+                            user.current.profilePicture.loadFull = loadFull;
                             thisChat.members.items[thisChat.members.items.length] = {
                                 user: {
                                     id: dbUser.data.getUserByCognito.id,
@@ -153,12 +157,14 @@ function ChatsPage({ navigation, route }) {
                             key: "background" + item.id,
                         }}
                         members={item.members.items}
-                        latest={item.latest ? item.latest + " ago" : "New Chat"}
+                        latest={item.latest}
+                        id={item.id}
+                        user={user.current}
                         last3={item.last3}
                         numMembers={item.numMembers}
                         distance={item.distance}
                         title={item.name}
-                        created="10/16/2022"
+                        created={item.createdAt}
                         navigation={navigation}
                     />
                 )
@@ -189,15 +195,6 @@ function ChatsPage({ navigation, route }) {
                     ListFooterComponent={listFooterComponenet}
                     renderItem={renderItem}
                 />
-                {/*<DisabledChat*/}
-                {/*    background={{*/}
-                {/*        uri: 'https://th.bing.com/th/id/R.4ef44de48283a70c345215439710e076?rik=DbmjSu8b4rFcmQ&riu=http%3a%2f%2fwww.kneson.com%2fnews%2fIII3%2fKELSEY_AD_example1.jpg&ehk=5jg5ZditRXiSNMQ9tGa0nhrMY8OnQBmFdvwW%2f%2bGfiCU%3d&risl=&pid=ImgRaw&r=0',*/}
-                {/*        loadImage: 'https://th.bing.com/th/id/R.4ef44de48283a70c345215439710e076?rik=DbmjSu8b4rFcmQ&riu=http%3a%2f%2fwww.kneson.com%2fnews%2fIII3%2fKELSEY_AD_example1.jpg&ehk=5jg5ZditRXiSNMQ9tGa0nhrMY8OnQBmFdvwW%2f%2bGfiCU%3d&risl=&pid=ImgRaw&r=0',*/}
-                {/*        key: 'background2'*/}
-                {/*    }}*/}
-                {/*    title="Mega Chat"*/}
-                {/*    members={testMembers}*/}
-                {/*/>*/}
             </Screen>
             <Loading enabled={!ready} />
         </>

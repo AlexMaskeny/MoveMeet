@@ -78,6 +78,22 @@ export const timeLogic = (diffSeconds) => {
     if (diffSeconds <= 5) {
         return "now"
     } else if (diffSeconds < 60) {
+        return "" + Math.floor(diffSeconds) + "s ago"
+    } else if (diffSeconds < (60 * 60)) {
+        return "" + Math.floor(diffSeconds / 60) + "m ago";
+    } else if (diffSeconds < (60 * 60 * 24)) {
+        return "" + Math.floor(diffSeconds / (60 * 60)) + "h ago";
+    } else if (diffSeconds < (60 * 60 * 24 * 7)) {
+        return "" + Math.floor(diffSeconds / (60 * 60 * 24)) + "d ago";
+    } else {
+        return "" + Math.floor(diffSeconds / (60 * 60 * 24 * 7)) + "w ago";
+    }
+}
+
+export const timeLogicNoAgo = (diffSeconds) => {
+    if (diffSeconds <= 5) {
+        return "now"
+    } else if (diffSeconds < 60) {
         return "" + Math.floor(diffSeconds) + "s"
     } else if (diffSeconds < (60 * 60)) {
         return "" + Math.floor(diffSeconds / 60) + "m";

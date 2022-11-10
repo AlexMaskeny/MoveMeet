@@ -5,28 +5,39 @@ import { MaterialCommunityIcons, Ionicons } from "@expo/vector-icons"
 import { colors } from '../config';
 
 function IconTitle({ brand = "MaterialCommunityIcons", icon, children, style, ...props }) {
-    return (
-        <View style={styles.container}>
-            {brand == "MaterialCommunityIcons" &&
+    if (brand == "MaterialCommunityIcons") {
+        return (
+            <View style={styles.container}>
                 <MaterialCommunityIcons
                     name={icon}
                     size={20}
                     color={colors.text1}
-                    style={styles.icon} />
-            }
-            {brand == "Ionicons" &&
+                    style={styles.icon}
+                />
+                <Text
+                    style={[styles.tStyle, style]}
+                    {...props}
+                >{children}</Text>
+            </View>
+        )
+    } else if (brand == "Ionicons") {
+        return (
+            <View style={styles.container}>
                 <Ionicons
                     name={icon}
                     size={20}
                     color={colors.text1}
-                    style={styles.icon} />
-            }
-            <Text
-                style={[styles.tStyle, style]}
-                {...props}
-            >{children}</Text>
-        </View>
-    );
+                    style={styles.icon}
+                />
+                <Text
+                    style={[styles.tStyle, style]}
+                    {...props}
+                >{children}</Text>
+            </View>
+        )
+    } else {
+        return <></>
+    }
 }
 
 const styles = StyleSheet.create({

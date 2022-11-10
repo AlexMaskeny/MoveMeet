@@ -8,13 +8,7 @@ import SubTitle from './SubTitle';
 function ComplexMessage({ children, ppic, username, message, style, time, ...props }) {
     return (
         <View style={styles.container}>
-            <ProfileCircle ppic={ppic} style={{
-                width: 44,
-                height: 44,
-                borderWidth: 1,
-                shadowOpacity: 0,
-                borderColor: colors.text3
-            }} />
+            <ProfileCircle ppic={ppic} style={styles.pCircle} />
             <View style={{ width: 6 }} />
             <View style={{ flex: 1, marginRight: 10 }}>
                 <View style={{ flexDirection: 'row', flex: 1, justifyContent: "space-between" }}>
@@ -44,6 +38,13 @@ const styles = StyleSheet.create({
         flex: 2,
 
     },
+    pCircle: {
+        width: 44,
+        height: 44,
+        borderWidth: 1,
+        shadowOpacity: 0,
+        borderColor: colors.text3
+    }
 })
 
 export default ComplexMessage;

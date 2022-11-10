@@ -13,7 +13,8 @@
     },
     "categories": {
       "auth": {
-        "proxychat33e582f8": {}
+        "proxychat33e582f8": {},
+        "true": {}
       }
     }
   }

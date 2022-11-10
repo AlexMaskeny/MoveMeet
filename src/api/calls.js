@@ -49,38 +49,10 @@ export const createMessage = /* GraphQL */ `
   ) {
     createMessage(input: $input, condition: $condition) {
       id
-      chat {
-        id
-        name
-        type
-        lat
-        long
-        createdAt
-        updatedAt
-      }
-      user {
-        id
-        username
-        cognitoID
-        lat
-        long
-        createdAt
-        updatedAt
-      }
       type
-      image {
-        bucket
-        region
-        loadFull
-        thumbFull
-        full
-      }
       index
       content
       createdAt
-      updatedAt
-      userMessagesId
-      chatMessagesId
     }
   }
 `;
@@ -189,6 +161,7 @@ export const listChatsByLocation = /* GraphQL */ `
         id
         lat
         long
+        createdAt
         name
         type
         members {
@@ -346,3 +319,14 @@ export const getLatestMessagesByTime = /* GraphQL */ `
     }
 
 `
+
+export const getUser = /* GraphQL */ `
+  query GetUser($id: ID!) {
+    getUser(id: $id) {
+      username
+      profilePicture {
+        loadFull
+      }
+    }
+  }
+`;

@@ -2,7 +2,7 @@
   "version": "1",
   "cognitoConfig": {
     "identityPoolName": "proxychat33e582f8_identitypool_33e582f8",
-    "allowUnauthenticatedIdentities": false,
+    "allowUnauthenticatedIdentities": true,
     "resourceNameTruncated": "proxyc33e582f8",
     "userPoolName": "proxychat33e582f8_userpool_33e582f8",
     "autoVerifiedAttributes": [
@@ -41,6 +41,20 @@
     "userPoolGroupList": [],
     "serviceName": "Cognito",
     "usernameCaseSensitive": false,
-    "useEnabledMfas": true
+    "useEnabledMfas": true,
+    "authRoleArn": {
+      "Fn::GetAtt": [
+        "AuthRole",
+        "Arn"
+      ]
+    },
+    "unauthRoleArn": {
+      "Fn::GetAtt": [
+        "UnauthRole",
+        "Arn"
+      ]
+    },
+    "breakCircularDependency": true,
+    "dependsOn": []
   }
 }

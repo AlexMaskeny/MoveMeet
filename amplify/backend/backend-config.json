@@ -51,12 +51,24 @@
       }
     }
   },
-  "function": {},
+  "function": {
+    "pushNotification": {
+      "build": true,
+      "providerPlugin": "awscloudformation",
+      "service": "Lambda"
+    }
+  },
   "storage": {
     "ProxyChatStorage": {
       "service": "S3",
       "providerPlugin": "awscloudformation",
       "dependsOn": []
+    }
+  },
+  "analytics": {
+    "proxychat": {
+      "service": "Pinpoint",
+      "providerPlugin": "awscloudformation"
     }
   }
 }

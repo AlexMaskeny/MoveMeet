@@ -20,6 +20,8 @@ function Chat({
     members,
     latest,
     last3,
+    user,
+    id,
     numMembers,
     distance,
     title,
@@ -48,7 +50,6 @@ function Chat({
     const getHeight = () => {
         return 340 - (156 - getChatsHeight());
     }
-    //useEffect(() => console.log(previewChatBackground),[])
     return (
         <View style={{
             ...styles.container,
@@ -61,7 +62,7 @@ function Chat({
                 style={styles.imageBackground}
                 resizeMode="cover"
             >
-                <BeamTitle style={styles.title}>{title}</BeamTitle>
+            <BeamTitle style={styles.title}>{title}</BeamTitle>
             </ImageBackground>
             <View style={styles.sub1}>
                 <View style={styles.listContain}> 
@@ -130,7 +131,7 @@ function Chat({
                         marginTop: -60,
                         alignSelf: "center",
                     }}
-                    onPress={() => navigation.navigate("ChatPage", { name: title, created: created })}
+                    onPress={() => navigation.navigate("ChatPage", { name: title, created: created, id: id, user: user })}
                     
                 />
             </View>
@@ -149,9 +150,6 @@ const styles = StyleSheet.create({
         shadowOpacity: 0.3,
         marginHorizontal: 3,
         marginVertical: 8,
-        //...css.beamShadow,
-        //borderColor: colors.pBeam,
-        //borderWidth: 1,
     },
     sub1: {
         flex: 1,
