@@ -1,12 +1,18 @@
 import React from 'react';
 import { StyleSheet, Image, ActivityIndicator, Alert, FlatList, View, KeyboardAvoidingView, RefreshControl } from 'react-native';
 import { API, Auth, graphqlOperation, Storage } from 'aws-amplify';
-import { listMessagesByTime, getUser, getMessage, createMessage } from '../api/calls';
 import { useHeaderHeight } from '@react-navigation/elements';
 import * as ImagePicker from 'expo-image-picker';
 
+import {
+    listMessagesByTime,
+    getUser,
+    getMessage,
+    createMessage,
+    onReceiveMessage
+} from '../api/calls';
 import IconButton from '../comps/IconButton';
-import {colors,css,debug, timeLogicNoAgo } from '../config'
+import {colors,css,debug, timeLogic, timeLogicNoAgo } from '../config'
 import Screen from '../comps/Screen';
 import SimpleButton from '../comps/SimpleButton';
 import SimpleInput from '../comps/SimpleInput';
@@ -26,66 +32,217 @@ function ChatPage({ route, navigation }) {
     const chatsRef = React.useRef();
     const headerHeight = useHeaderHeight();
     const [data, setData] = React.useState([]);
-    const [ready, setReady] = React.useState(false);
     const [refresh, setRefresh] = React.useState(false);
-    const nextToken = React.useRef();
-    const lastToken = React.useRef();
-
+    const nextToken = React.useRef("i2");
+    const lastToken = React.useRef("i1");
+    const dataRef = React.useRef([]);
+    const userMap = React.useRef(new Map());
+    
     //React.useEffect(() => {
     //    const unsubscribe = navigation.addListener('transitionEnd', () => {
     //        msgRef.current.focus();
     //    })
     //    return unsubscribe;
     //}, [navigation])
-    const getMessages = async () => {
-        try {
-            const now = Date.now();
-            var token;
-            if ((nextToken.current != lastToken.current) || !ready) {
-                token = nextToken.current
-                const messages = await API.graphql(graphqlOperation(listMessagesByTime, {
-                    chatMessagesId: route.params.id,
-                    nextToken: token ? token : null,
-                    limit: 12
-                }));
-                var newData = data;
-                for (i = 0; i < messages.data.listMessagesByTime.items.length; i++) {
-                    const user = await API.graphql(graphqlOperation(getUser, {
-                        id: messages.data.listMessagesByTime.items[i].userMessagesId
-                    }));
-                    var picture;
-                    if (user.data.getUser.profilePicture.loadFull) {
-                        picture = await Storage.get(user.data.getUser.profilePicture.loadFull);
-                    }
-                    const date = timeLogicNoAgo((now - Date.parse(messages.data.listMessagesByTime.items[i].createdAt)) / 1000);
-                    newData.push({
-                        ...messages.data.listMessagesByTime.items[i],
-                        username: user.data.getUser.username,
-                        picture: picture,
-                        date: date
-                    });
-                }
-                lastToken.current = nextToken.current;
-                nextToken.current = messages.data.listMessagesByTime.nextToken;  
-                setData(newData);
+    React.useEffect(() => {
+        const sub = API.graphql(graphqlOperation(onReceiveMessage, {
+            chatMessagesId: route.params.id
+        })).subscribe({
+            next: ({ value }) => appendMessages(value.data.onReceiveMessage),
+            error: (error) => console.warn(error),
+        })
+        const timeClock = setInterval(() => {
+            const iterator = dataRef.current.values();
+            var i = 0;
+            for (const value of iterator) {
+                dataRef.current[i].date = timeLogicNoAgo((Date.now() - value.exactDate) / 1000);
+                i++
             }
+            setData(dataRef.current);
+        }, 10000) //Every 30 seconds update time
+        return () => {
+            clearInterval(timeClock);
+            sub.unsubscribe();
+        }
+    }, []);
+    React.useEffect(() => {
+        const initialFunction = async () => {
+            try {
+                userMap.current.set(route.params.user.id, route.params.user.profilePicture.loadFull);
+                await getMessages(true);
+                //setReady(true);
+            } catch {
+                if (debug) console.warn(error);
+            }
+        }
+        initialFunction();
+    }, []);
+
+
+    const appendMessages = async (newMessage, reverse = false) => {
+        //console.log(newMessage)
+        const pic = userMap.current.get(newMessage.user.id);
+        var picture;
+        if (pic) {
+            picture = pic;
+        } else {
+            picture = await Storage.get(newMessage.user.profilePicture.loadFull);
+            userMap.current.set(newMessage.user.id, picture);
+        }
+        const time = timeLogicNoAgo((Date.now() - Date.parse(newMessage.createdAt)) / 1000);
+        const message = {
+            id: newMessage.id,
+            content: newMessage.content,
+            picture: picture,
+            date: time,
+            exactDate: Date.parse(newMessage.createdAt),
+            username: newMessage.user.username,
+            userID: newMessage.user.id,
+            sentByUser: false,
+            delivered: true,
+            read: true,
+        }
+        //console.log(data)
+        if (reverse) {
+            reverseMakeMessage(message);
+        } else {
+            makeMessage(message);
+        }
+        //console.log(data)
+    }
+    const reverseMakeMessage = (message) => {
+        if (dataRef.current.length > 0) {
+            if (dataRef.current[dataRef.current.length - 1].userID != message.userID) {
+                dataRef.current.push(message);
+            } else {
+                dataRef.current[dataRef.current.length - 1].content = dataRef.current[dataRef.current.length - 1].content + "\n" + message.content;
+                dataRef.current[dataRef.current.length - 1].date = message.date;
+                dataRef.current[dataRef.current.length - 1].exactDate = message.exactDate;
+            }
+        } else {
+            dataRef.current.push(message);
+        }
+        setData(dataRef.current.concat());
+    }
+
+    const makeMessage = (message) => {
+        var length = dataRef.current.length;
+        if (dataRef.current.length > 0) {
+            if (dataRef.current[0].userID != message.userID) {
+                length = dataRef.current.unshift(message);
+            } else {
+                dataRef.current[0].content = dataRef.current[0].content + "\n" + message.content;
+                dataRef.current[0].date = message.date;
+                dataRef.current[0].exactDate = message.exactDate;
+            }
+        } else {
+            length = dataRef.current.unshift(message);
+        }
+        setData(dataRef.current.concat());
+        return length;
+    }
+
+    const updateMessage = (index, newMessage) => {
+        //console.log(index);
+        dataRef.current[index] = {
+            ...newMessage,
+            content: dataRef.current[index].content
+        }
+        setData(dataRef.current.concat());
+    }
+
+    const sendMessage = async () => {
+        try {
+            const type = "Regular";
+            const tempID = "" + route.params.id + route.params.user.id + Date.now().toString();
+            const content = msg;
+            msgRef.current.clear();
+            setMsg("");
+            const message = {
+                id: tempID,
+                content: ""+content,
+                username: route.params.user.username,
+                userID: route.params.user.id,
+                picture: route.params.user.profilePicture.loadFull,
+                date: "...",
+                sentByUser: true,
+                delivered: false,
+                read: false
+            }
+            //if (debug) console.log("SENDING...");
+            const messageLength = makeMessage(message);
+            var index = 0;
+            if (data.length == 0) {
+                index = 100;
+            }
+            const newMessage = await API.graphql(graphqlOperation(createMessage, {
+                input: {
+                    userMessagesId: route.params.user.id,
+                    chatMessagesId: route.params.id,
+                    content: "" + content,
+                    type: type,
+                    index: index,
+                }
+            }))
+            if (newMessage) {
+                const index = dataRef.current.length - messageLength;
+                const msg = {
+                    ...message,
+                    id: newMessage.data.createMessage.id,
+                    sentByUser: true,
+                    exactDate: Date.now(),
+                    date: "now",
+                    delivered: true,
+                    read: false,
+                }
+                updateMessage(index,msg)
+                //if (debug) console.log("SENT!");
+                //if (debug) console.log(data);
+            }
+            //if (debug) console.log(data);
         } catch (error) {
             if (debug) console.log(error);
         }
     }
 
-    React.useEffect(() => {
-        const initialFunction = async () => {
-            try {
-                //setReady(false);
-                //await getMessages();
-                setReady(true);
-            } catch (error) {
-                if (debug) console.log(error);
+    const tokenExists = (token) => {
+        if (token != null) {
+            if (token != "i1" && token != "i2") {
+                return true;
             }
         }
-        initialFunction();
-    }, [])
+        return false;
+    }
+
+    const getMessages = async (New) => {
+        try {
+            if ((nextToken.current != lastToken.current)) {
+                if (New || tokenExists(nextToken.current)) {
+                    //setRefresh(true);
+                    var token;
+                    if (New) {
+                        dataRef.current = [];
+                        setData([]);
+                    }
+                    token = nextToken.current
+                    const messages = await API.graphql(graphqlOperation(listMessagesByTime, {
+                        chatMessagesId: route.params.id,
+                        nextToken: tokenExists(token) ? token : null,
+                        limit: 18
+                    }));
+                    //var newData = data;
+                    for (var i = 0; i < messages.data.listMessagesByTime.items.length; i++) {
+                        await appendMessages(messages.data.listMessagesByTime.items[i], true);
+                    }
+                    lastToken.current = nextToken.current;
+                    nextToken.current = messages.data.listMessagesByTime.nextToken;  
+                    //setRefresh(false);
+                }
+            }
+        } catch (error) {
+            if (debug) console.log(error);
+        }
+    }
 
     const selectImage = async () => {
         const cameraRollStatus = await ImagePicker.requestMediaLibraryPermissionsAsync();
@@ -115,95 +272,34 @@ function ChatPage({ route, navigation }) {
             if (debug) console.log(error);
         }
     }
-    const makeMessage = (message) => {
-        var tempData = data;
-        const length = tempData.unshift({
-            ...message,
-            sentByUser: true,
-            delivered: false,
-            read: false,
-        });
-        setData(tempData.concat());
-
-        return length;
-    }
-
-    const updateMessage = (index, newMessage) => {
-        var tempData = Array.from(data);
-        tempData[index] = newMessage;
-        setData(tempData.concat());
-    }
-
-    const sendMessage = async () => {
-        try {
-            const type = "Regular";
-            const tempID = "" + route.params.id + route.params.user.id + Date.now().toString();
-            const content = msg;
-            msgRef.current.clear();
-            const message = {
-                id: tempID,
-                content: ""+content,
-                username: route.params.user.username,
-                picture: route.params.user.profilePicture.loadFull,
-                date: "..."
-            }
-            if (debug) console.log("SENDING...");
-            const messageLength = makeMessage(message);
-            var index = 0;
-            if (data.length == 0) {
-                index = 100;
-            }
-            const newMessage = await API.graphql(graphqlOperation(createMessage, {
-                input: {
-                    userMessagesId: route.params.user.id,
-                    chatMessagesId: route.params.id,
-                    content: "" + content,
-                    type: type,
-                    index: index,
-                }
-            }))
-            if (newMessage) {
-                const index = data.length - messageLength;
-                updateMessage(index,{
-                    ...message,
-                    id: newMessage.data.createMessage.id,
-                    sentByUser: true,
-                    date: "now",
-                    delivered: true,
-                    read: false,
-                })
-                if (debug) console.log("SENT!");
-                //if (debug) console.log(data);
-            }
-            //if (debug) console.log(data);
-        } catch (error) {
-            if (debug) console.log(error);
-        }
-    }
 
     const renderItem = React.useCallback(({ item, index }) => {
-        if (ready) {
-            return (
-                <View style={{ margin: 6, marginBottom: index == 0 ? 34 : 10 }}>
-                    <ComplexMessage
-                        ppic={{
-                            uri: item.picture,
-                            loadImage: item.picture,
-                        }}
-                        time={item.date}
-                        username={item.username}
-                        message={item.content}
-                    />
-                </View>
-            )
-        }
+        return (
+            <View style={{ margin: 6, marginBottom: index == 0 ? 34 : 10 }}>
+                <ComplexMessage
+                    ppic={{
+                        uri: item.picture,
+                        loadImage: item.picture,
+                    }}
+                    time={item.date}
+                    username={item.username}
+                    message={item.content}
+                />
+            </View>
+        )
     }, [data]);
     const keyExtractor = React.useCallback((item) => item.id, []);
-    const onEndReached = React.useCallback(() => console.log("END!"), []);
+    const onEndReached = React.useCallback(() => getMessages(false), []);
     const openCamera = React.useCallback(() => console.log("Open Camera"), []);
     const openPhotos = React.useCallback(() => console.log("Open Photos"), []);
     const footerComponent = React.useCallback(() => {
-        if (data.length > 0) {
+        if (data.length > 0 && tokenExists(nextToken.current)) {
+            return (
+                <View style={styles.refresh}>
+                    <ActivityIndicator color={colors.pBeam} size="small" />
+                </View>
+            )
+        } if (data.length > 0 && !tokenExists(nextToken.current)) {
             return (
                 <>
                     <View style={{ alignItems: "center", justifyContent: "center", marginTop: 14 }}>
@@ -219,7 +315,7 @@ function ChatPage({ route, navigation }) {
                             marginTop: 10,
                         }}
                     />
-                </>
+                </>    
             )
         }
 
@@ -232,6 +328,8 @@ function ChatPage({ route, navigation }) {
     //}, []);
     return (
         <Screen innerStyle={styles.page}>
+
+            <>
             <KeyboardAvoidingView style={{ flex: 1, justifyContent: "flex-end" }} behavior="padding" keyboardVerticalOffset={headerHeight+4}>
                 <View style={styles.chats}>
                     <FlatList
@@ -268,6 +366,7 @@ function ChatPage({ route, navigation }) {
                     <SimpleInput
                         reference={msgRef}
                         placeholder="Say something"
+                        onFocus={() => chatsRef.current.scrollToOffset({ offset: 0 }) }
                         cStyle={{ overflow: "hidden", flex: 1, }}
                         tStyle={styles.message}
                         multiline={true}
@@ -281,15 +380,15 @@ function ChatPage({ route, navigation }) {
                     <IconButton
                         icon="arrow-forward-circle"
                         brand="Ionicons"
-                        color={colors.pBeam}
-                        disabled={msg.length == 0 ? true : false}
+                        color={msg.length >= 1 ? colors.pBeam : colors.pBeamDisabled}
+                        disabled={msg.length >= 1 ? false : true}
                         size={34}
                         style={styles.sendButton}
                         onPress={() => sendMessage()}
                     />
                 </View>
             </KeyboardAvoidingView>
-
+            </>
 
         </Screen>
     );
@@ -325,7 +424,10 @@ const styles = StyleSheet.create({
         marginTop: 0,
         ...css.beamShadow,
         shadowColor: "black"
-    }
+    },
+    refresh: {
+        margin: 10
+    },
 
 })
 

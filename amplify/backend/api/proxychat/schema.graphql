@@ -1,0 +1,96 @@
+type User @model @auth(rules: [
+		{allow: groups, groups: ["User"], operations: [read, update]},
+		{allow: owner, operations: [create, read, update]}
+]){
+	id: ID! 
+	username: String! @index(name: "byUsername")
+	bio: String!
+	expoToken: String
+	email: String
+	profilePicture: Image
+	allowNotifications: Boolean
+	owner: String @auth(rules: [{allow: owner, operations: [read, create, delete]}])
+	cognitoID: String! @index(name: "byCognito") 
+	posts: [Post] @hasMany
+	friends: [Friend] 
+	messages: [Message] @hasMany
+	chats: [Chat] @manyToMany(relationName: "ChatMembers")
+	lat: String
+	long: String
+	latf1: String @index(name: "byLatf1", sortKeyFields: ["longf1", "longf2"])
+	longf1: String
+	latf2: String @index(name: "byLatf2", sortKeyFields: ["longf1", "longf2"])
+	longf2: String
+}
+
+type Chat @model @auth(rules: [
+		{allow: groups, groups: ["User"], operations: [read, update]},
+		{allow: owner, operations: [create, read, update]}
+]){
+	id: ID!
+	owner: String @auth(rules: [{allow: owner, operations: [read, create, delete]}])
+	name: String
+	type: String
+	lat: String
+	members: [User] @manyToMany(relationName: "ChatMembers")
+	long: String
+	latf1: String @index(name: "byLatf1", sortKeyFields: ["longf1", "longf2"])
+	longf1: String
+	latf2: String @index(name: "byLatf2", sortKeyFields: ["longf1", "longf2"])
+	longf2: String
+	background: Image 
+	messages: [Message] @hasMany
+}
+
+type Post @model @auth(rules: [
+		{allow: groups, groups: ["User"], operations: [read]},
+		{allow: owner}
+]){
+	id: ID!
+	owner: String @auth(rules: [{allow: owner, operations: [read, create, delete]}])
+	user: User @belongsTo 
+	image: Image 
+	lat: String
+	createdAt: AWSDateTime!
+	updatedAt: AWSDateTime!
+	long: String
+	latf1: String @index(name: "byLatf1", sortKeyFields: ["longf1", "longf2"])
+	longf1: String
+	latf2: String @index(name: "byLatf2", sortKeyFields: ["longf1", "longf2"])
+	longf2: String
+}
+
+type Message @model @auth(rules: [
+		{allow: groups, groups: ["User"], operations: [read]},
+		{allow: owner, operations: [create, read, update]}
+]){
+	id: ID!
+	chat: Chat @belongsTo
+	user: User @belongsTo
+	createdAt: AWSDateTime!
+	updatedAt: AWSDateTime!
+	owner: String @auth(rules: [{allow: owner, operations: [read, create, delete]}])
+	type: String
+	image: Image
+	index: Int
+	content: String
+}
+
+type Image {
+	bucket: String!
+	region: String!
+	loadFull: String
+	thumbFull: String
+	full: String
+}
+
+type Friend {
+	friendID: String!
+	status: String
+	chatID: String
+}
+
+type Subscription {
+	onReceiveMessage(chatMessagesId: String): Message
+		@aws_subscribe(mutations: ["createMessage"])
+}

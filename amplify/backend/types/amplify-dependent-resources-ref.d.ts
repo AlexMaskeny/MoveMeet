@@ -21,5 +21,12 @@ export type AmplifyDependentResourcesAttributes = {
             "BucketName": "string",
             "Region": "string"
         }
+    },
+    "analytics": {
+        "proxychat": {
+            "Region": "string",
+            "Id": "string",
+            "appName": "string"
+        }
     }
 }

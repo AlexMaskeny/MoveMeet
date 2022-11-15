@@ -1,12 +1,42 @@
 /* eslint-disable */
 // this is an auto generated file. This will be overwritten
 
+export const onReceiveMessage = /* GraphQL */ `
+  subscription OnReceiveMessage($chatMessagesId: String) {
+    onReceiveMessage(chatMessagesId: $chatMessagesId) {
+        id
+        chatMessagesId
+        user {
+          id
+          username
+          profilePicture {
+            bucket
+            region
+            loadFull
+            full
+          }
+        }
+        createdAt
+        updatedAt
+        image {
+          bucket
+          region
+          loadFull
+          thumbFull
+        }
+        content
+        type
+    }
+  }
+`;
 export const onCreateUser = /* GraphQL */ `
   subscription OnCreateUser($owner: String) {
     onCreateUser(owner: $owner) {
       id
       username
       bio
+      expoToken
+      email
       profilePicture {
         bucket
         region
@@ -14,6 +44,7 @@ export const onCreateUser = /* GraphQL */ `
         thumbFull
         full
       }
+      allowNotifications
       owner
       cognitoID
       posts {
@@ -47,6 +78,8 @@ export const onUpdateUser = /* GraphQL */ `
       id
       username
       bio
+      expoToken
+      email
       profilePicture {
         bucket
         region
@@ -54,6 +87,7 @@ export const onUpdateUser = /* GraphQL */ `
         thumbFull
         full
       }
+      allowNotifications
       owner
       cognitoID
       posts {
@@ -87,6 +121,8 @@ export const onDeleteUser = /* GraphQL */ `
       id
       username
       bio
+      expoToken
+      email
       profilePicture {
         bucket
         region
@@ -94,6 +130,7 @@ export const onDeleteUser = /* GraphQL */ `
         thumbFull
         full
       }
+      allowNotifications
       owner
       cognitoID
       posts {
@@ -223,6 +260,9 @@ export const onCreatePost = /* GraphQL */ `
         id
         username
         bio
+        expoToken
+        email
+        allowNotifications
         owner
         cognitoID
         lat
@@ -262,6 +302,9 @@ export const onUpdatePost = /* GraphQL */ `
         id
         username
         bio
+        expoToken
+        email
+        allowNotifications
         owner
         cognitoID
         lat
@@ -301,6 +344,9 @@ export const onDeletePost = /* GraphQL */ `
         id
         username
         bio
+        expoToken
+        email
+        allowNotifications
         owner
         cognitoID
         lat
@@ -353,6 +399,9 @@ export const onCreateMessage = /* GraphQL */ `
         id
         username
         bio
+        expoToken
+        email
+        allowNotifications
         owner
         cognitoID
         lat
@@ -404,6 +453,9 @@ export const onUpdateMessage = /* GraphQL */ `
         id
         username
         bio
+        expoToken
+        email
+        allowNotifications
         owner
         cognitoID
         lat
@@ -455,6 +507,9 @@ export const onDeleteMessage = /* GraphQL */ `
         id
         username
         bio
+        expoToken
+        email
+        allowNotifications
         owner
         cognitoID
         lat
@@ -494,6 +549,9 @@ export const onCreateChatMembers = /* GraphQL */ `
         id
         username
         bio
+        expoToken
+        email
+        allowNotifications
         owner
         cognitoID
         lat
@@ -535,6 +593,9 @@ export const onUpdateChatMembers = /* GraphQL */ `
         id
         username
         bio
+        expoToken
+        email
+        allowNotifications
         owner
         cognitoID
         lat
@@ -576,6 +637,9 @@ export const onDeleteChatMembers = /* GraphQL */ `
         id
         username
         bio
+        expoToken
+        email
+        allowNotifications
         owner
         cognitoID
         lat

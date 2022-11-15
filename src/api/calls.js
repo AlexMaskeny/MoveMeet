@@ -293,11 +293,28 @@ export const listMessagesByTime = /* GraphQL */ `
     ) {
       listMessagesByTime(limit: $limit, chatMessagesId: $chatMessagesId, nextToken: $nextToken) {
         items {
-          id
-          type
-          userMessagesId
-          content
-          createdAt
+            id
+            chatMessagesId
+            user {
+              id
+              username
+              profilePicture {
+                bucket
+                region
+                loadFull
+                full
+              }
+            }
+            createdAt
+            updatedAt
+            image {
+              bucket
+              region
+              loadFull
+              thumbFull
+            }
+            content
+            type
         }
         nextToken
       }
@@ -312,8 +329,28 @@ export const getLatestMessagesByTime = /* GraphQL */ `
     ) {
       listMessagesByTime(limit: $limit, chatMessagesId: $chatMessagesId) {
         items {
-          id
-          createdAt
+            id
+            chatMessagesId
+            user {
+              id
+              username
+              profilePicture {
+                bucket
+                region
+                loadFull
+                full
+              }
+            }
+            createdAt
+            updatedAt
+            image {
+              bucket
+              region
+              loadFull
+              thumbFull
+            }
+            content
+            type
         }
       }
     }
@@ -327,6 +364,35 @@ export const getUser = /* GraphQL */ `
       profilePicture {
         loadFull
       }
+    }
+  }
+`;
+
+export const onReceiveMessage = /* GraphQL */ `
+  subscription OnReceiveMessage($chatMessagesId: String) {
+    onReceiveMessage(chatMessagesId: $chatMessagesId) {
+        id
+        chatMessagesId
+        user {
+          id
+          username
+          profilePicture {
+            bucket
+            region
+            loadFull
+            full
+          }
+        }
+        createdAt
+        updatedAt
+        image {
+          bucket
+          region
+          loadFull
+          thumbFull
+        }
+        content
+        type
     }
   }
 `;

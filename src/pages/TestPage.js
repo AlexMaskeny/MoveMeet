@@ -5,12 +5,15 @@ import Image from "../comps/ImageLoader";
 import * as ImagePicker from 'expo-image-picker';
 import * as Location from 'expo-location';
 
+import * as Notifications from 'expo-notifications';
 import { colors, debug } from '../config';
 import { createUser, updateUser, createChat, updateChat, createMessage, getMessage, getChat, listChats, listUsers, createChatMembers, getLatestMessagesByTime, listMessagesByTime } from '../api/calls';
 import BeamTitle from '../comps/BeamTitle';
 import SimpleButton from '../comps/SimpleButton';
 import Screen from '../comps/Screen';
 import SimpleInput from '../comps/SimpleInput';
+import { pinpoint } from '../graphql/mutations';
+import * as Subscriptions from '../graphql/subscriptions';
 
 function TestScreen({ navigation }) {
     //const [image, setImage] = React.useState("https://www.tamiu.edu/newsinfo/images/student-life/campus-scenery.JPG");
@@ -417,6 +420,49 @@ function TestScreen({ navigation }) {
             console.log(error);
         }
     }
+
+    const testNotification = async () => {
+        try {
+            const response = await API.graphql(graphqlOperation(pinpoint, {
+                input: {
+                    message: "Hi Its Alexander",
+                    token: "ExponentPushToken[B73J63Og8w6coldJVEXwfN]",
+                    username: "Alexander",
+                    email: "maskeny@umich.edu",
+                    id: "befbb1d2-cc43-4651-80cf-126591e2e589",
+                }
+            }))
+            console.log(response);
+        } catch (error) {
+            console.log(error);
+        }
+    }
+
+    const getPerms = async () => {
+        try {
+            const { status } = await Notifications.requestPermissionsAsync();
+            if (status != "granted") {
+                console.log("No perms");
+            }
+            const token = await Notifications.getExpoPushTokenAsync();
+            console.log(token);
+        } catch (error) {
+            console.log(error);
+        }
+    }
+
+    React.useEffect(() => {
+        //const sub = API.graphql(graphqlOperation(Subscriptions.onReceiveMessage, {
+        //    chatMessagesId: "9bfdfdc1-397e-4551-bf4c-5132bbc3d4f7"
+        //})).subscribe({
+        //    next: ({ value }) => console.log(value),
+        //    error: (error) => console.warn(error)
+        //})
+        //return () => {
+        //    sub.unsubscribe();
+        //}
+    }, []);
+
     return (
         <Screen innerStyle={styles.page}>
             {/*<BeamTitle>Alexander</BeamTitle>*/}
@@ -443,6 +489,7 @@ function TestScreen({ navigation }) {
             {/*<SimpleButton title="Fill Data" onPress={() => fillData()} />*/}
             {/*<SimpleButton title="Update Chat" onPress={() => testObjectUpdate()} /> */}
             <SimpleButton title="Send" onPress={() => sendMessage()} /> 
+            <SimpleButton title="Test Sub" onPress={() => getPerms()} />
             {/*<SimpleButton title="Get Time" onPress={() => getTime()} /> */}
         </Screen>
     );

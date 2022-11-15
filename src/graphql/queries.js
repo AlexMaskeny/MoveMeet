@@ -7,6 +7,8 @@ export const getUser = /* GraphQL */ `
       id
       username
       bio
+      expoToken
+      email
       profilePicture {
         bucket
         region
@@ -14,6 +16,7 @@ export const getUser = /* GraphQL */ `
         thumbFull
         full
       }
+      allowNotifications
       owner
       cognitoID
       posts {
@@ -52,6 +55,9 @@ export const listUsers = /* GraphQL */ `
         id
         username
         bio
+        expoToken
+        email
+        allowNotifications
         owner
         cognitoID
         lat
@@ -132,6 +138,9 @@ export const getPost = /* GraphQL */ `
         id
         username
         bio
+        expoToken
+        email
+        allowNotifications
         owner
         cognitoID
         lat
@@ -208,6 +217,9 @@ export const getMessage = /* GraphQL */ `
         id
         username
         bio
+        expoToken
+        email
+        allowNotifications
         owner
         cognitoID
         lat
@@ -269,6 +281,9 @@ export const getChatMembers = /* GraphQL */ `
         id
         username
         bio
+        expoToken
+        email
+        allowNotifications
         owner
         cognitoID
         lat

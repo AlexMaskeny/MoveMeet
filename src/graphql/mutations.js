@@ -10,6 +10,8 @@ export const createUser = /* GraphQL */ `
       id
       username
       bio
+      expoToken
+      email
       profilePicture {
         bucket
         region
@@ -17,6 +19,7 @@ export const createUser = /* GraphQL */ `
         thumbFull
         full
       }
+      allowNotifications
       owner
       cognitoID
       posts {
@@ -53,6 +56,8 @@ export const updateUser = /* GraphQL */ `
       id
       username
       bio
+      expoToken
+      email
       profilePicture {
         bucket
         region
@@ -60,6 +65,7 @@ export const updateUser = /* GraphQL */ `
         thumbFull
         full
       }
+      allowNotifications
       owner
       cognitoID
       posts {
@@ -96,6 +102,8 @@ export const deleteUser = /* GraphQL */ `
       id
       username
       bio
+      expoToken
+      email
       profilePicture {
         bucket
         region
@@ -103,6 +111,7 @@ export const deleteUser = /* GraphQL */ `
         thumbFull
         full
       }
+      allowNotifications
       owner
       cognitoID
       posts {
@@ -244,6 +253,9 @@ export const createPost = /* GraphQL */ `
         id
         username
         bio
+        expoToken
+        email
+        allowNotifications
         owner
         cognitoID
         lat
@@ -286,6 +298,9 @@ export const updatePost = /* GraphQL */ `
         id
         username
         bio
+        expoToken
+        email
+        allowNotifications
         owner
         cognitoID
         lat
@@ -328,6 +343,9 @@ export const deletePost = /* GraphQL */ `
         id
         username
         bio
+        expoToken
+        email
+        allowNotifications
         owner
         cognitoID
         lat
@@ -383,6 +401,9 @@ export const createMessage = /* GraphQL */ `
         id
         username
         bio
+        expoToken
+        email
+        allowNotifications
         owner
         cognitoID
         lat
@@ -437,6 +458,9 @@ export const updateMessage = /* GraphQL */ `
         id
         username
         bio
+        expoToken
+        email
+        allowNotifications
         owner
         cognitoID
         lat
@@ -491,6 +515,9 @@ export const deleteMessage = /* GraphQL */ `
         id
         username
         bio
+        expoToken
+        email
+        allowNotifications
         owner
         cognitoID
         lat
@@ -533,6 +560,9 @@ export const createChatMembers = /* GraphQL */ `
         id
         username
         bio
+        expoToken
+        email
+        allowNotifications
         owner
         cognitoID
         lat
@@ -577,6 +607,9 @@ export const updateChatMembers = /* GraphQL */ `
         id
         username
         bio
+        expoToken
+        email
+        allowNotifications
         owner
         cognitoID
         lat
@@ -621,6 +654,9 @@ export const deleteChatMembers = /* GraphQL */ `
         id
         username
         bio
+        expoToken
+        email
+        allowNotifications
         owner
         cognitoID
         lat

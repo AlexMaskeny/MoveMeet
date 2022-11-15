@@ -4,13 +4,22 @@ import { StyleSheet, Text, View } from 'react-native';
 import { withAuthenticator } from 'aws-amplify-react-native';
 import { Amplify } from 'aws-amplify';
 import awsconfig from './src/aws-exports';
+import * as Notifications from 'expo-notifications';
 
 import Navigation from './src/navigation';
 //Finalization Procedures
 //1. React navigation state persistance
 
+Notifications.setNotificationHandler({
+    handleNotification: async () => ({
+        shouldShowAlert: true,
+        shouldPlaySound: false,
+        shouldSetBadge: false,
+    }),
+});
 
 Amplify.configure(awsconfig);
+
 
 
 export default function App() {
