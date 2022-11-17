@@ -9,6 +9,7 @@ import ChatButton from './ChatButton';
 import { LinearGradient } from 'expo-linear-gradient';
 import SimpleMessage from './SimpleMessage';
 import ImageBackground from './ImageLoader'
+import { CommonActions } from '@react-navigation/native';
 
 //DESCRIPTION: A generalized chat box which will be embedded
 //             inside of a flatlist on the ChatsPage
@@ -131,7 +132,21 @@ function Chat({
                         marginTop: -60,
                         alignSelf: "center",
                     }}
-                    onPress={() => navigation.navigate("ChatPage", { name: title, created: created, id: id, user: user })}
+                    onPress={() => {
+                        //console.log(navigation)
+                        navigation.dispatch(
+                            CommonActions.navigate({
+                                name: "ChatPage",
+                                key: id,
+                                params: {
+                                    name: title,
+                                    created: created,
+                                    id: id,
+                                    user: user
+                                }
+                            })
+                        )
+                    }}
                     
                 />
             </View>

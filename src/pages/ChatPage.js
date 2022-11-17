@@ -1,7 +1,9 @@
 import React from 'react';
-import { StyleSheet, Image, ActivityIndicator, Alert, FlatList, View, KeyboardAvoidingView, RefreshControl } from 'react-native';
-import { API, Auth, graphqlOperation, Storage } from 'aws-amplify';
-import { useHeaderHeight } from '@react-navigation/elements';
+import { StyleSheet, Image, ActivityIndicator, Alert, FlatList, View, KeyboardAvoidingView } from 'react-native';
+import NetInfo from "@react-native-community/netinfo";
+import { API, Auth, graphqlOperation, Storage, Hub } from 'aws-amplify';
+import { CONNECTION_STATE_CHANGE, ConnectionState } from '@aws-amplify/pubsub';
+import { Background, useHeaderHeight } from '@react-navigation/elements';
 import * as ImagePicker from 'expo-image-picker';
 
 import {
@@ -11,6 +13,7 @@ import {
     createMessage,
     onReceiveMessage
 } from '../api/calls';
+import NoConnectionAlert from '../comps/NoConnectionAlert';
 import IconButton from '../comps/IconButton';
 import {colors,css,debug, timeLogic, timeLogicNoAgo } from '../config'
 import Screen from '../comps/Screen';
@@ -21,6 +24,8 @@ import Beam from '../comps/Beam';
 import ComplexMessage from '../comps/ComplexMessage';
 import BeamTitle from '../comps/BeamTitle';
 import SubTitle from '../comps/SubTitle';
+import { Connect } from 'aws-sdk';
+import { CONNECTION_INIT_TIMEOUT } from '@aws-amplify/pubsub/lib-esm/Providers/constants';
 
 //DESCRIPTION: A primary page of the SecondaryNav
 //             is the hub for all localized chats
@@ -37,6 +42,25 @@ function ChatPage({ route, navigation }) {
     const lastToken = React.useRef("i1");
     const dataRef = React.useRef([]);
     const userMap = React.useRef(new Map());
+    const [connected, setConnected] = React.useState(true);
+    /* 
+    Typing & Presence:
+    So upon typing update chatmember by chatmemberid gotten through chat data to status code 2
+    Upon not typing yet present set status code to 1
+    upon not typing and not present set status code to 0
+    upon present set status code to 1
+
+    Every 8 seconds the chatmember is updated with its status data
+    Every 12 seconds the consumer checks this data.
+    if difference in data >= 15 then ignore and use status code 0 yet don't change.
+
+    Read Receipts: To only exist in user to user conversations
+
+    Other Tasks:
+        Disable if location goes bad (use listener) (use modal)
+        Disable if no wifi (use modal)
+        Typing & Presence
+     */
     
     //React.useEffect(() => {
     //    const unsubscribe = navigation.addListener('transitionEnd', () => {
@@ -45,33 +69,60 @@ function ChatPage({ route, navigation }) {
     //    return unsubscribe;
     //}, [navigation])
     React.useEffect(() => {
-        const sub = API.graphql(graphqlOperation(onReceiveMessage, {
+        var priorState = ConnectionState.Disconnected;
+        const connectionSub = NetInfo.addEventListener(state => {
+            setConnected(state.isConnected && state.isInternetReachable);
+            //Could make this problematic if need be
+        });
+        var sub = API.graphql(graphqlOperation(onReceiveMessage, {
             chatMessagesId: route.params.id
         })).subscribe({
             next: ({ value }) => appendMessages(value.data.onReceiveMessage),
-            error: (error) => console.warn(error),
         })
-        const timeClock = setInterval(() => {
-            const iterator = dataRef.current.values();
-            var i = 0;
-            for (const value of iterator) {
-                dataRef.current[i].date = timeLogicNoAgo((Date.now() - value.exactDate) / 1000);
-                i++
+        Hub.listen("api", (data) => {
+            const { payload } = data;
+            if (payload.event == CONNECTION_STATE_CHANGE) {
+                if (priorState == ConnectionState.Connecting && payload.message == ConnectionState.Connected) {
+                    getMessages(true);
+                }
+            } else if (payload.event == CONNECTION_INIT_TIMEOUT) {
+                sub.unsubscribe();
+                if (debug) console.log("Timeout");
+                sub = API.graphql(graphqlOperation(onReceiveMessage, {
+                    chatMessagesId: route.params.id
+                })).subscribe({
+                    next: ({ value }) => appendMessages(value.data.onReceiveMessage),
+                });
+                getMessages(true);
             }
-            setData(dataRef.current);
-        }, 10000) //Every 30 seconds update time
+            priorState = payload.message;
+        })
+
+        const timeClock = setInterval(() => updateTime(), 10000) 
         return () => {
             clearInterval(timeClock);
             sub.unsubscribe();
+            connectionSub();
         }
     }, []);
+
+    const updateTime = () => {
+        const iterator = dataRef.current.values();
+        var i = 0;
+        for (const value of iterator) {
+            dataRef.current[i].date = timeLogicNoAgo(Date.now() / 1000 - value.exactDate / 1000);
+            i++
+        }
+        setData(dataRef.current.concat());
+    }
+
     React.useEffect(() => {
         const initialFunction = async () => {
             try {
                 userMap.current.set(route.params.user.id, route.params.user.profilePicture.loadFull);
                 await getMessages(true);
                 //setReady(true);
-            } catch {
+            } catch (error) {
                 if (debug) console.warn(error);
             }
         }
@@ -89,7 +140,7 @@ function ChatPage({ route, navigation }) {
             picture = await Storage.get(newMessage.user.profilePicture.loadFull);
             userMap.current.set(newMessage.user.id, picture);
         }
-        const time = timeLogicNoAgo((Date.now() - Date.parse(newMessage.createdAt)) / 1000);
+        const time = timeLogicNoAgo((Date.now()/1000 - Date.parse(newMessage.createdAt)/1000));
         const message = {
             id: newMessage.id,
             content: newMessage.content,
@@ -116,8 +167,6 @@ function ChatPage({ route, navigation }) {
                 dataRef.current.push(message);
             } else {
                 dataRef.current[dataRef.current.length - 1].content = dataRef.current[dataRef.current.length - 1].content + "\n" + message.content;
-                dataRef.current[dataRef.current.length - 1].date = message.date;
-                dataRef.current[dataRef.current.length - 1].exactDate = message.exactDate;
             }
         } else {
             dataRef.current.push(message);
@@ -153,6 +202,7 @@ function ChatPage({ route, navigation }) {
 
     const sendMessage = async () => {
         try {
+            
             const type = "Regular";
             const tempID = "" + route.params.id + route.params.user.id + Date.now().toString();
             const content = msg;
@@ -184,6 +234,7 @@ function ChatPage({ route, navigation }) {
                     index: index,
                 }
             }))
+            //if disconnected don't update.
             if (newMessage) {
                 const index = dataRef.current.length - messageLength;
                 const msg = {
@@ -230,12 +281,13 @@ function ChatPage({ route, navigation }) {
                         nextToken: tokenExists(token) ? token : null,
                         limit: 18
                     }));
-                    //var newData = data;
-                    for (var i = 0; i < messages.data.listMessagesByTime.items.length; i++) {
-                        await appendMessages(messages.data.listMessagesByTime.items[i], true);
+                    if (connected) {
+                        for (var i = 0; i < messages.data.listMessagesByTime.items.length; i++) {
+                            await appendMessages(messages.data.listMessagesByTime.items[i], true);
+                        }
+                        lastToken.current = nextToken.current;
+                        nextToken.current = messages.data.listMessagesByTime.nextToken;  
                     }
-                    lastToken.current = nextToken.current;
-                    nextToken.current = messages.data.listMessagesByTime.nextToken;  
                     //setRefresh(false);
                 }
             }
@@ -244,18 +296,50 @@ function ChatPage({ route, navigation }) {
         }
     }
 
-    const selectImage = async () => {
-        const cameraRollStatus = await ImagePicker.requestMediaLibraryPermissionsAsync();
-        if (cameraRollStatus.granted) {
-            const result = await ImagePicker.launchImageLibraryAsync({
-                mediaTypes: "Images",
-                aspect: [4, 3],
-                quality: 1,
-            })
-            await uploadImage(result);
-        } else {
-            Alert.alert("No Permsision");
+    const getPickerPerms = async () => {
+        try {
+            await ImagePicker.requestMediaLibraryPermissionsAsync();
+        } catch (error) {
+            console.warn(error);
         }
+    }
+
+    const selectImage = async () => {
+        try {
+            const perms = await ImagePicker.getMediaLibraryPermissionsAsync();
+            if (!perms.granted) {
+                Alert.alert("No Permsision", "We don't have access to your Camera Roll.", [
+                    {
+                        text: "Give Access",
+                        onPress: ()=> getPickerPerms(),
+                    },
+                    {
+                        text: "Cancel",
+                    }
+                ]);
+                return;
+            } else if (perms.granted) {
+                const result = await ImagePicker.launchImageLibraryAsync({
+                    mediaTypes: "Images",
+                    aspect: [4, 3],
+                    quality: 1,
+                });
+            }
+
+        } catch (error) {
+            console.warn(error);
+        }
+        //const cameraRollStatus = await ImagePicker.requestMediaLibraryPermissionsAsync();
+        //if (cameraRollStatus.granted) {
+        //    const result = await ImagePicker.launchImageLibraryAsync({
+        //        mediaTypes: "Images",
+        //        aspect: [4, 3],
+        //        quality: 1,
+        //    })
+        //    await uploadImage(result);
+        //} else {
+        //    Alert.alert("No Permsision");
+        //}
     }
     const uploadImage = async (pickerResult) => {
         try {
@@ -291,7 +375,7 @@ function ChatPage({ route, navigation }) {
     const keyExtractor = React.useCallback((item) => item.id, []);
     const onEndReached = React.useCallback(() => getMessages(false), []);
     const openCamera = React.useCallback(() => console.log("Open Camera"), []);
-    const openPhotos = React.useCallback(() => console.log("Open Photos"), []);
+    const openPhotos = React.useCallback(() => selectImage(), []);
     const footerComponent = React.useCallback(() => {
         if (data.length > 0 && tokenExists(nextToken.current)) {
             return (
@@ -380,14 +464,15 @@ function ChatPage({ route, navigation }) {
                     <IconButton
                         icon="arrow-forward-circle"
                         brand="Ionicons"
-                        color={msg.length >= 1 ? colors.pBeam : colors.pBeamDisabled}
-                        disabled={msg.length >= 1 ? false : true}
+                            color={(msg.length >= 1 && connected) ? colors.pBeam : colors.pBeamDisabled}
+                            disabled={(msg.length >= 1 ? false : true) || (!connected)}
                         size={34}
                         style={styles.sendButton}
                         onPress={() => sendMessage()}
                     />
                 </View>
-            </KeyboardAvoidingView>
+                </KeyboardAvoidingView>
+                <NoConnectionAlert visible={!connected} />
             </>
 
         </Screen>
@@ -428,6 +513,7 @@ const styles = StyleSheet.create({
     refresh: {
         margin: 10
     },
+
 
 })
 
