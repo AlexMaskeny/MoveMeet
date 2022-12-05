@@ -8,24 +8,25 @@ import timeout from '../api/timeout';
 import { colors, debug } from '../config';
 import Screen from '../comps/Screen';
 
-//Efficent GetData Stack: 
+//Efficent GetData Stack:
 //Given first run of app -> LoadingPage ->
-//    Check if authed user. 
+//    Check if authed user.
 //	If not send to login page -> If click signup go to signup[DELAY] -> Once signed up log in and go back to LoadingPage
 //	If logged in yet not verified -> go to verification -> When verified -> Go Back to LoadingPAge
 //	If logged in and okay -> Go back to LoadingPage
 //Get current user info that may have changed. (Location, friends, messages,)
 //Preload chat page, get first 10 chats near user, get first 10 user chats + convos, fill user profile screen.
 //	Store that gotten data in asyncstorage if reasonable. (avoid outdated data)
-//[DELAY]Begin subscriptions if reasonable. 
+//[DELAY]Begin subscriptions if reasonable.
 //navigate to local chats page with some default radius
+
 
 function LoadingPage({navigation}) {
     //REQUIRES: this page was navigated to by the initial Primary Navigator
     //MODIFIES: none
     //EFFECTS: attains data from database and triggers an inner function
     //         that will redirect user to appropriate page upon profile
-    //         data attainment
+    //         data attainment 
 
     React.useEffect(() => {
         //var mounted = true;

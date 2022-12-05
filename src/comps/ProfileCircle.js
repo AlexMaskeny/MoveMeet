@@ -10,7 +10,7 @@ function ProfileCircle({
     
 }) {
     return (
-        <View style={{ ...styles.container, ...style }}>
+        <View style={[styles.container, style]}>
             <Image
                 source={{uri: ppic.loadImage ? ppic.loadImage : ppic.uri}}
                 style={styles.image}

@@ -48,11 +48,28 @@ export const createMessage = /* GraphQL */ `
     $condition: ModelMessageConditionInput
   ) {
     createMessage(input: $input, condition: $condition) {
-      id
-      type
-      index
-      content
-      createdAt
+        id
+        chatMessagesId
+        user {
+            id
+            username
+            profilePicture {
+            bucket
+            region
+            loadFull
+            full
+            }
+        }
+        createdAt
+        updatedAt
+        image {
+            bucket
+            region
+            loadFull
+            thumbFull
+        }
+        content
+        type
     }
   }
 `;
@@ -311,6 +328,7 @@ export const listMessagesByTime = /* GraphQL */ `
               bucket
               region
               loadFull
+              full
               thumbFull
             }
             content
@@ -390,6 +408,7 @@ export const onReceiveMessage = /* GraphQL */ `
           region
           loadFull
           thumbFull
+          full
         }
         content
         type

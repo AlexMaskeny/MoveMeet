@@ -42,6 +42,14 @@ function ChatsPage({ navigation, route }) {
                 } else {
                     loc = await Location.getCurrentPositionAsync({ accuracy: 25 }); // Might change to 6
                 }
+
+
+                //##TESTING PURPOSES ONLYSTART!!!!!!!!!!!!!!!!!!!
+                loc.coords.latitude = 42.241430363506836;
+                loc.coords.longitude = -83.67980034793337;
+                //##TESTING PURPOSES ONLY END!!!!!!!!!!!!!!!!!
+
+
                 //console.log(loc);
                 const convertedLocs = locConversion(loc.coords.latitude, loc.coords.longitude);
                 const Chats200 = await API.graphql(graphqlOperation(listChatsByLocation, {

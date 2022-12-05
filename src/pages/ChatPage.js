@@ -3,7 +3,9 @@ import { StyleSheet, Image, ActivityIndicator, Alert, FlatList, View, KeyboardAv
 import NetInfo from "@react-native-community/netinfo";
 import { API, Auth, graphqlOperation, Storage, Hub } from 'aws-amplify';
 import { CONNECTION_STATE_CHANGE, ConnectionState } from '@aws-amplify/pubsub';
+import { CONNECTION_INIT_TIMEOUT } from '@aws-amplify/pubsub/lib-esm/Providers/constants';
 import { Background, useHeaderHeight } from '@react-navigation/elements';
+import uuid from "react-native-uuid";
 import * as ImagePicker from 'expo-image-picker';
 
 import {
@@ -24,8 +26,10 @@ import Beam from '../comps/Beam';
 import ComplexMessage from '../comps/ComplexMessage';
 import BeamTitle from '../comps/BeamTitle';
 import SubTitle from '../comps/SubTitle';
-import { Connect } from 'aws-sdk';
-import { CONNECTION_INIT_TIMEOUT } from '@aws-amplify/pubsub/lib-esm/Providers/constants';
+import ImageInput from '../comps/ImageInput';
+import PreviewImage from '../comps/PreviewImage';
+import ImageMessage from '../comps/ImageMessage';
+
 
 //DESCRIPTION: A primary page of the SecondaryNav
 //             is the hub for all localized chats
@@ -33,6 +37,8 @@ import { CONNECTION_INIT_TIMEOUT } from '@aws-amplify/pubsub/lib-esm/Providers/c
 
 function ChatPage({ route, navigation }) {
     const [msg, setMsg] = React.useState("");
+    const [msgIsImage, setMsgIsImage] = React.useState(false);
+    const [selectedImage, setSelectedImage] = React.useState("");
     const msgRef = React.useRef();
     const chatsRef = React.useRef();
     const headerHeight = useHeaderHeight();
@@ -43,6 +49,8 @@ function ChatPage({ route, navigation }) {
     const dataRef = React.useRef([]);
     const userMap = React.useRef(new Map());
     const [connected, setConnected] = React.useState(true);
+    const [showPreviewImage, setShowPreviewImage] = React.useState(false);
+    const [previewImage, setPreviewImage] = React.useState("");
     /* 
     Typing & Presence:
     So upon typing update chatmember by chatmemberid gotten through chat data to status code 2
@@ -58,8 +66,10 @@ function ChatPage({ route, navigation }) {
 
     Other Tasks:
         Disable if location goes bad (use listener) (use modal)
-        Disable if no wifi (use modal)
         Typing & Presence
+        Ensure that subscriptions aren't being unnessararily cloned. Either remove on back (actually good & efficent idea) or see if they are just temp disabled, etc.
+        Ensure that subscriptions are being renewed. 
+        Get messages & Images up and running. If send text with image send as 2 messages. Put image "in" text input.
      */
     
     //React.useEffect(() => {
@@ -77,9 +87,9 @@ function ChatPage({ route, navigation }) {
         var sub = API.graphql(graphqlOperation(onReceiveMessage, {
             chatMessagesId: route.params.id
         })).subscribe({
-            next: ({ value }) => appendMessages(value.data.onReceiveMessage),
+            next: ({ value }) => { if (route.params.user.id != value.data.onReceiveMessage.user.id) appendMessages(value.data.onReceiveMessage) },
         })
-        Hub.listen("api", (data) => {
+        const hub = Hub.listen("api", (data) => {
             const { payload } = data;
             if (payload.event == CONNECTION_STATE_CHANGE) {
                 if (priorState == ConnectionState.Connecting && payload.message == ConnectionState.Connected) {
@@ -100,6 +110,7 @@ function ChatPage({ route, navigation }) {
 
         const timeClock = setInterval(() => updateTime(), 10000) 
         return () => {
+            hub();
             clearInterval(timeClock);
             sub.unsubscribe();
             connectionSub();
@@ -133,17 +144,38 @@ function ChatPage({ route, navigation }) {
     const appendMessages = async (newMessage, reverse = false) => {
         //console.log(newMessage)
         const pic = userMap.current.get(newMessage.user.id);
+        var content;
+        var image;
         var picture;
+
         if (pic) {
             picture = pic;
         } else {
             picture = await Storage.get(newMessage.user.profilePicture.loadFull);
             userMap.current.set(newMessage.user.id, picture);
         }
+
+        if (newMessage.type == "Regular") {
+            content = newMessage.content;
+            image = {};
+        } else if (newMessage.type == "Image") {
+            content = "";
+            const full = await Storage.get(newMessage.image.full);
+            const loadFull = await Storage.get(newMessage.image.loadFull);
+            image = {
+                uri: full,
+                local: false,
+                loadImage: loadFull,
+                key: "FULLMESSAGE" + newMessage.id
+            };
+        }
+
         const time = timeLogicNoAgo((Date.now()/1000 - Date.parse(newMessage.createdAt)/1000));
         const message = {
             id: newMessage.id,
-            content: newMessage.content,
+            content: content,
+            image: image,
+            type: newMessage.type,
             picture: picture,
             date: time,
             exactDate: Date.parse(newMessage.createdAt),
@@ -162,11 +194,11 @@ function ChatPage({ route, navigation }) {
         //console.log(data)
     }
     const reverseMakeMessage = (message) => {
-        if (dataRef.current.length > 0) {
+        if (dataRef.current.length > 0 && message.type == "Regular") {
             if (dataRef.current[dataRef.current.length - 1].userID != message.userID) {
                 dataRef.current.push(message);
             } else {
-                dataRef.current[dataRef.current.length - 1].content = dataRef.current[dataRef.current.length - 1].content + "\n" + message.content;
+                dataRef.current[dataRef.current.length - 1].content = message.content + "\n" + dataRef.current[dataRef.current.length - 1].content ;
             }
         } else {
             dataRef.current.push(message);
@@ -176,7 +208,7 @@ function ChatPage({ route, navigation }) {
 
     const makeMessage = (message) => {
         var length = dataRef.current.length;
-        if (dataRef.current.length > 0) {
+        if (dataRef.current.length > 0 && message.type == "Regular") {
             if (dataRef.current[0].userID != message.userID) {
                 length = dataRef.current.unshift(message);
             } else {
@@ -192,11 +224,11 @@ function ChatPage({ route, navigation }) {
     }
 
     const updateMessage = (index, newMessage) => {
-        //console.log(index);
+        console.log(index);
         dataRef.current[index] = {
             ...newMessage,
             content: dataRef.current[index].content
-        }
+        };
         setData(dataRef.current.concat());
     }
 
@@ -214,6 +246,7 @@ function ChatPage({ route, navigation }) {
                 username: route.params.user.username,
                 userID: route.params.user.id,
                 picture: route.params.user.profilePicture.loadFull,
+                type: type,
                 date: "...",
                 sentByUser: true,
                 delivered: false,
@@ -231,6 +264,7 @@ function ChatPage({ route, navigation }) {
                     chatMessagesId: route.params.id,
                     content: "" + content,
                     type: type,
+                    read: false,
                     index: index,
                 }
             }))
@@ -253,6 +287,76 @@ function ChatPage({ route, navigation }) {
             //if (debug) console.log(data);
         } catch (error) {
             if (debug) console.log(error);
+        }
+    }
+
+    const sendImage = async () => {
+        try {
+            const type = "Image";
+            const ID = uuid.v4();
+            const image = selectedImage;
+            removeImage();
+            const message = {
+                id: ID,
+                type: type,
+                image: {
+                    uri: image,
+                    local: true,
+                    loadImage: image,
+                    key: "FULLMESSAGE" + ID
+                }, //This should be a image object with full and loadFull. In this case, we haven't made a load full yet.
+                username: route.params.user.username,
+                userID: route.params.user.id,
+                picture: route.params.user.profilePicture.loadFull,
+                date: "...",
+                sentByUser: true,
+                delivered: false,
+                read: false
+            }
+            //if (debug) console.log("SENDING...");
+            const messageLength = makeMessage(message);
+            var index = 0;
+            if (data.length == 0) {
+                index = 100;
+            }
+            const response = await fetch(selectedImage);
+            if (response) {
+                const img = await response.blob();
+                if (img) {
+                    await Storage.put("FULLMESSAGE"+ID+".jpg", img);
+                }
+            }
+
+            const newMessage = await API.graphql(graphqlOperation(createMessage, {
+                input: {
+                    id: ID,
+                    userMessagesId: route.params.user.id,
+                    chatMessagesId: route.params.id,
+                    image: {
+                        bucket: "proxychatf2d762e9bc784204880374b0ca905be4120629-dev",
+                        region: "us-east-2",
+                        full: "FULLMESSAGE" + ID + ".jpg",
+                        loadFull: "LOADFULLMESSAGE" + ID + ".jpg"
+                    },
+                    type: type,
+                    read: false,
+                    index: index,
+                }
+            }))
+            if (newMessage) {
+                const index = dataRef.current.length - messageLength;
+                const msg = {
+                    ...message,
+                    sentByUser: true,
+                    exactDate: Date.now(),
+                    date: "now",
+                    delivered: true,
+                    read: false,
+                }
+                updateMessage(index, msg)
+            }
+        } catch (error) {
+            console.warn(error);
         }
     }
 
@@ -285,6 +389,7 @@ function ChatPage({ route, navigation }) {
                         for (var i = 0; i < messages.data.listMessagesByTime.items.length; i++) {
                             await appendMessages(messages.data.listMessagesByTime.items[i], true);
                         }
+                        //console.log(messages.data.listMessagesByTime.items);
                         lastToken.current = nextToken.current;
                         nextToken.current = messages.data.listMessagesByTime.nextToken;  
                     }
@@ -324,6 +429,16 @@ function ChatPage({ route, navigation }) {
                     aspect: [4, 3],
                     quality: 1,
                 });
+                if (result) {
+                    if (result.cancelled) {
+                        return;
+                    } else {
+                        setSelectedImage(result.uri);
+                        setMsgIsImage(true);
+                    }
+                } else {
+                    Alert.alert("Error", "Some kind of error happened. Try again.");
+                }
             }
 
         } catch (error) {
@@ -341,36 +456,47 @@ function ChatPage({ route, navigation }) {
         //    Alert.alert("No Permsision");
         //}
     }
-    const uploadImage = async (pickerResult) => {
-        try {
-            if (pickerResult.cancelled) {
-                return
-            } else {
-                const response = await fetch(pickerResult.uri);
-                const img = await response.blob();
-                
-                const result = await Storage.put("Alexander.jpg", img);
-                if (debug) console.log(result);
-            }
-        } catch (error) {
-            if (debug) console.log(error);
-        }
+
+    const removeImage = () => {
+        setMsgIsImage(false);
+        setSelectedImage("");
     }
 
     const renderItem = React.useCallback(({ item, index }) => {
-        return (
-            <View style={{ margin: 6, marginBottom: index == 0 ? 34 : 10 }}>
-                <ComplexMessage
-                    ppic={{
-                        uri: item.picture,
-                        loadImage: item.picture,
-                    }}
-                    time={item.date}
-                    username={item.username}
-                    message={item.content}
-                />
-            </View>
-        )
+        if (item.type == "Image") {
+            return (
+                <View style={{ margin: 6, marginBottom: index == 0 ? 34 : 10 }}>
+                    <ImageMessage
+                        ppic={{
+                            uri: item.picture,
+                            loadImage: item.picture,
+                        }}
+                        onPress={() => {
+                            setShowPreviewImage(true);
+                            setPreviewImage(item.image.uri);
+                        }}
+                        time={item.date}
+                        username={item.username}
+                        source={item.image}
+                    />
+                </View>
+            )
+        } else {
+            return (
+                <View style={{ margin: 6, marginBottom: index == 0 ? 34 : 10 }}>
+                    <ComplexMessage
+                        ppic={{
+                            uri: item.picture,
+                            loadImage: item.picture,
+                        }}
+                        time={item.date}
+                        username={item.username}
+                        message={item.content}
+                    />
+                </View>
+            )
+        }
+        
     }, [data]);
     const keyExtractor = React.useCallback((item) => item.id, []);
     const onEndReached = React.useCallback(() => getMessages(false), []);
@@ -428,8 +554,8 @@ function ChatPage({ route, navigation }) {
                     />
 
                 </View>
-                <DarkBeam style={styles.darkBeam} />
-                <View style={styles.textBox}>
+                    <DarkBeam style={styles.darkBeam} />
+                    <View style={[styles.textBox, { alignItems: msgIsImage ? "flex-start" : "flex-end" }]}>
                     <IconButton
                         icon="camera"
                         brand="Ionicons"
@@ -446,33 +572,54 @@ function ChatPage({ route, navigation }) {
                         size={34}
                         style={{ marginBottom: 6, }}
                         onPress={openPhotos}
-                    />
-                    <SimpleInput
-                        reference={msgRef}
-                        placeholder="Say something"
-                        onFocus={() => chatsRef.current.scrollToOffset({ offset: 0 }) }
-                        cStyle={{ overflow: "hidden", flex: 1, }}
-                        tStyle={styles.message}
-                        multiline={true}
-                        maxLength={300}
-                        keyboardAppearance="dark"
-                        onChangeText={(text) => {
-                            setMsg(text);
-                            //console.log(msg);
-                        }}
-                    />
+                        />
+                        {!msgIsImage &&
+                            <SimpleInput
+                                reference={msgRef}
+                                placeholder="Say something"
+                                onFocus={() => chatsRef.current.scrollToOffset({ offset: 0 }) }
+                                cStyle={{ overflow: "hidden", flex: 1, }}
+                                tStyle={styles.message}
+                                multiline={true}
+                                maxLength={300}
+                                keyboardAppearance="dark"
+                                onChangeText={(text) => {
+                                    setMsg(text);
+                                }}
+                            />
+                        }
+                        {msgIsImage &&
+                            <>                            
+                            <ImageInput pic={selectedImage} onDisable={() => removeImage()} />
+                            </>
+                        }
                     <IconButton
                         icon="arrow-forward-circle"
                         brand="Ionicons"
-                            color={(msg.length >= 1 && connected) ? colors.pBeam : colors.pBeamDisabled}
-                            disabled={(msg.length >= 1 ? false : true) || (!connected)}
+                        color={
+                            ((msg.length >= 1 || msgIsImage) && connected) ? colors.pBeam : colors.pBeamDisabled
+                        }
+                        disabled={((msg.length >= 1 || msgIsImage) ? false : true) || (!connected)}
                         size={34}
                         style={styles.sendButton}
-                        onPress={() => sendMessage()}
+                        onPress={() => {
+                            if (msgIsImage) {
+                                sendImage();
+                            } else {
+                                sendMessage()
+                            }
+                        }}
                     />
                 </View>
                 </KeyboardAvoidingView>
-                <NoConnectionAlert visible={!connected} />
+                {!connected &&
+
+                    <NoConnectionAlert visible={!connected} />
+                }
+                {showPreviewImage &&
+
+                    <PreviewImage visible={showPreviewImage} pic={previewImage} onDisable={() => setShowPreviewImage(false)} />
+                }
             </>
 
         </Screen>

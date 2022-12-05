@@ -9,10 +9,11 @@ import SubTitle from './SubTitle';
 
 function NoConnectionAlert({
     style,
+    visible=false,
     ...otherProps
 }) {
     return (
-        <Modal transparent={true} {...otherProps}>
+        <Modal transparent={true} visible={visible} {...otherProps}>
             <View style={styles.noConnection}>
                 <View style={styles.noConnectionAlert}>
                     <BeamTitle size={24}>No Connection</BeamTitle>

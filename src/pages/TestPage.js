@@ -4,6 +4,7 @@ import { API, Auth, graphqlOperation, Storage } from 'aws-amplify';
 import Image from "../comps/ImageLoader";
 import * as ImagePicker from 'expo-image-picker';
 import * as Location from 'expo-location';
+import uuid from "react-native-uuid";
 
 import * as Notifications from 'expo-notifications';
 import { colors, debug } from '../config';
@@ -451,6 +452,10 @@ function TestScreen({ navigation }) {
         }
     }
 
+    const testUUID = async () => {
+        console.log(uuid.v4());
+    }
+
     React.useEffect(() => {
         //const sub = API.graphql(graphqlOperation(Subscriptions.onReceiveMessage, {
         //    chatMessagesId: "9bfdfdc1-397e-4551-bf4c-5132bbc3d4f7"
@@ -474,12 +479,12 @@ function TestScreen({ navigation }) {
                 style={{ width: 200, height: 200 }}
             />
 
-            {/*<SimpleInput placeholder="username" onChangeText={(text) => { setUsername(text) }} />*/}
-            {/*<SimpleButton title="Create user" onPress={() => createNewUser()} />*/}
-            {/*<SimpleInput placeholder="code" onChangeText={(text) => { setCode(text) }} />*/}
-            {/*<SimpleButton title="Confirm User" onPress={() => confirmUser()} />*/}
+            <SimpleInput placeholder="username" onChangeText={(text) => { setUsername(text) }} />
+            <SimpleButton title="Create user" onPress={() => createNewUser()} />
+            <SimpleInput placeholder="code" onChangeText={(text) => { setCode(text) }} />
+            <SimpleButton title="Confirm User" onPress={() => confirmUser()} />
 
-            <SimpleInput placeholder="chatName" onChangeText={(text) => { setChatName(text) }} />
+            {/*<SimpleInput placeholder="chatName" onChangeText={(text) => { setChatName(text) }} />*/}
             {/*<SimpleButton title="Create Chat" onPress={() => createNewChat()} />*/}
 
             {/*<SimpleButton title="Create Regular Message" onPress={() => createRegularMessage()} />*/}
@@ -488,8 +493,8 @@ function TestScreen({ navigation }) {
             {/*<SimpleButton title="Get Chat" onPress={() => getCh()} />*/}
             {/*<SimpleButton title="Fill Data" onPress={() => fillData()} />*/}
             {/*<SimpleButton title="Update Chat" onPress={() => testObjectUpdate()} /> */}
-            <SimpleButton title="Send" onPress={() => sendMessage()} /> 
-            <SimpleButton title="Test Sub" onPress={() => getPerms()} />
+            {/*<SimpleButton title="Send" onPress={() => sendMessage()} /> */}
+            {/*<SimpleButton title="Test UUID" onPress={() => testUUID()} />*/}
             {/*<SimpleButton title="Get Time" onPress={() => getTime()} /> */}
         </Screen>
     );
