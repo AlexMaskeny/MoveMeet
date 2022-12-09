@@ -13,7 +13,7 @@ function SimpleMessage({ children, ppic, username, message, style, ...props }) {
                 style={[styles.tStyle, style]}
                 numberOfLines={2}
                 {...props}
-            >{message}</Text>
+            >{message ? message : "Sent an Image"}</Text>
         </View>
     );
 }

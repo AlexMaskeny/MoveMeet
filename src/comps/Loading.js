@@ -8,12 +8,12 @@ function Loading({enabled}) {
     if (enabled) {
         return (
             <Screen innerStyle={styles.page} style={styles.outerPage}>
-                <Image
-                    source={require('../../assets/Logo.png')}
-                    style={styles.logo}
-                    resizeMode="contain"
-                />
-                <View height={20} />
+                {/*<Image*/}
+                {/*    source={require('../../assets/Logo.png')}*/}
+                {/*    style={styles.logo}*/}
+                {/*    resizeMode="contain"*/}
+                {/*/>*/}
+                {/*<View height={20} />*/}
                 <ActivityIndicator size='large' color={colors.pBeam} />
             </Screen>
         )

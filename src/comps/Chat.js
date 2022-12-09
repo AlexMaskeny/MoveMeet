@@ -22,12 +22,14 @@ function Chat({
     latest,
     last3,
     user,
+    glow=false,
     id,
     numMembers,
     distance,
     title,
     created,
     navigation,
+    onPress,
     ...props
 }) {
     const keyExtractor = React.useCallback((item) => item.user.id, [])
@@ -51,10 +53,37 @@ function Chat({
     const getHeight = () => {
         return 340 - (156 - getChatsHeight());
     }
+    const glowStyle = () => {
+        if (glow) {
+            return ({
+                ...css.beamShadow,
+                borderWidth: 2,
+                borderColor: colors.pBeam
+            })
+        } else {
+            return ({})
+        }
+    }
+    const navigate = () => {
+        onPress();
+        navigation.dispatch(
+            CommonActions.navigate({
+                name: "ChatPage",
+                key: id,
+                params: {
+                    name: title,
+                    created: created,
+                    id: id,
+                    user: user
+                }
+            })
+        );
+    }
     return (
         <View style={{
             ...styles.container,
-            height: getHeight()
+            height: getHeight(),
+            ...glowStyle()
         }}>
             <ImageBackground
                 source={background}
@@ -79,20 +108,20 @@ function Chat({
                 </View>
                 <View style={styles.details}>
                     <IconTitle
-                        brand="MaterialCommunityIcons"
-                        icon="google-maps"
-                        style={{fontSize: 14}}
-                    >{distance}</IconTitle>
+                        brand="Ionicons"
+                        icon="chatbubble-ellipses"
+                        style={{ fontSize: 14 }}
+                    >{latest}</IconTitle>
                     <IconTitle
                         brand="MaterialCommunityIcons"
                         icon="account"
                         style={{ fontSize: 14 }}
                     >{numMembers > 1 ? numMembers : ""} {numMembers == 1 ? "It's Just You" : "Members"}</IconTitle>
                     <IconTitle
-                        brand="Ionicons"
-                        icon="chatbubble-ellipses"
-                        style={{ fontSize: 14 }}
-                    >{latest}</IconTitle>
+                        brand="MaterialCommunityIcons"
+                        icon="google-maps"
+                        style={{fontSize: 14}}
+                    >{distance}</IconTitle>
                 </View>
                 <View style={{
                     ...styles.chat,
@@ -101,19 +130,31 @@ function Chat({
                     <View style={styles.chatSub}>
                         {last3.length >= 1 &&
                             <>
-                                <SimpleMessage ppic={background} username="Alexander" message={last3[0].content} />
+                            <SimpleMessage ppic={{
+                                uri: last3[0].picture,
+                                loadImage: last3[0].picture,
+                                key: "chatPreviewPPic" + last3[0].id,
+                            }} username="Alexander" message={last3[0].content} />
                                 <View style={{height: 4} } />
                             </>
                         }
                         {last3.length >= 2 &&
                             <>
-                                <SimpleMessage ppic={background} username="Alexander" message={last3[1].content} />
+                            <SimpleMessage ppic={{
+                                uri: last3[1].picture,
+                                loadImage: last3[1].picture,
+                                key: "chatPreviewPPic" + last3[1].id,
+                            }} username="Alexander" message={last3[1].content} />
                                 <View style={{ height: 4 }} />
                             </>
                         }
                         {last3.length >= 3 &&
                             <>
-                                <SimpleMessage ppic={background} username="Alexander" message={last3[2].content} />
+                            <SimpleMessage ppic={{
+                                uri: last3[2].picture,
+                                loadImage: last3[2].picture,
+                                key: "chatPreviewPPic" + last3[2].id,
+                            }} username="Alexander" message={last3[2].content} />
                                 <View style={{ height: 4 }} />
                             </>
                         }
@@ -132,21 +173,7 @@ function Chat({
                         marginTop: -60,
                         alignSelf: "center",
                     }}
-                    onPress={() => {
-                        //console.log(navigation)
-                        navigation.dispatch(
-                            CommonActions.navigate({
-                                name: "ChatPage",
-                                key: id,
-                                params: {
-                                    name: title,
-                                    created: created,
-                                    id: id,
-                                    user: user
-                                }
-                            })
-                        )
-                    }}
+                    onPress={()=>navigate()}
                     
                 />
             </View>

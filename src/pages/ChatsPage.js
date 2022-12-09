@@ -1,8 +1,10 @@
 import React from 'react';
 import { StyleSheet, Image, RefreshControl, View, FlatList } from 'react-native';
 import * as Location from 'expo-location';
-import { getUserByCognito, listChatsByLocation, createChatMembers, listMessagesByTime } from '../api/calls';
-import { API, Auth, graphqlOperation, Storage } from 'aws-amplify';
+import { getUserByCognito, onReceiveMessage, createChatMembers, listMessagesByTime, getUserChats, getChat, onMemberStatusChange, updateMessage } from '../api/calls';
+import { API, Auth, graphqlOperation, Storage, Hub } from 'aws-amplify';
+import { CONNECTION_STATE_CHANGE, ConnectionState } from '@aws-amplify/pubsub';
+import { CONNECTION_INIT_TIMEOUT } from '@aws-amplify/pubsub/lib-esm/Providers/constants';
 import AsyncStorage from '@react-native-async-storage/async-storage';
 import * as TaskManager from 'expo-task-manager';
 
@@ -22,115 +24,168 @@ function ChatsPage({ navigation, route }) {
     const [refresh, setRefresh] = React.useState(false);
     const [locEnabled, setLocEnabled] = React.useState(true);
     const [chats, setChats] = React.useState([]);
+    const [update, setUpdate] = React.useState(false);
+    const chatsRef = React.useRef([]);
     const user = React.useRef();
+    var memberSub;
+    var chatSubs = React.useRef([]);
+    var timeClock;
+
+    const getLast3Images = async (last3) => {
+        for (var i = 0; i < last3.length; i++) {
+            const loadFull = await Storage.get(last3[i].user.profilePicture.loadFull);
+            last3[i].picture = loadFull;
+        }
+    }
+
+    const subscribe = async () => {
+        try {
+            unSubscribeMembers();
+            memberSub = API.graphql(graphqlOperation(onMemberStatusChange, {
+                userID: user.current.id
+            })).subscribe({
+                next: () => { onRefresh() },
+                error: (error) => { setUpdate(!update) }
+            });
+        } catch (error) {
+            if(debug) console.log(error)
+        }
+    }
+
+    const rearrangeChats = async (value) => {
+        const index = chatsRef.current.findIndex(el => el.id == value.chatMessagesId)
+        //if (value.type == "Regular") {
+            if (chatsRef.current[index].last3.length == 3) {
+                chatsRef.current[index].last3[2] = chatsRef.current[index].last3[1];
+                chatsRef.current[index].last3[1] = chatsRef.current[index].last3[0];
+                chatsRef.current[index].last3[0] = value;
+            } 
+            if (chatsRef.current[index].last3.length == 2) {
+                chatsRef.current[index].last3.push(chatsRef.current[index].last3[1])
+                chatsRef.current[index].last3[1] = chatsRef.current[index].last3[0];
+                chatsRef.current[index].last3[0] = value;
+            }
+            if (chatsRef.current[index].last3.length == 1) {
+                chatsRef.current[index].last3.push(chatsRef.current[index].last3[0]);
+                chatsRef.current[index].last3[0] = value;
+            }
+            if (chatsRef.current[index].last3.length == 0) {
+                chatsRef.current[index].last3.push(value);
+            }
+        //}
+        getLast3Images(chatsRef.current[index].last3);
+        chatsRef.current[index].latest = "Now"
+        if (value.user.id != user.current.id) {
+            chatsRef.current[index].glow = true
+        }
+        chatsRef.current = [
+            chatsRef.current[index],
+            ...chatsRef.current.filter(el => el.id != value.chatMessagesId)
+        ];
+        setChats(chatsRef.current.concat());
+    }
+
+    const unSubscribeMembers = () => {
+        if (memberSub) {
+            memberSub.unsubscribe();
+        }
+    }
+
+    const unSubscribeChats = () => {
+        for (var i = 0; i < chatSubs.current.length; i++) {
+            chatSubs.current[i].unsubscribe()
+        }
+    }
 
     const onRefresh = async () => {
         try {
+            unSubscribeChats();
+            const currentUser = await Auth.currentUserInfo();
+            const dbUser = await API.graphql(graphqlOperation(getUserByCognito, {
+                id: currentUser.attributes.sub
+            }))
+            user.current = dbUser.data.getUserByCognito;
             const locPerm = await Location.getForegroundPermissionsAsync();
-            //Just allowing developer to get access if not already requested
-            if (debug) {
-                if (!locPerm.granted) {
-                    const loc = await Location.requestForegroundPermissionsAsync();
-                    locPerm.granted = true;
-                }
-            }
-            //End debug section...
             if (locPerm.granted) {
-                var loc;
-                if (ready) {
-                    loc = await Location.getLastKnownPositionAsync();
-                } else {
-                    loc = await Location.getCurrentPositionAsync({ accuracy: 25 }); // Might change to 6
-                }
-
-
-                //##TESTING PURPOSES ONLYSTART!!!!!!!!!!!!!!!!!!!
-                loc.coords.latitude = 42.241430363506836;
-                loc.coords.longitude = -83.67980034793337;
-                //##TESTING PURPOSES ONLY END!!!!!!!!!!!!!!!!!
-
-
-                //console.log(loc);
+                var loc = await Location.getLastKnownPositionAsync();
                 const convertedLocs = locConversion(loc.coords.latitude, loc.coords.longitude);
-                const Chats200 = await API.graphql(graphqlOperation(listChatsByLocation, {
-                    ...convertedLocs,
-                    radius: 200,
-                    numMessages: 15,
-                }));
+                //const Chats200 = await API.graphql(graphqlOperation(listChatsByLocation, {
+                //    ...convertedLocs,
+                //    radius: 200,
+                //    numMessages: 15,
+                //}));
+                const Chats200 = await API.graphql(graphqlOperation(getUserChats, {
+                    id: user.current.id
+                }))
                 if (Chats200) {
-                    var cs = Chats200.data.listChatsByLocation.items;
-                    const currentUser = await Auth.currentUserInfo();
-                    const dbUser = await API.graphql(graphqlOperation(getUserByCognito, {
-                        id: currentUser.attributes.sub
-                    }))
-                    user.current = dbUser.data.getUserByCognito;
-                    //console.log(JSON.parse(dbUser.data.getUserByCognito));
-
-                    // use nested loop to add remote uris to the local chat array.
-                    // Profile circles of the chat preview just the background of chat and grab the 3 latests chats. If 
+                    var cs = Chats200.data.getUser.chats.items;
+                    var chatData = []
                     const now = Date.now()
                     for (var i = 0; i < cs.length; i++) {
-                        const full = await Storage.get(cs[i].background.full);
-                        const loadFull = await Storage.get(cs[i].background.loadFull);
-                        cs[i].background.full = full;
-                        cs[i].background.loadFull = loadFull;
-                        var userPresent = false;
-                        var thisChat = cs[i];
+                        const Chat = cs[i].chat
+                        const full = await Storage.get(Chat.background.full);
+                        const loadFull = await Storage.get(Chat.background.loadFull);
+                        Chat.background.full = full;
+                        Chat.background.loadFull = loadFull;
+                        var thisChat = Chat;
                         thisChat.createdAt = thisChat.createdAt.substring(0, 10);
                         const last3 = await API.graphql(graphqlOperation(listMessagesByTime, {
-                            chatMessagesId: cs[i].id,
+                            chatMessagesId: Chat.id,
                             limit: 3,
                         }))
                         if (last3.data.listMessagesByTime.items) {
                             thisChat.last3 = last3.data.listMessagesByTime.items;
+                            getLast3Images(thisChat.last3);
                             if (last3.data.listMessagesByTime.items[0]) {
                                 const msg = Date.parse(last3.data.listMessagesByTime.items[0].createdAt);
                                 const diff = now - msg;
                                 thisChat.latest = timeLogic(diff / 1000);
+                                if (!last3.data.listMessagesByTime.items[0].read.includes(user.current.id)) {
+                                    thisChat.glow = true
+                                }
                             }
                         } else {
                             thisChat.last3 = []
+                            thisChat.glow = false
                         }
                         if (!thisChat.latest) {
                             thisChat.latest = "New Chat";
                         }
                         var num = 0;
-                        for (var j = 0; j < cs[i].members.items.length; j++) {
-                            const loadFull = await Storage.get(cs[i].members.items[j].user.profilePicture.loadFull);
-                            if (cs[i].members.items[j].user.id == dbUser.data.getUserByCognito.id) {
-                                userPresent = true;
+                        for (var j = 0; j < Chat.members.items.length; j++) {
+                            const loadFull = await Storage.get(Chat.members.items[j].user.profilePicture.loadFull);
+                            if (Chat.members.items[j].user.id == user.current.id) {
+                                //userPresent = true;
                                 user.current.profilePicture.loadFull = loadFull;
                             }
                             thisChat.members.items[j].user.picture = loadFull;
                             num++;
                         }
-                        if (!userPresent) {
-                            //console.log(dbUser.data.getUserByCognito.id);
-                            //console.log(cs[i].id);
-                            await API.graphql(graphqlOperation(createChatMembers, {
-                                input: {
-                                    userID: ""+dbUser.data.getUserByCognito.id,
-                                    chatID: ""+cs[i].id
-                                }
-                            }));
-                            const loadFull = await Storage.get("LOADFULLprofilePicture" + dbUser.data.getUserByCognito.id + ".jpg");
-                            user.current.profilePicture.loadFull = loadFull;
-                            thisChat.members.items[thisChat.members.items.length] = {
-                                user: {
-                                    id: dbUser.data.getUserByCognito.id,
-                                    picture: loadFull
-                                }
-                                
-                            };
-                            num++;
-                        }
                         thisChat.numMembers = num;
-                        thisChat.distance = distance(convertedLocs.lat, convertedLocs.long, cs[i].lat, cs[i].long);
-                        cs[i] = thisChat;
-                        
+                        thisChat.distance = distance(convertedLocs.lat, convertedLocs.long, Chat.lat, Chat.long);
+                        Chat = thisChat;
+                        chatData.push(Chat);
+                        chatSubs.current.push(API.graphql(graphqlOperation(onReceiveMessage, {
+                            chatMessagesId: thisChat.id
+                        })).subscribe({
+                            next: ({ value }) => rearrangeChats(value.data.onReceiveMessage),
+                            error: (error) => { setUpdate(!update) }
+                        }));
                     }
                     //console.log(cs);
-                    setChats(cs);
+                    chatData.sort((a, b) => {
+                        if (a.last3.length == 0 || b.last3.length == 0) {
+                            return -1
+                        } else {
+                            if (Date.parse(a.last3[0].createdAt) > Date.parse(b.last3[0].createdAt)) {
+                                return -1;
+                            } else {
+                                return 1;
+                            }
+                        }
+                    })
+                    setChats(chatData);
+                    chatsRef.current = chatData;
                     if (!ready) setReady(true);
                 }
             } else {
@@ -143,16 +198,61 @@ function ChatsPage({ navigation, route }) {
         }
         setRefresh(false);
     }
+
+    const updateTime = () => {
+        const iterator = chatsRef.current.values();
+        var i = 0;
+        for (const value of iterator) {
+            if (value.last3.length >= 1) {
+                const now = Date.now()
+                const diff = now - Date.parse(value.last3[0].createdAt);
+                chatsRef.current[i].latest = timeLogic(diff / 1000);
+            }
+            i++
+        }
+        setChats(chatsRef.current.concat());
+    }
+
     React.useEffect(() => {
         const initialFunction = async () => {
             try {
                 await onRefresh();
+                subscribe();
             } catch (error) {
                 if (debug) console.log(error);
             }
         }
         initialFunction();
-    }, []);
+        if (timeClock) {
+            clearInterval(timeClock)
+            timeClock = null;
+        }
+        timeClock = setInterval(() => updateTime(), 10000) 
+        //var priorState = ConnectionState.Disconnected;
+        //const hub = Hub.listen("api", async (data) => {
+        //    const { payload } = data;
+        //    if (payload.event == CONNECTION_STATE_CHANGE) {
+        //        if (priorState == ConnectionState.Connecting && payload.message == ConnectionState.Connected) {
+        //            setReady(false);
+        //            await onRefresh();
+        //            subscribe();
+        //            setReady(true);
+        //        }
+        //    } else if (payload.event == CONNECTION_INIT_TIMEOUT) {
+        //            setReady(false);
+        //            await onRefresh();
+        //            subscribe();
+        //            setReady(true);
+        //    }
+        //    priorState = payload.message
+        //})
+        return () => {
+            //hub()
+            clearInterval(timeClock)
+            unSubscribeMembers();
+            unSubscribeChats();
+        }
+    }, [navigation, update]);
 
     const renderItem = React.useCallback(
         ({ item }) => {
@@ -166,6 +266,8 @@ function ChatsPage({ navigation, route }) {
                         }}
                         members={item.members.items}
                         latest={item.latest}
+                        onPress={() => navigate(item)}
+                        glow={item.glow}
                         id={item.id}
                         user={user.current}
                         last3={item.last3}
@@ -179,6 +281,22 @@ function ChatsPage({ navigation, route }) {
             }
         }, [chats, ready]
     )
+    const navigate = async (item) => {
+        if (item.last3.length >= 1) {
+            if (!item.last3[0].read.includes(user.current.id)) {
+                item.last3[0].read.push(user.current.id)
+                await API.graphql(graphqlOperation(updateMessage, {
+                    input: {
+                        id: item.last3[0].id,
+                        read: item.last3[0].read
+                    }
+                }))
+                item.glow = false
+                chatsRef.current = chats;
+                setChats(chatsRef.current.concat())
+            }
+        }
+    }
     const listFooterComponenet = React.useCallback(()=><View height={30} />, []);
     const keyExtractor = React.useCallback((item) => item.id, [])
     return (

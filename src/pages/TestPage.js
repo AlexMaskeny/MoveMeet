@@ -5,7 +5,6 @@ import Image from "../comps/ImageLoader";
 import * as ImagePicker from 'expo-image-picker';
 import * as Location from 'expo-location';
 import uuid from "react-native-uuid";
-
 import * as Notifications from 'expo-notifications';
 import { colors, debug } from '../config';
 import { createUser, updateUser, createChat, updateChat, createMessage, getMessage, getChat, listChats, listUsers, createChatMembers, getLatestMessagesByTime, listMessagesByTime } from '../api/calls';
@@ -14,7 +13,9 @@ import SimpleButton from '../comps/SimpleButton';
 import Screen from '../comps/Screen';
 import SimpleInput from '../comps/SimpleInput';
 import { pinpoint } from '../graphql/mutations';
+import ImageView from 'react-native-image-viewing';
 import * as Subscriptions from '../graphql/subscriptions';
+import { LongPressGestureHandler, State } from 'react-native-gesture-handler';
 
 function TestScreen({ navigation }) {
     //const [image, setImage] = React.useState("https://www.tamiu.edu/newsinfo/images/student-life/campus-scenery.JPG");
@@ -467,7 +468,12 @@ function TestScreen({ navigation }) {
         //    sub.unsubscribe();
         //}
     }, []);
-
+    const onLongPress = (event) => {
+        if (event.nativeEvent.state === State.ACTIVE) {
+            console.log("HELD FOR 800 ms");
+        }
+    }
+    const [visible, setVisible] = React.useState(true);
     return (
         <Screen innerStyle={styles.page}>
             {/*<BeamTitle>Alexander</BeamTitle>*/}
@@ -483,6 +489,14 @@ function TestScreen({ navigation }) {
             <SimpleButton title="Create user" onPress={() => createNewUser()} />
             <SimpleInput placeholder="code" onChangeText={(text) => { setCode(text) }} />
             <SimpleButton title="Confirm User" onPress={() => confirmUser()} />
+            <SimpleButton title="Open" onPress={()=> setVisible(true) } />
+
+            <LongPressGestureHandler
+                onHandlerStateChange={onLongPress}
+                minDurationMs={800}
+            >
+                <View style={{height: 200, width: 200,backgroundColor: colors.pBeam} } />
+            </LongPressGestureHandler>
 
             {/*<SimpleInput placeholder="chatName" onChangeText={(text) => { setChatName(text) }} />*/}
             {/*<SimpleButton title="Create Chat" onPress={() => createNewChat()} />*/}

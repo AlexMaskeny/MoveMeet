@@ -4,8 +4,9 @@ import { API, Auth, graphqlOperation } from 'aws-amplify';
 import AsyncStorage from '@react-native-async-storage/async-storage';
 import * as Location from 'expo-location';
 
+import { getUserByCognito, updateUser } from '../api/calls';
 import timeout from '../api/timeout';
-import { colors, debug } from '../config';
+import { colors, debug, locConversion2 } from '../config';
 import Screen from '../comps/Screen';
 
 //Efficent GetData Stack:
@@ -22,27 +23,29 @@ import Screen from '../comps/Screen';
 
 
 function LoadingPage({navigation}) {
-    //REQUIRES: this page was navigated to by the initial Primary Navigator
-    //MODIFIES: none
-    //EFFECTS: attains data from database and triggers an inner function
-    //         that will redirect user to appropriate page upon profile
-    //         data attainment 
 
     React.useEffect(() => {
-        //var mounted = true;
         var loc;
         const initialFunction = async () => {
             if (debug) console.log("Initiating...");
-            //Get data during this interval
-            //setTimeout(async function () {
                 try {
                     const currentUser = await Auth.currentAuthenticatedUser();
                     if (currentUser) {
                         const perm = await Location.getForegroundPermissionsAsync();
+                        const user = await API.graphql(graphqlOperation(getUserByCognito, {
+                            id: currentUser.attributes.sub
+                        }))
                         if (perm.granted) {
-                            loc = await Location.watchPositionAsync({ accuracy: 6, distanceInterval: 0, timeInterval: 500, }, (location) => {
-                                //console.log("Location:");
-                                //console.log(location);
+                            loc = await Location.watchPositionAsync({ accuracy: 6, distanceInterval: 0, timeInterval: 10000, }, async (location) => {
+                                const convertedLocs = locConversion2(location.coords.latitude, location.coords.longitude)
+
+                                await API.graphql(graphqlOperation(updateUser, {
+                                    input: {
+                                        id: user.data.getUserByCognito.id,
+                                        ...convertedLocs
+                                    }
+                                }))
+                                
                             })
                         }
                         navigation.navigate("SecondaryNav");
@@ -63,7 +66,6 @@ function LoadingPage({navigation}) {
                         navigation.navigate("LoginPage");
 					}
 			    }
-            //}, 20);
         }
         initialFunction();
         return () => {

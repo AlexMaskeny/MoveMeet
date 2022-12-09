@@ -20,6 +20,17 @@ export const updateUser = /* GraphQL */ `
   }
 `;
 
+export const updateMessage = /* GraphQL */ `
+  mutation UpdateMessage(
+    $input: UpdateMessageInput!
+    $condition: ModelMessageConditionInput
+  ) {
+    updateMessage(input: $input, condition: $condition) {
+      id
+    }
+  }
+`;
+
 export const createChat = /* GraphQL */ `
   mutation CreateChat(
     $input: CreateChatInput!
@@ -50,6 +61,7 @@ export const createMessage = /* GraphQL */ `
     createMessage(input: $input, condition: $condition) {
         id
         chatMessagesId
+        read
         user {
             id
             username
@@ -114,6 +126,64 @@ export const getMessage = /* GraphQL */ `
     }
   }
 `;
+
+export const getUserChats = /* GraphQL */ `
+  query GetUserChats($id: ID!) {
+    getUser(id: $id) {
+        id
+        chats {
+            items {
+                chat {
+                    id
+                    name
+                    type
+                    lat
+                    long
+                    background {
+                        bucket
+                        region
+                        loadFull
+                        thumbFull
+                        full
+                    }
+                    messages {
+                        items {
+                            id
+                            type
+                            content
+                            index
+                            user {
+                                id
+                                username
+                                profilePicture {
+                                    full
+                                    loadFull
+                                }
+                            }
+                        }
+                        nextToken
+                    }
+                    members {
+                        items {
+                            user {
+                                id
+                                username
+                                profilePicture {
+                                    full
+                                    loadFull
+                                }
+                            }
+
+                        }
+                    }
+                    createdAt
+                    updatedAt
+                }
+            }
+        }
+    }
+  }
+`
 
 export const getChat = /* GraphQL */ `
   query GetChat($id: ID!) {
@@ -311,6 +381,7 @@ export const listMessagesByTime = /* GraphQL */ `
       listMessagesByTime(limit: $limit, chatMessagesId: $chatMessagesId, nextToken: $nextToken) {
         items {
             id
+            read
             chatMessagesId
             user {
               id
@@ -348,6 +419,7 @@ export const getLatestMessagesByTime = /* GraphQL */ `
       listMessagesByTime(limit: $limit, chatMessagesId: $chatMessagesId) {
         items {
             id
+            read
             chatMessagesId
             user {
               id
@@ -391,6 +463,7 @@ export const onReceiveMessage = /* GraphQL */ `
     onReceiveMessage(chatMessagesId: $chatMessagesId) {
         id
         chatMessagesId
+        read
         user {
           id
           username
@@ -415,3 +488,15 @@ export const onReceiveMessage = /* GraphQL */ `
     }
   }
 `;
+
+export const onMemberStatusChange = /* GraphQL */ `
+    subscription OnMemberStatusChange($userID: String) {
+        onMemberStatusChange(userID: $userID) {
+        	id
+	        userID
+	        status
+
+            
+        }
+    }
+`

@@ -1,10 +1,12 @@
 import React from 'react';
 import { StyleSheet, Image, ActivityIndicator, Alert, FlatList, View, KeyboardAvoidingView } from 'react-native';
+import Swipeable from 'react-native-gesture-handler/Swipeable'
 import NetInfo from "@react-native-community/netinfo";
 import { API, Auth, graphqlOperation, Storage, Hub } from 'aws-amplify';
 import { CONNECTION_STATE_CHANGE, ConnectionState } from '@aws-amplify/pubsub';
 import { CONNECTION_INIT_TIMEOUT } from '@aws-amplify/pubsub/lib-esm/Providers/constants';
 import { Background, useHeaderHeight } from '@react-navigation/elements';
+import ImageView from 'react-native-image-viewing';
 import uuid from "react-native-uuid";
 import * as ImagePicker from 'expo-image-picker';
 
@@ -29,7 +31,8 @@ import SubTitle from '../comps/SubTitle';
 import ImageInput from '../comps/ImageInput';
 import PreviewImage from '../comps/PreviewImage';
 import ImageMessage from '../comps/ImageMessage';
-
+import { LongPressGestureHandler, State } from 'react-native-gesture-handler';
+import { KeyboardAwareFlatList } from 'react-native-keyboard-aware-scroll-view';
 
 //DESCRIPTION: A primary page of the SecondaryNav
 //             is the hub for all localized chats
@@ -183,7 +186,7 @@ function ChatPage({ route, navigation }) {
             userID: newMessage.user.id,
             sentByUser: false,
             delivered: true,
-            read: true,
+            read: [route.params.user.id],
         }
         //console.log(data)
         if (reverse) {
@@ -195,9 +198,13 @@ function ChatPage({ route, navigation }) {
     }
     const reverseMakeMessage = (message) => {
         if (dataRef.current.length > 0 && message.type == "Regular") {
-            if (dataRef.current[dataRef.current.length - 1].userID != message.userID) {
+            if (dataRef.current[dataRef.current.length - 1].userID != message.userID ||
+                !dataRef.current[dataRef.current.length - 1].content ||
+                dataRef.current[dataRef.current.length - 1].exactDate - message.exactDate > 1000 * 60 * 60 * 2 // only add to end if less than 2 hours apart. 
+            ) {
                 dataRef.current.push(message);
             } else {
+
                 dataRef.current[dataRef.current.length - 1].content = message.content + "\n" + dataRef.current[dataRef.current.length - 1].content ;
             }
         } else {
@@ -209,7 +216,10 @@ function ChatPage({ route, navigation }) {
     const makeMessage = (message) => {
         var length = dataRef.current.length;
         if (dataRef.current.length > 0 && message.type == "Regular") {
-            if (dataRef.current[0].userID != message.userID) {
+            if (dataRef.current[0].userID != message.userID ||
+                !dataRef.current[0].content ||
+                dataRef.current[0].exactDate - message.exactDate > 1000 * 60 * 60 * 2 // only add to end if less than 2 hours apart. 
+            ) {
                 length = dataRef.current.unshift(message);
             } else {
                 dataRef.current[0].content = dataRef.current[0].content + "\n" + message.content;
@@ -250,7 +260,7 @@ function ChatPage({ route, navigation }) {
                 date: "...",
                 sentByUser: true,
                 delivered: false,
-                read: false
+                read: [route.params.user.id]
             }
             //if (debug) console.log("SENDING...");
             const messageLength = makeMessage(message);
@@ -264,7 +274,7 @@ function ChatPage({ route, navigation }) {
                     chatMessagesId: route.params.id,
                     content: "" + content,
                     type: type,
-                    read: false,
+                    read: [route.params.user.id],
                     index: index,
                 }
             }))
@@ -278,7 +288,7 @@ function ChatPage({ route, navigation }) {
                     exactDate: Date.now(),
                     date: "now",
                     delivered: true,
-                    read: false,
+                    read: [route.params.user.id],
                 }
                 updateMessage(index,msg)
                 //if (debug) console.log("SENT!");
@@ -311,7 +321,7 @@ function ChatPage({ route, navigation }) {
                 date: "...",
                 sentByUser: true,
                 delivered: false,
-                read: false
+                read: [route.params.user.id]
             }
             //if (debug) console.log("SENDING...");
             const messageLength = makeMessage(message);
@@ -339,7 +349,7 @@ function ChatPage({ route, navigation }) {
                         loadFull: "LOADFULLMESSAGE" + ID + ".jpg"
                     },
                     type: type,
-                    read: false,
+                    read: [route.params.user.id],
                     index: index,
                 }
             }))
@@ -351,7 +361,7 @@ function ChatPage({ route, navigation }) {
                     exactDate: Date.now(),
                     date: "now",
                     delivered: true,
-                    read: false,
+                    read: [route.params.user.id],
                 }
                 updateMessage(index, msg)
             }
@@ -461,28 +471,36 @@ function ChatPage({ route, navigation }) {
         setMsgIsImage(false);
         setSelectedImage("");
     }
-
+    const longPressText = (event) => {
+        if (event.nativeEvent.state === State.ACTIVE) {
+            console.log("LONG PRESS")
+        }
+    }
     const renderItem = React.useCallback(({ item, index }) => {
         if (item.type == "Image") {
             return (
-                <View style={{ margin: 6, marginBottom: index == 0 ? 34 : 10 }}>
-                    <ImageMessage
-                        ppic={{
-                            uri: item.picture,
-                            loadImage: item.picture,
-                        }}
-                        onPress={() => {
-                            setShowPreviewImage(true);
-                            setPreviewImage(item.image.uri);
-                        }}
-                        time={item.date}
-                        username={item.username}
-                        source={item.image}
-                    />
-                </View>
+                    <View style={{ margin: 6, marginBottom: index == 0 ? 34 : 10 }}>
+                        <ImageMessage
+                            ppic={{
+                                uri: item.picture,
+                                loadImage: item.picture,
+                            }}
+                            onPress={() => {
+                                setPreviewImage(item.image.uri);
+                                setShowPreviewImage(true);
+                            }}
+                            time={item.date}
+                            username={item.username}
+                            source={item.image}
+                        />
+                    </View>
             )
         } else {
             return (
+                <LongPressGestureHandler
+                    onHandlerStateChange={(event)=>longPressText(event)}
+                    minDurationMs={800}
+                > 
                 <View style={{ margin: 6, marginBottom: index == 0 ? 34 : 10 }}>
                     <ComplexMessage
                         ppic={{
@@ -493,7 +511,8 @@ function ChatPage({ route, navigation }) {
                         username={item.username}
                         message={item.content}
                     />
-                </View>
+                    </View>
+                </LongPressGestureHandler>
             )
         }
         
@@ -542,7 +561,7 @@ function ChatPage({ route, navigation }) {
             <>
             <KeyboardAvoidingView style={{ flex: 1, justifyContent: "flex-end" }} behavior="padding" keyboardVerticalOffset={headerHeight+4}>
                 <View style={styles.chats}>
-                    <FlatList
+                    <KeyboardAwareFlatList
                         data={data}
                         ref={chatsRef}
                         ListFooterComponent={footerComponent}
@@ -577,7 +596,7 @@ function ChatPage({ route, navigation }) {
                             <SimpleInput
                                 reference={msgRef}
                                 placeholder="Say something"
-                                onFocus={() => chatsRef.current.scrollToOffset({ offset: 0 }) }
+                                
                                 cStyle={{ overflow: "hidden", flex: 1, }}
                                 tStyle={styles.message}
                                 multiline={true}
@@ -616,10 +635,16 @@ function ChatPage({ route, navigation }) {
 
                     <NoConnectionAlert visible={!connected} />
                 }
-                {showPreviewImage &&
-
-                    <PreviewImage visible={showPreviewImage} pic={previewImage} onDisable={() => setShowPreviewImage(false)} />
-                }
+                <ImageView
+                    images={[
+                        {
+                            uri: previewImage
+                        }
+                    ]}
+                    imageIndex={0}
+                    visible={showPreviewImage}
+                    onRequestClose={()=>setShowPreviewImage(false)}
+                />
             </>
 
         </Screen>
