@@ -13,6 +13,7 @@ import Screen from '../comps/Screen';
 import Chat from '../comps/Chat';
 import DisabledChat from '../comps/DisabledChat';
 import Loading from '../comps/Loading';
+import { useFocusEffect } from '@react-navigation/native';
 
 //DESCRIPTION: A primary page of the SecondaryNav
 //             is the hub for all localized chats
@@ -30,6 +31,7 @@ function ChatsPage({ navigation, route }) {
     var memberSub;
     var chatSubs = React.useRef([]);
     var timeClock;
+    const shouldGlow = React.useRef(true);
 
     const getLast3Images = async (last3) => {
         for (var i = 0; i < last3.length; i++) {
@@ -75,8 +77,10 @@ function ChatsPage({ navigation, route }) {
         //}
         getLast3Images(chatsRef.current[index].last3);
         chatsRef.current[index].latest = "Now"
-        if (value.user.id != user.current.id) {
+        if (value.user.id != user.current.id && shouldGlow.current) {
             chatsRef.current[index].glow = true
+        } else {
+            chatsRef.current[index].glow = false
         }
         chatsRef.current = [
             chatsRef.current[index],
@@ -140,8 +144,10 @@ function ChatsPage({ navigation, route }) {
                                 const msg = Date.parse(last3.data.listMessagesByTime.items[0].createdAt);
                                 const diff = now - msg;
                                 thisChat.latest = timeLogic(diff / 1000);
-                                if (!last3.data.listMessagesByTime.items[0].read.includes(user.current.id)) {
-                                    thisChat.glow = true
+                                if (!last3.data.listMessagesByTime.items[0].read.includes(user.current.id) && shouldGlow.current) {
+                                    thisChat.glow = true;
+                                } else {
+                                    thisChat.glow = false;
                                 }
                             }
                         } else {
@@ -155,7 +161,7 @@ function ChatsPage({ navigation, route }) {
                         for (var j = 0; j < Chat.members.items.length; j++) {
                             const loadFull = await Storage.get(Chat.members.items[j].user.profilePicture.loadFull);
                             if (Chat.members.items[j].user.id == user.current.id) {
-                                //userPresent = true;
+                                thisChat.userChatMembersID = Chat.members.items[j].id;
                                 user.current.profilePicture.loadFull = loadFull;
                             }
                             thisChat.members.items[j].user.picture = loadFull;
@@ -213,6 +219,7 @@ function ChatsPage({ navigation, route }) {
         setChats(chatsRef.current.concat());
     }
 
+
     React.useEffect(() => {
         const initialFunction = async () => {
             try {
@@ -254,6 +261,21 @@ function ChatsPage({ navigation, route }) {
         }
     }, [navigation, update]);
 
+    const messageHandler = React.useCallback((start) => {
+        if (start) {
+            //if (debug) console.log("Currently in a chatPage");
+            shouldGlow.current = false;
+        } else {
+            //if (debug) console.log("No longer in chatPage");
+            shouldGlow.current = true;
+        }
+
+    }, [])
+
+    useFocusEffect(React.useCallback(() => {
+        messageHandler(false);
+    },[]));
+
     const renderItem = React.useCallback(
         ({ item }) => {
             if (ready) {
@@ -269,9 +291,11 @@ function ChatsPage({ navigation, route }) {
                         onPress={() => navigate(item)}
                         glow={item.glow}
                         id={item.id}
+                        userChatMembersID={item.userChatMembersID}
                         user={user.current}
                         last3={item.last3}
                         numMembers={item.numMembers}
+                        messageHandler={()=> messageHandler(true)}
                         distance={item.distance}
                         title={item.name}
                         created={item.createdAt}

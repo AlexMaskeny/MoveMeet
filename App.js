@@ -21,24 +21,16 @@ import Navigation from './src/navigation';
  * ##### BACKEND #####
  * Users don't seem to be being added to user group on create
  * ##### CHAT PAGE ######
- * Swiping down on keyboard
- * Incorperate typing, but not presence 
- * The loading indicator isn't great
- * Show when a user enter / leaves
- * Fix the annoying initial alert for disconnected
- * If chats >= 1 hour apart split them
+
+
  * Make messages copiable
+ * enable camera access
  * Make images saveable via hold hold to copy chats
  * use a better dark theme. Example: edge     
 
- * ##### IMAGE PREVIEW #####
- * Use react-native-image-viewer to allow zoomablity and scrollability
- * Use gesture control to swipe out off preview (a downward AND upward swipe)
- * Use thumbnail on image preview or use a cached image and loading indicator
- * Show user's name and ppic via a safe area view/shadow. No exit button but have a share icon
+
 */
 
-//As of 12-7-22 we have finished the subscriptions on the home page. I just want to adjust the read receipt glowing thing and make the preview chat message profile picture the users ppic not the chat background.
 
 
 
@@ -61,6 +53,9 @@ import Navigation from './src/navigation';
 
 
 //Alpha 0.0.3 will incorperate private messaging
+ //* Show when a user enter / leaves
+ //* Fix the annoying initial alert for disconnected
+ //* If chats >= 1 hour apart split them
 
 Notifications.setNotificationHandler({
     handleNotification: async () => ({

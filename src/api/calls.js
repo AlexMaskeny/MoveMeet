@@ -78,6 +78,7 @@ export const createMessage = /* GraphQL */ `
             bucket
             region
             loadFull
+            full
             thumbFull
         }
         content
@@ -165,6 +166,7 @@ export const getUserChats = /* GraphQL */ `
                     }
                     members {
                         items {
+                            id
                             user {
                                 id
                                 username
@@ -437,6 +439,7 @@ export const getLatestMessagesByTime = /* GraphQL */ `
               bucket
               region
               loadFull
+              full
               thumbFull
             }
             content
@@ -500,3 +503,71 @@ export const onMemberStatusChange = /* GraphQL */ `
         }
     }
 `
+
+export const onUserTyping = /* GraphQL */ `
+    subscription OnUserTyping($chatID: String) {
+        onUserTyping(chatID: $chatID) {
+        	id
+            user {
+              id
+              username
+              profilePicture {
+                bucket
+                region
+                loadFull
+                full
+              }
+            }
+	        status
+
+            
+        }
+    }
+`
+
+export const updateTyping = /* GraphQL */ `
+  mutation updateChatMembers(
+    $input: UpdateChatMembersInput!
+    $condition: ModelChatMembersConditionInput
+  ) {
+    updateChatMembers(input: $input, condition: $condition) {
+        id
+        chatID
+        user {
+            id
+            username
+            profilePicture {
+                bucket
+                region
+                loadFull
+                full
+            }
+        }
+	    status
+      }
+    }
+
+`
+
+export const getMemberStatuses = /* GraphQL */ `
+  query GetMemberStatuses($ChatID: ID!) {
+    getChat(id: $ChatID) {
+      members {
+        items {
+        id
+        user {
+            id
+            username
+            profilePicture {
+                bucket
+                region
+                loadFull
+                full
+            }
+        }
+	    status
+        }
+      }
+    }
+  }
+`;

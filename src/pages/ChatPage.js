@@ -1,5 +1,5 @@
 import React from 'react';
-import { StyleSheet, Image, ActivityIndicator, Alert, FlatList, View, KeyboardAvoidingView } from 'react-native';
+import { StyleSheet, Image, ActivityIndicator, Alert, FlatList, View, KeyboardAvoidingView, Keyboard } from 'react-native';
 import Swipeable from 'react-native-gesture-handler/Swipeable'
 import NetInfo from "@react-native-community/netinfo";
 import { API, Auth, graphqlOperation, Storage, Hub } from 'aws-amplify';
@@ -14,8 +14,12 @@ import {
     listMessagesByTime,
     getUser,
     getMessage,
+    updateTyping,
     createMessage,
-    onReceiveMessage
+    onReceiveMessage,
+    updateMessage as UpdateMessage,
+    onUserTyping,
+    getMemberStatuses
 } from '../api/calls';
 import NoConnectionAlert from '../comps/NoConnectionAlert';
 import IconButton from '../comps/IconButton';
@@ -31,66 +35,61 @@ import SubTitle from '../comps/SubTitle';
 import ImageInput from '../comps/ImageInput';
 import PreviewImage from '../comps/PreviewImage';
 import ImageMessage from '../comps/ImageMessage';
+import ProfileCircle from '../comps/PCircleAndTitle';
 import { LongPressGestureHandler, State } from 'react-native-gesture-handler';
-import { KeyboardAwareFlatList } from 'react-native-keyboard-aware-scroll-view';
+import { useFocusEffect } from '@react-navigation/native';
 
 //DESCRIPTION: A primary page of the SecondaryNav
 //             is the hub for all localized chats
 
 
 function ChatPage({ route, navigation }) {
+    const headerHeight = useHeaderHeight();
+
+    const members = React.useRef([]);
+    const [Members, setMembers] = React.useState([]);
+
+    const msgRef = React.useRef();
     const [msg, setMsg] = React.useState("");
     const [msgIsImage, setMsgIsImage] = React.useState(false);
     const [selectedImage, setSelectedImage] = React.useState("");
-    const msgRef = React.useRef();
-    const chatsRef = React.useRef();
-    const headerHeight = useHeaderHeight();
-    const [data, setData] = React.useState([]);
-    const [refresh, setRefresh] = React.useState(false);
-    const nextToken = React.useRef("i2");
-    const lastToken = React.useRef("i1");
-    const dataRef = React.useRef([]);
-    const userMap = React.useRef(new Map());
-    const [connected, setConnected] = React.useState(true);
     const [showPreviewImage, setShowPreviewImage] = React.useState(false);
     const [previewImage, setPreviewImage] = React.useState("");
-    /* 
-    Typing & Presence:
-    So upon typing update chatmember by chatmemberid gotten through chat data to status code 2
-    Upon not typing yet present set status code to 1
-    upon not typing and not present set status code to 0
-    upon present set status code to 1
 
-    Every 8 seconds the chatmember is updated with its status data
-    Every 12 seconds the consumer checks this data.
-    if difference in data >= 15 then ignore and use status code 0 yet don't change.
+    const chatsRef = React.useRef();
+    const dataRef = React.useRef([]);
+    const [data, setData] = React.useState([]);
+    const userMap = React.useRef(new Map());
 
-    Read Receipts: To only exist in user to user conversations
+    const nextToken = React.useRef("i2");
+    const lastToken = React.useRef("i1");
+    const userPresent = React.useRef(true);
+    const [connected, setConnected] = React.useState(true);
 
-    Other Tasks:
-        Disable if location goes bad (use listener) (use modal)
-        Typing & Presence
-        Ensure that subscriptions aren't being unnessararily cloned. Either remove on back (actually good & efficent idea) or see if they are just temp disabled, etc.
-        Ensure that subscriptions are being renewed. 
-        Get messages & Images up and running. If send text with image send as 2 messages. Put image "in" text input.
-     */
-    
-    //React.useEffect(() => {
-    //    const unsubscribe = navigation.addListener('transitionEnd', () => {
-    //        msgRef.current.focus();
-    //    })
-    //    return unsubscribe;
-    //}, [navigation])
+    const [buttonsMinimized, minimizeButtons] = React.useState(false);
+
+    const [reload, setReload] = React.useState(false);
+
+    var runthrough = 0;
     React.useEffect(() => {
         var priorState = ConnectionState.Disconnected;
         const connectionSub = NetInfo.addEventListener(state => {
-            setConnected(state.isConnected && state.isInternetReachable);
+            if (runthrough > 0) {
+                setConnected(state.isConnected && state.isInternetReachable);
+            }
             //Could make this problematic if need be
         });
         var sub = API.graphql(graphqlOperation(onReceiveMessage, {
             chatMessagesId: route.params.id
         })).subscribe({
-            next: ({ value }) => { if (route.params.user.id != value.data.onReceiveMessage.user.id) appendMessages(value.data.onReceiveMessage) },
+            next: ({ value }) => { if (route.params.user.id != value.data.onReceiveMessage.user.id) appendMessages(value.data.onReceiveMessage); readMessage(value.data.onReceiveMessage) },
+            error: (error) => {setReload(!reload)}
+        })
+        var typingSub = API.graphql(graphqlOperation(onUserTyping, {
+            chatID: route.params.id,
+        })).subscribe({
+            next: ({ value }) => { handleTyping(value) },
+            error: (error) => {setReload(!reload)}
         })
         const hub = Hub.listen("api", (data) => {
             const { payload } = data;
@@ -104,7 +103,15 @@ function ChatPage({ route, navigation }) {
                 sub = API.graphql(graphqlOperation(onReceiveMessage, {
                     chatMessagesId: route.params.id
                 })).subscribe({
-                    next: ({ value }) => appendMessages(value.data.onReceiveMessage),
+                    next: ({ value }) => { appendMessages(value.data.onReceiveMessage); readMessage(value.data.onReceiveMessage) },
+                    error: (error) => { setReload(!reload) }
+                });
+                typingSub.unsubscribe();
+                typingSub = API.graphql(graphqlOperation(onUserTyping, {
+                    chatID: route.params.id,
+                })).subscribe({
+                    next: ({ value }) => { handleTyping(value) },
+                    error: (error) => { setReload(!reload) }
                 });
                 getMessages(true);
             }
@@ -112,13 +119,26 @@ function ChatPage({ route, navigation }) {
         })
 
         const timeClock = setInterval(() => updateTime(), 10000) 
+        runthrough++;
         return () => {
             hub();
             clearInterval(timeClock);
             sub.unsubscribe();
+            typingSub.unsubscribe();
             connectionSub();
         }
-    }, []);
+    }, [reload]);
+
+    const readMessage = async (msg) => {
+        var newRead = msg.read;
+        newRead.push(route.params.user.id);
+        await API.graphql(graphqlOperation(UpdateMessage, {
+            input: {
+                id: msg.id,
+                read: newRead
+            }
+        }))
+    }
 
     const updateTime = () => {
         const iterator = dataRef.current.values();
@@ -135,7 +155,6 @@ function ChatPage({ route, navigation }) {
             try {
                 userMap.current.set(route.params.user.id, route.params.user.profilePicture.loadFull);
                 await getMessages(true);
-                //setReady(true);
             } catch (error) {
                 if (debug) console.warn(error);
             }
@@ -143,9 +162,18 @@ function ChatPage({ route, navigation }) {
         initialFunction();
     }, []);
 
+    useFocusEffect(React.useCallback(() => {
+        userPresent.current = true
+        return () => {
+            userPresent.current = false
+            setTimeout(function () {
+                stopTyping();
+            }, 1000);
+        }
+    },[]))
+
 
     const appendMessages = async (newMessage, reverse = false) => {
-        //console.log(newMessage)
         const pic = userMap.current.get(newMessage.user.id);
         var content;
         var image;
@@ -244,7 +272,8 @@ function ChatPage({ route, navigation }) {
 
     const sendMessage = async () => {
         try {
-            
+            minimizeButtons(false);
+            stopTyping();
             const type = "Regular";
             const tempID = "" + route.params.id + route.params.user.id + Date.now().toString();
             const content = msg;
@@ -262,7 +291,7 @@ function ChatPage({ route, navigation }) {
                 delivered: false,
                 read: [route.params.user.id]
             }
-            //if (debug) console.log("SENDING...");
+
             const messageLength = makeMessage(message);
             var index = 0;
             if (data.length == 0) {
@@ -278,7 +307,6 @@ function ChatPage({ route, navigation }) {
                     index: index,
                 }
             }))
-            //if disconnected don't update.
             if (newMessage) {
                 const index = dataRef.current.length - messageLength;
                 const msg = {
@@ -291,10 +319,8 @@ function ChatPage({ route, navigation }) {
                     read: [route.params.user.id],
                 }
                 updateMessage(index,msg)
-                //if (debug) console.log("SENT!");
-                //if (debug) console.log(data);
             }
-            //if (debug) console.log(data);
+
         } catch (error) {
             if (debug) console.log(error);
         }
@@ -302,6 +328,8 @@ function ChatPage({ route, navigation }) {
 
     const sendImage = async () => {
         try {
+            minimizeButtons(false);
+            stopTyping();
             const type = "Image";
             const ID = uuid.v4();
             const image = selectedImage;
@@ -383,13 +411,13 @@ function ChatPage({ route, navigation }) {
         try {
             if ((nextToken.current != lastToken.current)) {
                 if (New || tokenExists(nextToken.current)) {
-                    //setRefresh(true);
                     var token;
                     if (New) {
                         dataRef.current = [];
                         setData([]);
                     }
                     token = nextToken.current
+
                     const messages = await API.graphql(graphqlOperation(listMessagesByTime, {
                         chatMessagesId: route.params.id,
                         nextToken: tokenExists(token) ? token : null,
@@ -403,7 +431,24 @@ function ChatPage({ route, navigation }) {
                         lastToken.current = nextToken.current;
                         nextToken.current = messages.data.listMessagesByTime.nextToken;  
                     }
-                    //setRefresh(false);
+
+                    const userStatuses = await API.graphql(graphqlOperation(getMemberStatuses, {
+                        ChatID: route.params.id
+                    }));
+                    for (var i = 0; i < userStatuses.data.getChat.members.items.length; i++) {
+                        if (userStatuses.data.getChat.members.items[i].user.id != route.params.user.id) {
+                            const loc = members.current.findIndex((el) => el.user.id == userStatuses.data.getChat.members.items[i].user.id);
+                            if (loc != -1) {
+                                members.current[loc].status = userStatuses.data.getChat.members.items[i].status;
+                            } else {
+                                const picture = await Storage.get(userStatuses.data.getChat.members.items[i].user.profilePicture.loadFull);
+                                userStatuses.data.getChat.members.items[i].user.picture = picture;
+                                members.current.push(userStatuses.data.getChat.members.items[i]);
+                            }
+                        }
+                    }
+                    setMembers(members.current);
+
                 }
             }
         } catch (error) {
@@ -454,32 +499,72 @@ function ChatPage({ route, navigation }) {
         } catch (error) {
             console.warn(error);
         }
-        //const cameraRollStatus = await ImagePicker.requestMediaLibraryPermissionsAsync();
-        //if (cameraRollStatus.granted) {
-        //    const result = await ImagePicker.launchImageLibraryAsync({
-        //        mediaTypes: "Images",
-        //        aspect: [4, 3],
-        //        quality: 1,
-        //    })
-        //    await uploadImage(result);
-        //} else {
-        //    Alert.alert("No Permsision");
-        //}
+
     }
 
     const removeImage = () => {
         setMsgIsImage(false);
         setSelectedImage("");
+
     }
+
     const longPressText = (event) => {
         if (event.nativeEvent.state === State.ACTIVE) {
             console.log("LONG PRESS")
         }
     }
+
+    const stopTyping = async () => {
+        try {
+            await API.graphql(graphqlOperation(updateTyping, {
+                input: {
+                    id: route.params.userChatMembersID,
+                    status: 0
+                }
+            }));
+        } catch (error) {
+
+        }
+    }
+    const UpdateTyping = async (text) => {
+        try {
+            if (text.length >= 1 && userPresent.current) {
+                await API.graphql(graphqlOperation(updateTyping, {
+                    input: {
+                        id: route.params.userChatMembersID,
+                        status: 4
+                    }
+                }));
+
+            } else {
+                stopTyping();
+            }
+        } catch (error) {
+
+        }
+    }
+    const handleTyping = async (data) => {
+        try {
+            if (data.data.onUserTyping.user.id != route.params.user.id) {
+                const loc = members.current.findIndex((el) => el.user.id == data.data.onUserTyping.user.id);
+                if (loc != -1) {
+                    members.current[loc].status = data.data.onUserTyping.status;
+                } else {
+                    const picture = await Storage.get(data.data.onUserTyping.user.profilePicture.loadFull);
+                    data.data.onUserTyping.user.picture = picture;
+                    members.current.push(data.data.onUserTyping);
+                }
+                setMembers(members.current);
+                setReload(!reload)
+            } 
+        } catch (error) {
+            if (debug) console.log(error);
+        }
+    }
     const renderItem = React.useCallback(({ item, index }) => {
         if (item.type == "Image") {
             return (
-                    <View style={{ margin: 6, marginBottom: index == 0 ? 34 : 10 }}>
+                    <View style={{ margin: 6, marginBottom: 10 }}>
                         <ImageMessage
                             ppic={{
                                 uri: item.picture,
@@ -501,7 +586,7 @@ function ChatPage({ route, navigation }) {
                     onHandlerStateChange={(event)=>longPressText(event)}
                     minDurationMs={800}
                 > 
-                <View style={{ margin: 6, marginBottom: index == 0 ? 34 : 10 }}>
+                <View style={{ margin: 6, marginBottom: 10 }}>
                     <ComplexMessage
                         ppic={{
                             uri: item.picture,
@@ -549,54 +634,109 @@ function ChatPage({ route, navigation }) {
         }
 
     })
-    //const onFocus = React.useCallback(async () => {
-    //    if (debug) console.log("Focus")
-    //    setTimeout(async function () {
-    //        chatsRef.current.scrollToEnd()
-    //    }, 40);
-    //}, []);
+
+    const headerComponent = () => (
+        <View style={styles.typeContainer}>
+            <FlatList
+                data={Members}
+                scrollEnabled={false}
+                showsHorizontalScrollIndicator={false}
+                keyExtractor={keyExtractor}
+                horizontal={true}
+                renderItem={renderTypeItem}
+            />
+        </View>    
+    )
+
+
+    const renderTypeItem = ({item }) => {
+        if (item.status == 4) {
+            return (
+                <View style={styles.ppContain}>
+                    <ProfileCircle
+                        style={{ width: 44, height: 44 }}
+                        ppic={{
+                            uri: item.user.picture,
+                            loadImage: item.user.picture,
+                        }} />
+                </View>
+            )
+        }
+    };
+
     return (
         <Screen innerStyle={styles.page}>
 
-            <>
-            <KeyboardAvoidingView style={{ flex: 1, justifyContent: "flex-end" }} behavior="padding" keyboardVerticalOffset={headerHeight+4}>
+
+            <KeyboardAvoidingView style={{ flex: 1, justifyContent: "flex-end" }} behavior="padding" keyboardVerticalOffset={headerHeight + 4}>
                 <View style={styles.chats}>
-                    <KeyboardAwareFlatList
+                    <FlatList
                         data={data}
                         ref={chatsRef}
                         ListFooterComponent={footerComponent}
+                        ListHeaderComponent={headerComponent}
                         inverted={true}
                         extraData={data}
                         keyExtractor={keyExtractor}
                         onEndReached={onEndReached}
                         renderItem={renderItem}
+                        keyboardShouldPersistTaps="always"
                     />
 
                 </View>
-                    <DarkBeam style={styles.darkBeam} />
+
+                <DarkBeam style={styles.darkBeam} />
                     <View style={[styles.textBox, { alignItems: msgIsImage ? "flex-start" : "flex-end" }]}>
-                    <IconButton
-                        icon="camera"
-                        brand="Ionicons"
-                        color={colors.text3}
-                        style={{ marginBottom: 6 }}
-                        size={34}
-                        onPress={openCamera}
-                    />
-                    <View style={{width: 10} } />
-                    <IconButton
-                        icon="add-circle"
-                        brand="Ionicons"
-                        color={colors.text3}
-                        size={34}
-                        style={{ marginBottom: 6, }}
-                        onPress={openPhotos}
-                        />
+                        {!(buttonsMinimized || msgIsImage) &&
+                            <>
+                                <IconButton
+                                    icon="camera"
+                                    brand="Ionicons"
+                                    color={colors.text3}
+                                    style={{ marginBottom: 6 }}
+                                    size={34}
+                                    onPress={openCamera}
+                                    />
+                                <View style={{ width: 10 }} />
+                                <IconButton
+                                    icon="duplicate"
+                                    brand="Ionicons"
+                                    color={colors.text3}
+                                    size={34}
+                                    style={{ marginBottom: 6, }}
+                                    onPress={openPhotos}
+                                />
+                                <View style={{ width: 10 }} />
+                                <IconButton
+                                    icon="md-chevron-down-circle"
+                                    brand="Ionicons"
+                                    color={colors.text3}
+                                    style={{ marginBottom: 6 }}
+                                    size={34}
+                                    onPress={()=>Keyboard.dismiss()}
+                                />
+                            </>
+                        }
+                        {buttonsMinimized &&
+                            <IconButton
+                                icon="md-chevron-forward-circle"
+                                brand="Ionicons"
+                                color={colors.text3}
+                                style={{ marginBottom: 6 }}
+                                size={34}
+                                onPress={() => minimizeButtons(false)}
+                            />
+                        }
                         {!msgIsImage &&
                             <SimpleInput
                                 reference={msgRef}
                                 placeholder="Say something"
-                                
+                                onFocus={() => {
+                                    chatsRef.current.scrollToOffset({ offset: 0 });
+                                }}
+                                onPressIn={() => {
+                                    chatsRef.current.scrollToOffset({ offset: 0 });
+                                } }
                                 cStyle={{ overflow: "hidden", flex: 1, }}
                                 tStyle={styles.message}
                                 multiline={true}
@@ -604,12 +744,22 @@ function ChatPage({ route, navigation }) {
                                 keyboardAppearance="dark"
                                 onChangeText={(text) => {
                                     setMsg(text);
+                                    UpdateTyping(text);
+                                    if (text.length >= 15 && text.length % 5 == 0) {
+                                        if (!buttonsMinimized) {
+                                            minimizeButtons(true);
+                                        }
+                                    } else if (text.length <= 14) {
+                                        if (buttonsMinimized) {
+                                            minimizeButtons(false);
+                                        }
+                                    }
                                 }}
                             />
                         }
                         {msgIsImage &&
                             <>                            
-                            <ImageInput pic={selectedImage} onDisable={() => removeImage()} />
+                            <ImageInput pic={selectedImage} onDisable={() =>  removeImage() } />
                             </>
                         }
                     <IconButton
@@ -645,7 +795,7 @@ function ChatPage({ route, navigation }) {
                     visible={showPreviewImage}
                     onRequestClose={()=>setShowPreviewImage(false)}
                 />
-            </>
+
 
         </Screen>
     );
@@ -685,6 +835,15 @@ const styles = StyleSheet.create({
     refresh: {
         margin: 10
     },
+    ppContain: {
+        justifyContent: "center",
+        paddingVertical: 4,
+        marginBottom: 0
+    },
+    typeContainer: {
+        marginBottom: -10,
+        marginLeft: 4
+    }
 
 
 })
