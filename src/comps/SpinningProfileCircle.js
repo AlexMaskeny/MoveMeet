@@ -40,8 +40,8 @@ function SpinningProfileCircle({
                         },
 
                     ]}
-                    onAnimationFinish={()=>Ref.current?.reset()}
-                    loop={false}
+
+                    loop={true}
                 />
             </View>
         </View>

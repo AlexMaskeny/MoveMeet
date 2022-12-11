@@ -126,7 +126,7 @@ function ChatsPage({ navigation, route }) {
                     var chatData = []
                     const now = Date.now()
                     for (var i = 0; i < cs.length; i++) {
-                        const Chat = cs[i].chat
+                        var Chat = cs[i].chat
                         const full = await Storage.get(Chat.background.full);
                         const loadFull = await Storage.get(Chat.background.loadFull);
                         Chat.background.full = full;

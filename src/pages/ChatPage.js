@@ -496,10 +496,10 @@ function ChatPage({ route, navigation }) {
                     quality: 1,
                 });
                 if (result) {
-                    if (result.cancelled) {
+                    if (result.canceled) {
                         return;
                     } else {
-                        setSelectedImage(result.uri);
+                        setSelectedImage(result.assets[0].uri);
                         setMsgIsImage(true);
                     }
                 } else {
@@ -531,10 +531,10 @@ function ChatPage({ route, navigation }) {
             } else if (perms.granted) {
                 const result = await ImagePicker.launchCameraAsync();
                 if (result) {
-                    if (result.cancelled) {
+                    if (result.canceled) {
                         return;
                     } else {
-                        setSelectedImage(result.uri);
+                        setSelectedImage(result.assets[0].uri);
                         setMsgIsImage(true);
                     }
                 } else {
