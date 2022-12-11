@@ -18,6 +18,7 @@ function ComplexMessage({ children, ppic, username, message, style, time, ...pro
                 <Text
                     style={[styles.tStyle, style]}
                     numberOfLines={0}
+                    selectable={true}
                     {...props}
                 >{message}</Text>
             </View>

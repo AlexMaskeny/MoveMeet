@@ -38,6 +38,7 @@ import ImageMessage from '../comps/ImageMessage';
 import ProfileCircle from '../comps/SpinningProfileCircle';
 import { LongPressGestureHandler, State } from 'react-native-gesture-handler';
 import { useFocusEffect } from '@react-navigation/native';
+import * as Clipboard from 'expo-clipboard';
 
 //DESCRIPTION: A primary page of the SecondaryNav
 //             is the hub for all localized chats
@@ -551,9 +552,9 @@ function ChatPage({ route, navigation }) {
 
     }
 
-    const longPressText = (event) => {
+    const longPressText = async (event, item) => {
         if (event.nativeEvent.state === State.ACTIVE) {
-            console.log("LONG PRESS")
+            await Clipboard.setStringAsync(item.content);
         }
     }
 
@@ -631,7 +632,7 @@ function ChatPage({ route, navigation }) {
         } else {
             return (
                 <LongPressGestureHandler
-                    onHandlerStateChange={(event)=>longPressText(event)}
+                    onHandlerStateChange={(event)=>longPressText(event,item)}
                     minDurationMs={800}
                 > 
                 <View style={{ margin: 6, marginBottom: 10 }}>
