@@ -21,10 +21,11 @@ import Navigation from './src/navigation';
  * ##### BACKEND #####
  * Users don't seem to be being added to user group on create
  * ##### CHAT PAGE ######
+ * make images saveable
 
 
  * Make messages copiable
- * enable camera access
+
  * Make images saveable via hold hold to copy chats
  * use a better dark theme. Example: edge     
 

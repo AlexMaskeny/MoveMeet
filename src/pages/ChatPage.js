@@ -35,7 +35,7 @@ import SubTitle from '../comps/SubTitle';
 import ImageInput from '../comps/ImageInput';
 import PreviewImage from '../comps/PreviewImage';
 import ImageMessage from '../comps/ImageMessage';
-import ProfileCircle from '../comps/PCircleAndTitle';
+import ProfileCircle from '../comps/SpinningProfileCircle';
 import { LongPressGestureHandler, State } from 'react-native-gesture-handler';
 import { useFocusEffect } from '@react-navigation/native';
 
@@ -55,6 +55,8 @@ function ChatPage({ route, navigation }) {
     const [selectedImage, setSelectedImage] = React.useState("");
     const [showPreviewImage, setShowPreviewImage] = React.useState(false);
     const [previewImage, setPreviewImage] = React.useState("");
+
+    const typingRef = React.useRef();
 
     const chatsRef = React.useRef();
     const dataRef = React.useRef([]);
@@ -141,6 +143,7 @@ function ChatPage({ route, navigation }) {
     }
 
     const updateTime = () => {
+        
         const iterator = dataRef.current.values();
         var i = 0;
         for (const value of iterator) {
@@ -463,6 +466,13 @@ function ChatPage({ route, navigation }) {
             console.warn(error);
         }
     }
+    const getCameraPerms = async () => {
+        try {
+            await ImagePicker.requestCameraPermissionsAsync();
+        } catch (error) {
+            console.warn(error);
+        }
+    }
 
     const selectImage = async () => {
         try {
@@ -500,6 +510,39 @@ function ChatPage({ route, navigation }) {
             console.warn(error);
         }
 
+    }
+
+
+    const takeImage = async () => {
+        try {
+            const perms = await ImagePicker.getCameraPermissionsAsync();
+            if (!perms.granted) {
+                Alert.alert("No Permsision", "We don't have access to your Camera.", [
+                    {
+                        text: "Give Access",
+                        onPress: () => getCameraPerms(),
+                    },
+                    {
+                        text: "Cancel",
+                    }
+                ]);
+                return;
+            } else if (perms.granted) {
+                const result = await ImagePicker.launchCameraAsync();
+                if (result) {
+                    if (result.cancelled) {
+                        return;
+                    } else {
+                        setSelectedImage(result.uri);
+                        setMsgIsImage(true);
+                    }
+                } else {
+                    Alert.alert("Error", "Some kind of error happened. Try again.");
+                }
+            }
+        } catch (error) {
+            console.warn(error);
+        }
     }
 
     const removeImage = () => {
@@ -561,6 +604,11 @@ function ChatPage({ route, navigation }) {
             if (debug) console.log(error);
         }
     }
+
+    React.useEffect(() => {
+        typingRef.current?.reset()
+    })
+
     const renderItem = React.useCallback(({ item, index }) => {
         if (item.type == "Image") {
             return (
@@ -604,7 +652,7 @@ function ChatPage({ route, navigation }) {
     }, [data]);
     const keyExtractor = React.useCallback((item) => item.id, []);
     const onEndReached = React.useCallback(() => getMessages(false), []);
-    const openCamera = React.useCallback(() => console.log("Open Camera"), []);
+    const openCamera = React.useCallback(() => takeImage(), []);
     const openPhotos = React.useCallback(() => selectImage(), []);
     const footerComponent = React.useCallback(() => {
         if (data.length > 0 && tokenExists(nextToken.current)) {
@@ -639,7 +687,7 @@ function ChatPage({ route, navigation }) {
         <View style={styles.typeContainer}>
             <FlatList
                 data={Members}
-                scrollEnabled={false}
+
                 showsHorizontalScrollIndicator={false}
                 keyExtractor={keyExtractor}
                 horizontal={true}
@@ -654,7 +702,7 @@ function ChatPage({ route, navigation }) {
             return (
                 <View style={styles.ppContain}>
                     <ProfileCircle
-                        style={{ width: 44, height: 44 }}
+                        Ref={typingRef}
                         ppic={{
                             uri: item.user.picture,
                             loadImage: item.user.picture,
@@ -841,8 +889,9 @@ const styles = StyleSheet.create({
         marginBottom: 0
     },
     typeContainer: {
-        marginBottom: -10,
-        marginLeft: 4
+        marginBottom: -6,
+        marginLeft: 4,
+        height: 60
     }
 
 

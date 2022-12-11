@@ -13,9 +13,11 @@ import SimpleButton from '../comps/SimpleButton';
 import Screen from '../comps/Screen';
 import SimpleInput from '../comps/SimpleInput';
 import { pinpoint } from '../graphql/mutations';
-import ImageView from 'react-native-image-viewing';
+
 import * as Subscriptions from '../graphql/subscriptions';
+import LottieView from 'lottie-react-native';
 import { LongPressGestureHandler, State } from 'react-native-gesture-handler';
+import SpinningProfileCircle from '../comps/SpinningProfileCircle';
 
 function TestScreen({ navigation }) {
     //const [image, setImage] = React.useState("https://www.tamiu.edu/newsinfo/images/student-life/campus-scenery.JPG");
@@ -491,13 +493,29 @@ function TestScreen({ navigation }) {
             <SimpleButton title="Confirm User" onPress={() => confirmUser()} />
             <SimpleButton title="Open" onPress={()=> setVisible(true) } />
 
-            <LongPressGestureHandler
-                onHandlerStateChange={onLongPress}
-                minDurationMs={800}
-            >
-                <View style={{height: 200, width: 200,backgroundColor: colors.pBeam} } />
-            </LongPressGestureHandler>
 
+            <LottieView
+                style={{ width: 14, height: 14, }}
+                source={require('../lotties/loader.json')}
+                autoPlay={true}
+                loop={true}
+                colorFilters={[
+                    {
+                        keypath: 'Dot_1',
+                        color: colors.text3,
+                    },
+                    {
+                        keypath: 'Dot_2',
+                        color: colors.text3,
+                    },
+                    {
+                        keypath: 'Dot_3',
+                        color: colors.text3,
+                    },
+
+                ]}
+                speed={1.5}
+            />
             {/*<SimpleInput placeholder="chatName" onChangeText={(text) => { setChatName(text) }} />*/}
             {/*<SimpleButton title="Create Chat" onPress={() => createNewChat()} />*/}
 
