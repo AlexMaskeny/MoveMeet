@@ -1,5 +1,5 @@
 import React from 'react';
-import { StyleSheet, View, Text } from 'react-native';
+import { StyleSheet, View, Text, Alert } from 'react-native';
 import { API, Auth, graphqlOperation, Storage } from 'aws-amplify';
 import Image from "../comps/ImageLoader";
 import * as ImagePicker from 'expo-image-picker';
@@ -7,17 +7,19 @@ import * as Location from 'expo-location';
 import uuid from "react-native-uuid";
 import * as Notifications from 'expo-notifications';
 import { colors, debug } from '../config';
-import { createUser, updateUser, createChat, updateChat, createMessage, getMessage, getChat, listChats, listUsers, createChatMembers, getLatestMessagesByTime, listMessagesByTime } from '../api/calls';
+import { createUser, updateUser, createChat, updateChat, createMessage, getMessage, getChat, listChats, listUsers, createChatMembers, getLatestMessagesByTime, getUserByCognito } from '../api/calls';
 import BeamTitle from '../comps/BeamTitle';
 import SimpleButton from '../comps/SimpleButton';
 import Screen from '../comps/Screen';
 import SimpleInput from '../comps/SimpleInput';
 import { pinpoint } from '../graphql/mutations';
+import SubSafe from '../api/subSafe';
 
 import * as Subscriptions from '../graphql/subscriptions';
 import LottieView from 'lottie-react-native';
 import { LongPressGestureHandler, State } from 'react-native-gesture-handler';
 import SpinningProfileCircle from '../comps/SpinningProfileCircle';
+import * as Clipboard from 'expo-clipboard';
 
 function TestScreen({ navigation }) {
     //const [image, setImage] = React.useState("https://www.tamiu.edu/newsinfo/images/student-life/campus-scenery.JPG");
@@ -442,10 +444,37 @@ function TestScreen({ navigation }) {
         }
     }
 
+    const allowNotifications = async () => {
+        try {
+            const result = await Notifications.requestPermissionsAsync();
+            if (result.granted) {
+                const key = await Notifications.getExpoPushTokenAsync();
+                const currentUser = await Auth.currentAuthenticatedUser();
+                const user = await API.graphql(graphqlOperation(getUserByCognito, {
+                    id: currentUser.attributes.sub
+                }))
+                await API.graphql(graphqlOperation(updateUser, {
+                    input: {
+                        id: user.data.getUserByCognito.id,
+                        allowNotifications: true,
+                        expoToken: key.data
+                    }
+                }))
+                Alert.alert("Notifications Enabled");
+            }
+        } catch (error) {
+            if (debug) console.log(error);
+        }
+    }
+
     const getPerms = async () => {
         try {
             const { status } = await Notifications.requestPermissionsAsync();
             if (status != "granted") {
+                const currentUser = await Auth.currentAuthenticatedUser();
+                const user = await API.graphql(graphqlOperation(getUserByCognito, {
+                    id: currentUser.attributes.sub
+                }))
                 console.log("No perms");
             }
             const token = await Notifications.getExpoPushTokenAsync();
@@ -457,6 +486,18 @@ function TestScreen({ navigation }) {
 
     const testUUID = async () => {
         console.log(uuid.v4());
+    }
+
+    const testSubSafe = () => {
+        var johny = new SubSafe({
+            test1: "Test1",
+            test2: "Test2",
+        });
+        console.log(johny.test());
+        johny.begin();
+        setTimeout(function () {
+            johny.end();
+        }, 60000);
     }
 
     React.useEffect(() => {
@@ -475,6 +516,9 @@ function TestScreen({ navigation }) {
             console.log("HELD FOR 800 ms");
         }
     }
+    const testFetch = async () => {
+        Clipboard.setStringAsync("TEST!!!");
+    }
     const [visible, setVisible] = React.useState(true);
     return (
         <Screen innerStyle={styles.page}>
@@ -491,7 +535,7 @@ function TestScreen({ navigation }) {
             <SimpleButton title="Create user" onPress={() => createNewUser()} />
             <SimpleInput placeholder="code" onChangeText={(text) => { setCode(text) }} />
             <SimpleButton title="Confirm User" onPress={() => confirmUser()} />
-            <SimpleButton title="Open" onPress={()=> setVisible(true) } />
+            <SimpleButton title="Test Fetch" onPress={()=> testFetch() } />
 
 
             <LottieView
@@ -517,8 +561,8 @@ function TestScreen({ navigation }) {
                 speed={1.5}
             />
             {/*<SimpleInput placeholder="chatName" onChangeText={(text) => { setChatName(text) }} />*/}
-            {/*<SimpleButton title="Create Chat" onPress={() => createNewChat()} />*/}
-
+            <SimpleButton title="Enable Notifications" onPress={() => allowNotifications()} />
+            <SimpleButton title="Test SubSafe" onPress={() => testSubSafe()} />
             {/*<SimpleButton title="Create Regular Message" onPress={() => createRegularMessage()} />*/}
             {/*<SimpleButton title="Create Image Message" onPress={() => createImageMessage()} />*/}
             {/*<SimpleButton title="Get Message" onPress={() => getMsg()} />*/}

@@ -1,0 +1,21 @@
+{
+    "appName": "proxychat",
+    "roleName": "pinpointLambdaRole9ca0b496",
+    "cloudformationPolicyName": "cloudformationPolicy9ca0b496",
+    "cloudWatchPolicyName": "cloudWatchPolicy9ca0b496",
+    "pinpointPolicyName": "pinpointPolicy9ca0b496",
+    "authPolicyName": "pinpoint_amplify_9ca0b496",
+    "unauthPolicyName": "pinpoint_amplify_9ca0b496",
+    "authRoleName": {
+        "Ref": "AuthRoleName"
+    },
+    "unauthRoleName": {
+        "Ref": "UnauthRoleName"
+    },
+    "authRoleArn": {
+        "Fn::GetAtt": [
+            "AuthRole",
+            "Arn"
+        ]
+    }
+}

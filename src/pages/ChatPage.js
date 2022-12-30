@@ -39,6 +39,7 @@ import ProfileCircle from '../comps/SpinningProfileCircle';
 import { LongPressGestureHandler, State } from 'react-native-gesture-handler';
 import { useFocusEffect } from '@react-navigation/native';
 import * as Clipboard from 'expo-clipboard';
+import * as Notifications from 'expo-notifications';
 
 //DESCRIPTION: A primary page of the SecondaryNav
 //             is the hub for all localized chats
@@ -168,6 +169,14 @@ function ChatPage({ route, navigation }) {
 
     useFocusEffect(React.useCallback(() => {
         userPresent.current = true
+        //Notifications.setNotificationHandler({
+        //    handleNotification: async (notification) => {
+                
+        //        return ({
+        //            shouldShowAlert: false
+        //        })
+        //    }
+        //});
         return () => {
             userPresent.current = false
             setTimeout(function () {

@@ -2,7 +2,7 @@
   "expo": {
     "name": "ProxyChat",
     "slug": "ProxyChat",
-    "version": "0.0.1",
+    "version": "0.0.2",
     "orientation": "portrait",
     "icon": "./assets/icon.png",
     "userInterfaceStyle": "light",
@@ -18,8 +18,9 @@
       "**/*"
     ],
     "ios": {
-      "supportsTablet": true,
-      "bundleIdentifier": "com.alexmaskeny.ProxyChat"
+      "buildNumber": "6",
+      "bundleIdentifier": "com.alexmaskeny.ProxyChat",
+      "supportsTablet": true
     },
     "android": {
       "adaptiveIcon": {
@@ -29,6 +30,11 @@
     },
     "web": {
       "favicon": "./assets/favicon.png"
+    },
+    "extra": {
+      "eas": {
+        "projectId": "9fbb02fd-e118-48f3-bdb7-5527e5952464"
+      }
     }
   }
 }

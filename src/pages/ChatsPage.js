@@ -1,26 +1,17 @@
-import React from 'react';
-import { StyleSheet, Image, RefreshControl, View, FlatList } from 'react-native';
+import React, { useEffect } from 'react';
+import { StyleSheet, RefreshControl, View, FlatList } from 'react-native';
 import * as Location from 'expo-location';
-import { getUserByCognito, onReceiveMessage, createChatMembers, listMessagesByTime, getUserChats, getChat, onMemberStatusChange, updateMessage } from '../api/calls';
-import { API, Auth, graphqlOperation, Storage, Hub } from 'aws-amplify';
-import { CONNECTION_STATE_CHANGE, ConnectionState } from '@aws-amplify/pubsub';
-import { CONNECTION_INIT_TIMEOUT } from '@aws-amplify/pubsub/lib-esm/Providers/constants';
-import AsyncStorage from '@react-native-async-storage/async-storage';
-import * as TaskManager from 'expo-task-manager';
+import { getUserByCognito, onReceiveMessage, listMessagesByTime, getUserChats, getChat, onMemberStatusChange, updateMessage } from '../api/calls';
+import { API, Auth, graphqlOperation, Storage } from 'aws-amplify';
 
 import { colors, debug, locConversion, distance, timeLogic } from '../config';
 import Screen from '../comps/Screen';
 import Chat from '../comps/Chat';
-import DisabledChat from '../comps/DisabledChat';
 import Loading from '../comps/Loading';
+import SubSafe from '../api/subSafe';
 import { useFocusEffect } from '@react-navigation/native';
 
-//DESCRIPTION: A primary page of the SecondaryNav
-//             is the hub for all localized chats
-
-
-
-function ChatsPage({ navigation, route }) {
+export default function ChatsPage({ navigation, route }) {
     const [ready, setReady] = React.useState(false);
     const [refresh, setRefresh] = React.useState(false);
     const [locEnabled, setLocEnabled] = React.useState(true);
@@ -30,8 +21,6 @@ function ChatsPage({ navigation, route }) {
     const user = React.useRef();
     var memberSub;
     var chatSubs = React.useRef([]);
-    var timeClock;
-    const shouldGlow = React.useRef(true);
 
     const getLast3Images = async (last3) => {
         for (var i = 0; i < last3.length; i++) {
@@ -40,7 +29,7 @@ function ChatsPage({ navigation, route }) {
         }
     }
 
-    const subscribe = async () => {
+    const subscribeMembers = async () => {
         try {
             unSubscribeMembers();
             memberSub = API.graphql(graphqlOperation(onMemberStatusChange, {
@@ -50,13 +39,12 @@ function ChatsPage({ navigation, route }) {
                 error: (error) => { setUpdate(!update) }
             });
         } catch (error) {
-            if(debug) console.log(error)
+            if (debug) console.log(error)
         }
     }
 
     const rearrangeChats = async (value) => {
         const index = chatsRef.current.findIndex(el => el.id == value.chatMessagesId)
-        //if (value.type == "Regular") {
             if (chatsRef.current[index].last3.length == 3) {
                 chatsRef.current[index].last3[2] = chatsRef.current[index].last3[1];
                 chatsRef.current[index].last3[1] = chatsRef.current[index].last3[0];
@@ -74,10 +62,9 @@ function ChatsPage({ navigation, route }) {
             if (chatsRef.current[index].last3.length == 0) {
                 chatsRef.current[index].last3.push(value);
             }
-        //}
         getLast3Images(chatsRef.current[index].last3);
         chatsRef.current[index].latest = "Now"
-        if (value.user.id != user.current.id && shouldGlow.current) {
+        if (value.user.id != user.current.id ) {
             chatsRef.current[index].glow = true
         } else {
             chatsRef.current[index].glow = false
@@ -99,11 +86,15 @@ function ChatsPage({ navigation, route }) {
         for (var i = 0; i < chatSubs.current.length; i++) {
             chatSubs.current[i].unsubscribe()
         }
+        chatSubs.current = [];
     }
 
     const onRefresh = async () => {
         try {
+            //Resetting the page...
+            const netInfo = await 
             unSubscribeChats();
+
             const currentUser = await Auth.currentUserInfo();
             const dbUser = await API.graphql(graphqlOperation(getUserByCognito, {
                 id: currentUser.attributes.sub
@@ -113,11 +104,7 @@ function ChatsPage({ navigation, route }) {
             if (locPerm.granted) {
                 var loc = await Location.getLastKnownPositionAsync();
                 const convertedLocs = locConversion(loc.coords.latitude, loc.coords.longitude);
-                //const Chats200 = await API.graphql(graphqlOperation(listChatsByLocation, {
-                //    ...convertedLocs,
-                //    radius: 200,
-                //    numMessages: 15,
-                //}));
+
                 const Chats200 = await API.graphql(graphqlOperation(getUserChats, {
                     id: user.current.id
                 }))
@@ -125,14 +112,17 @@ function ChatsPage({ navigation, route }) {
                     var cs = Chats200.data.getUser.chats.items;
                     var chatData = []
                     const now = Date.now()
+
                     for (var i = 0; i < cs.length; i++) {
                         var Chat = cs[i].chat
                         const full = await Storage.get(Chat.background.full);
                         const loadFull = await Storage.get(Chat.background.loadFull);
                         Chat.background.full = full;
                         Chat.background.loadFull = loadFull;
+
                         var thisChat = Chat;
                         thisChat.createdAt = thisChat.createdAt.substring(0, 10);
+
                         const last3 = await API.graphql(graphqlOperation(listMessagesByTime, {
                             chatMessagesId: Chat.id,
                             limit: 3,
@@ -144,7 +134,7 @@ function ChatsPage({ navigation, route }) {
                                 const msg = Date.parse(last3.data.listMessagesByTime.items[0].createdAt);
                                 const diff = now - msg;
                                 thisChat.latest = timeLogic(diff / 1000);
-                                if (!last3.data.listMessagesByTime.items[0].read.includes(user.current.id) && shouldGlow.current) {
+                                if (!last3.data.listMessagesByTime.items[0].read.includes(user.current.id)) {
                                     thisChat.glow = true;
                                 } else {
                                     thisChat.glow = false;
@@ -178,7 +168,7 @@ function ChatsPage({ navigation, route }) {
                             error: (error) => { setUpdate(!update) }
                         }));
                     }
-                    //console.log(cs);
+
                     chatData.sort((a, b) => {
                         if (a.last3.length == 0 || b.last3.length == 0) {
                             return -1
@@ -192,15 +182,23 @@ function ChatsPage({ navigation, route }) {
                     })
                     setChats(chatData);
                     chatsRef.current = chatData;
+                    subscribeMembers();
                     if (!ready) setReady(true);
                 }
             } else {
+                if (locEnabled) {
+                    await Location.requestForegroundPermissionsAsync();
+                }
                 setLocEnabled(false);
+                onRefresh();
                 if (!ready) setReady(true);
             }
         } catch (error) {
             if (debug) console.log(error);
             if (!ready) setReady(true);
+            setTimeout(function () {
+                onRefresh();
+            }, 5000);
         }
         setRefresh(false);
     }
@@ -219,62 +217,34 @@ function ChatsPage({ navigation, route }) {
         setChats(chatsRef.current.concat());
     }
 
-
-    React.useEffect(() => {
-        const initialFunction = async () => {
-            try {
-                await onRefresh();
-                subscribe();
-            } catch (error) {
-                if (debug) console.log(error);
-            }
-        }
-        initialFunction();
-        if (timeClock) {
-            clearInterval(timeClock)
-            timeClock = null;
-        }
-        timeClock = setInterval(() => updateTime(), 10000) 
-        //var priorState = ConnectionState.Disconnected;
-        //const hub = Hub.listen("api", async (data) => {
-        //    const { payload } = data;
-        //    if (payload.event == CONNECTION_STATE_CHANGE) {
-        //        if (priorState == ConnectionState.Connecting && payload.message == ConnectionState.Connected) {
-        //            setReady(false);
-        //            await onRefresh();
-        //            subscribe();
-        //            setReady(true);
-        //        }
-        //    } else if (payload.event == CONNECTION_INIT_TIMEOUT) {
-        //            setReady(false);
-        //            await onRefresh();
-        //            subscribe();
-        //            setReady(true);
-        //    }
-        //    priorState = payload.message
-        //})
+    useFocusEffect(() => {
+        var timeClock;
+        var manager = new SubSafe({
+            unsubscribe: () => {
+                try {
+                    unSubscribeChats();
+                    clearInterval(timeClock);
+                    unSubscribeMembers();
+                } catch (error) {
+                    if (debug) console.log(error);
+                }
+            },
+            refresh: () => {
+                onRefresh();
+                timeClock = setInterval(() => updateTime(), 10000)
+            },
+            navigation: navigation
+        })
+        subscribeMembers();
+        manager.refresh();
+        manager.begin();
         return () => {
-            //hub()
-            clearInterval(timeClock)
-            unSubscribeMembers();
-            unSubscribeChats();
+            manager.unsubscribe();
+            manager.end();
+            manager = null;
         }
-    }, [navigation, update]);
+    })
 
-    const messageHandler = React.useCallback((start) => {
-        if (start) {
-            //if (debug) console.log("Currently in a chatPage");
-            shouldGlow.current = false;
-        } else {
-            //if (debug) console.log("No longer in chatPage");
-            shouldGlow.current = true;
-        }
-
-    }, [])
-
-    useFocusEffect(React.useCallback(() => {
-        messageHandler(false);
-    },[]));
 
     const renderItem = React.useCallback(
         ({ item }) => {
@@ -295,7 +265,6 @@ function ChatsPage({ navigation, route }) {
                         user={user.current}
                         last3={item.last3}
                         numMembers={item.numMembers}
-                        messageHandler={()=> messageHandler(true)}
                         distance={item.distance}
                         title={item.name}
                         created={item.createdAt}
@@ -306,19 +275,23 @@ function ChatsPage({ navigation, route }) {
         }, [chats, ready]
     )
     const navigate = async (item) => {
-        if (item.last3.length >= 1) {
-            if (!item.last3[0].read.includes(user.current.id)) {
-                item.last3[0].read.push(user.current.id)
-                await API.graphql(graphqlOperation(updateMessage, {
-                    input: {
-                        id: item.last3[0].id,
-                        read: item.last3[0].read
-                    }
-                }))
-                item.glow = false
-                chatsRef.current = chats;
-                setChats(chatsRef.current.concat())
+        try {
+            if (item.last3.length >= 1) {
+                if (!item.last3[0].read.includes(user.current.id)) {
+                    item.last3[0].read.push(user.current.id)
+                    await API.graphql(graphqlOperation(updateMessage, {
+                        input: {
+                            id: item.last3[0].id,
+                            read: item.last3[0].read
+                        }
+                    }))
+                    item.glow = false
+                    chatsRef.current = chats;
+                    setChats(chatsRef.current.concat())
+                }
             }
+        } catch (error) {
+            console.log(error);
         }
     }
     const listFooterComponenet = React.useCallback(()=><View height={30} />, []);
@@ -364,5 +337,3 @@ const styles = StyleSheet.create({
         height: 100,
     },
 })
-
-export default ChatsPage;

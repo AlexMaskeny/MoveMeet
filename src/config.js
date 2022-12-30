@@ -10,10 +10,10 @@ export const colors = {
     pBeamDisabled: "rgba(25,178,255,0.3)", //"rgba(245,182,195,0.3)", Dull Blue Beam
     pBeamShadow: "#19B2FF", //#F96381", Blue Beam without transparency, slightly whiter
     passiveImg: "rgba(142, 142, 142, 0.9)",
-    text1: "#C4C4C4", //Lighest Grey Text
+    text1: "#b5b5b5", //Lighest Grey Text
     text2: "#A6A6A6", //Second Lighest Grey Text
-    text3: "#898989", //Third Lighest Grey Text
-    text4: "rgba(137,137,137,0.60)"
+    text3: "#b5b5b5", //Third Lighest Grey Text
+    text4: "rgba(137,137,137,0.80)"
 }
 
 export const css = {

@@ -1,0 +1,731 @@
+
+type User {
+  id: ID!
+  username: String!
+  bio: String!
+  expoToken: String
+  email: String
+  profilePicture: Image
+  allowNotifications: Boolean
+  owner: String
+  cognitoID: String!
+  posts(filter: ModelPostFilterInput, sortDirection: ModelSortDirection, limit: Int, nextToken: String): ModelPostConnection
+  friends: [Friend]
+  messages(filter: ModelMessageFilterInput, sortDirection: ModelSortDirection, limit: Int, nextToken: String): ModelMessageConnection
+  chats(filter: ModelChatMembersFilterInput, sortDirection: ModelSortDirection, limit: Int, nextToken: String): ModelChatMembersConnection
+  lat: String
+  long: String
+  latf1: String
+  longf1: String
+  latf2: String
+  longf2: String
+  createdAt: AWSDateTime!
+  updatedAt: AWSDateTime!
+}
+
+type Chat {
+  id: ID!
+  owner: String
+  name: String
+  type: String
+  lat: String
+  members(filter: ModelChatMembersFilterInput, sortDirection: ModelSortDirection, limit: Int, nextToken: String): ModelChatMembersConnection
+  long: String
+  latf1: String
+  longf1: String
+  latf2: String
+  longf2: String
+  background: Image
+  messages(filter: ModelMessageFilterInput, sortDirection: ModelSortDirection, limit: Int, nextToken: String): ModelMessageConnection
+  createdAt: AWSDateTime!
+  updatedAt: AWSDateTime!
+}
+
+type Post {
+  id: ID!
+  owner: String
+  user: User
+  image: Image
+  lat: String
+  createdAt: AWSDateTime!
+  updatedAt: AWSDateTime!
+  long: String
+  latf1: String
+  longf1: String
+  latf2: String
+  longf2: String
+  userPostsId: ID
+}
+
+type Message {
+  id: ID!
+  chat: Chat
+  user: User
+  createdAt: AWSDateTime!
+  updatedAt: AWSDateTime!
+  owner: String
+  type: String
+  image: Image
+  index: Int
+  content: String
+  userMessagesId: ID
+  chatMessagesId: ID
+}
+
+type Image {
+  bucket: String!
+  region: String!
+  loadFull: String
+  thumbFull: String
+  full: String
+}
+
+type Friend {
+  friendID: String!
+  status: String
+  chatID: String
+}
+
+type Subscription {
+  onReceiveMessage(chatMessagesId: String): Message @aws_subscribe(mutations: ["createMessage"])
+  onCreateUser(owner: String): User @aws_subscribe(mutations: ["createUser"])
+  onUpdateUser(owner: String): User @aws_subscribe(mutations: ["updateUser"])
+  onDeleteUser(owner: String): User @aws_subscribe(mutations: ["deleteUser"])
+  onCreateChat(owner: String): Chat @aws_subscribe(mutations: ["createChat"])
+  onUpdateChat(owner: String): Chat @aws_subscribe(mutations: ["updateChat"])
+  onDeleteChat(owner: String): Chat @aws_subscribe(mutations: ["deleteChat"])
+  onCreatePost(owner: String): Post @aws_subscribe(mutations: ["createPost"])
+  onUpdatePost(owner: String): Post @aws_subscribe(mutations: ["updatePost"])
+  onDeletePost(owner: String): Post @aws_subscribe(mutations: ["deletePost"])
+  onCreateMessage(owner: String): Message @aws_subscribe(mutations: ["createMessage"])
+  onUpdateMessage(owner: String): Message @aws_subscribe(mutations: ["updateMessage"])
+  onDeleteMessage(owner: String): Message @aws_subscribe(mutations: ["deleteMessage"])
+  onCreateChatMembers(owner: String): ChatMembers @aws_subscribe(mutations: ["createChatMembers"])
+  onUpdateChatMembers(owner: String): ChatMembers @aws_subscribe(mutations: ["updateChatMembers"])
+  onDeleteChatMembers(owner: String): ChatMembers @aws_subscribe(mutations: ["deleteChatMembers"])
+}
+
+type ChatMembers {
+  id: ID!
+  userID: ID!
+  chatID: ID!
+  user: User!
+  chat: Chat!
+  createdAt: AWSDateTime!
+  updatedAt: AWSDateTime!
+  owner: String
+}
+
+input ModelStringInput {
+  ne: String
+  eq: String
+  le: String
+  lt: String
+  ge: String
+  gt: String
+  contains: String
+  notContains: String
+  between: [String]
+  beginsWith: String
+  attributeExists: Boolean
+  attributeType: ModelAttributeTypes
+  size: ModelSizeInput
+}
+
+input ModelIntInput {
+  ne: Int
+  eq: Int
+  le: Int
+  lt: Int
+  ge: Int
+  gt: Int
+  between: [Int]
+  attributeExists: Boolean
+  attributeType: ModelAttributeTypes
+}
+
+input ModelFloatInput {
+  ne: Float
+  eq: Float
+  le: Float
+  lt: Float
+  ge: Float
+  gt: Float
+  between: [Float]
+  attributeExists: Boolean
+  attributeType: ModelAttributeTypes
+}
+
+input ModelBooleanInput {
+  ne: Boolean
+  eq: Boolean
+  attributeExists: Boolean
+  attributeType: ModelAttributeTypes
+}
+
+input ModelIDInput {
+  ne: ID
+  eq: ID
+  le: ID
+  lt: ID
+  ge: ID
+  gt: ID
+  contains: ID
+  notContains: ID
+  between: [ID]
+  beginsWith: ID
+  attributeExists: Boolean
+  attributeType: ModelAttributeTypes
+  size: ModelSizeInput
+}
+
+input ModelSubscriptionStringInput {
+  ne: String
+  eq: String
+  le: String
+  lt: String
+  ge: String
+  gt: String
+  contains: String
+  notContains: String
+  between: [String]
+  beginsWith: String
+  in: [String]
+  notIn: [String]
+}
+
+input ModelSubscriptionIntInput {
+  ne: Int
+  eq: Int
+  le: Int
+  lt: Int
+  ge: Int
+  gt: Int
+  between: [Int]
+  in: [Int]
+  notIn: [Int]
+}
+
+input ModelSubscriptionFloatInput {
+  ne: Float
+  eq: Float
+  le: Float
+  lt: Float
+  ge: Float
+  gt: Float
+  between: [Float]
+  in: [Float]
+  notIn: [Float]
+}
+
+input ModelSubscriptionBooleanInput {
+  ne: Boolean
+  eq: Boolean
+}
+
+input ModelSubscriptionIDInput {
+  ne: ID
+  eq: ID
+  le: ID
+  lt: ID
+  ge: ID
+  gt: ID
+  contains: ID
+  notContains: ID
+  between: [ID]
+  beginsWith: ID
+  in: [ID]
+  notIn: [ID]
+}
+
+enum ModelAttributeTypes {
+  binary
+  binarySet
+  bool
+  list
+  map
+  number
+  numberSet
+  string
+  stringSet
+  _null
+}
+
+input ModelSizeInput {
+  ne: Int
+  eq: Int
+  le: Int
+  lt: Int
+  ge: Int
+  gt: Int
+  between: [Int]
+}
+
+enum ModelSortDirection {
+  ASC
+  DESC
+}
+
+input ImageInput {
+  bucket: String!
+  region: String!
+  loadFull: String
+  thumbFull: String
+  full: String
+}
+
+input FriendInput {
+  friendID: String!
+  status: String
+  chatID: String
+}
+
+type ModelUserConnection {
+  items: [User]!
+  nextToken: String
+}
+
+input ModelUserFilterInput {
+  id: ModelIDInput
+  username: ModelStringInput
+  bio: ModelStringInput
+  expoToken: ModelStringInput
+  email: ModelStringInput
+  allowNotifications: ModelBooleanInput
+  owner: ModelStringInput
+  cognitoID: ModelStringInput
+  lat: ModelStringInput
+  long: ModelStringInput
+  latf1: ModelStringInput
+  longf1: ModelStringInput
+  latf2: ModelStringInput
+  longf2: ModelStringInput
+  and: [ModelUserFilterInput]
+  or: [ModelUserFilterInput]
+  not: ModelUserFilterInput
+}
+
+type Query {
+  getUser(id: ID!): User
+  listUsers(filter: ModelUserFilterInput, limit: Int, nextToken: String): ModelUserConnection
+  getChat(id: ID!): Chat
+  listChats(filter: ModelChatFilterInput, limit: Int, nextToken: String): ModelChatConnection
+  getPost(id: ID!): Post
+  listPosts(filter: ModelPostFilterInput, limit: Int, nextToken: String): ModelPostConnection
+  getMessage(id: ID!): Message
+  listMessages(filter: ModelMessageFilterInput, limit: Int, nextToken: String): ModelMessageConnection
+  getChatMembers(id: ID!): ChatMembers
+  listChatMembers(filter: ModelChatMembersFilterInput, limit: Int, nextToken: String): ModelChatMembersConnection
+}
+
+input ModelUserConditionInput {
+  username: ModelStringInput
+  bio: ModelStringInput
+  expoToken: ModelStringInput
+  email: ModelStringInput
+  allowNotifications: ModelBooleanInput
+  owner: ModelStringInput
+  cognitoID: ModelStringInput
+  lat: ModelStringInput
+  long: ModelStringInput
+  latf1: ModelStringInput
+  longf1: ModelStringInput
+  latf2: ModelStringInput
+  longf2: ModelStringInput
+  and: [ModelUserConditionInput]
+  or: [ModelUserConditionInput]
+  not: ModelUserConditionInput
+}
+
+input CreateUserInput {
+  id: ID
+  username: String!
+  bio: String!
+  expoToken: String
+  email: String
+  profilePicture: ImageInput
+  allowNotifications: Boolean
+  owner: String
+  cognitoID: String!
+  friends: [FriendInput]
+  lat: String
+  long: String
+  latf1: String
+  longf1: String
+  latf2: String
+  longf2: String
+}
+
+input UpdateUserInput {
+  id: ID!
+  username: String
+  bio: String
+  expoToken: String
+  email: String
+  profilePicture: ImageInput
+  allowNotifications: Boolean
+  owner: String
+  cognitoID: String
+  friends: [FriendInput]
+  lat: String
+  long: String
+  latf1: String
+  longf1: String
+  latf2: String
+  longf2: String
+}
+
+input DeleteUserInput {
+  id: ID!
+}
+
+type Mutation {
+  createUser(input: CreateUserInput!, condition: ModelUserConditionInput): User
+  updateUser(input: UpdateUserInput!, condition: ModelUserConditionInput): User
+  deleteUser(input: DeleteUserInput!, condition: ModelUserConditionInput): User
+  createChat(input: CreateChatInput!, condition: ModelChatConditionInput): Chat
+  updateChat(input: UpdateChatInput!, condition: ModelChatConditionInput): Chat
+  deleteChat(input: DeleteChatInput!, condition: ModelChatConditionInput): Chat
+  createPost(input: CreatePostInput!, condition: ModelPostConditionInput): Post
+  updatePost(input: UpdatePostInput!, condition: ModelPostConditionInput): Post
+  deletePost(input: DeletePostInput!, condition: ModelPostConditionInput): Post
+  createMessage(input: CreateMessageInput!, condition: ModelMessageConditionInput): Message
+  updateMessage(input: UpdateMessageInput!, condition: ModelMessageConditionInput): Message
+  deleteMessage(input: DeleteMessageInput!, condition: ModelMessageConditionInput): Message
+  createChatMembers(input: CreateChatMembersInput!, condition: ModelChatMembersConditionInput): ChatMembers
+  updateChatMembers(input: UpdateChatMembersInput!, condition: ModelChatMembersConditionInput): ChatMembers
+  deleteChatMembers(input: DeleteChatMembersInput!, condition: ModelChatMembersConditionInput): ChatMembers
+}
+
+type ModelChatConnection {
+  items: [Chat]!
+  nextToken: String
+}
+
+input ModelChatFilterInput {
+  id: ModelIDInput
+  owner: ModelStringInput
+  name: ModelStringInput
+  type: ModelStringInput
+  lat: ModelStringInput
+  long: ModelStringInput
+  latf1: ModelStringInput
+  longf1: ModelStringInput
+  latf2: ModelStringInput
+  longf2: ModelStringInput
+  and: [ModelChatFilterInput]
+  or: [ModelChatFilterInput]
+  not: ModelChatFilterInput
+}
+
+input ModelChatConditionInput {
+  owner: ModelStringInput
+  name: ModelStringInput
+  type: ModelStringInput
+  lat: ModelStringInput
+  long: ModelStringInput
+  latf1: ModelStringInput
+  longf1: ModelStringInput
+  latf2: ModelStringInput
+  longf2: ModelStringInput
+  and: [ModelChatConditionInput]
+  or: [ModelChatConditionInput]
+  not: ModelChatConditionInput
+}
+
+input CreateChatInput {
+  id: ID
+  owner: String
+  name: String
+  type: String
+  lat: String
+  long: String
+  latf1: String
+  longf1: String
+  latf2: String
+  longf2: String
+  background: ImageInput
+}
+
+input UpdateChatInput {
+  id: ID!
+  owner: String
+  name: String
+  type: String
+  lat: String
+  long: String
+  latf1: String
+  longf1: String
+  latf2: String
+  longf2: String
+  background: ImageInput
+}
+
+input DeleteChatInput {
+  id: ID!
+}
+
+type ModelPostConnection {
+  items: [Post]!
+  nextToken: String
+}
+
+input ModelPostFilterInput {
+  id: ModelIDInput
+  owner: ModelStringInput
+  lat: ModelStringInput
+  createdAt: ModelStringInput
+  updatedAt: ModelStringInput
+  long: ModelStringInput
+  latf1: ModelStringInput
+  longf1: ModelStringInput
+  latf2: ModelStringInput
+  longf2: ModelStringInput
+  and: [ModelPostFilterInput]
+  or: [ModelPostFilterInput]
+  not: ModelPostFilterInput
+  userPostsId: ModelIDInput
+}
+
+input ModelPostConditionInput {
+  owner: ModelStringInput
+  lat: ModelStringInput
+  createdAt: ModelStringInput
+  updatedAt: ModelStringInput
+  long: ModelStringInput
+  latf1: ModelStringInput
+  longf1: ModelStringInput
+  latf2: ModelStringInput
+  longf2: ModelStringInput
+  and: [ModelPostConditionInput]
+  or: [ModelPostConditionInput]
+  not: ModelPostConditionInput
+  userPostsId: ModelIDInput
+}
+
+input CreatePostInput {
+  id: ID
+  owner: String
+  image: ImageInput
+  lat: String
+  createdAt: AWSDateTime
+  updatedAt: AWSDateTime
+  long: String
+  latf1: String
+  longf1: String
+  latf2: String
+  longf2: String
+  userPostsId: ID
+}
+
+input UpdatePostInput {
+  id: ID!
+  owner: String
+  image: ImageInput
+  lat: String
+  createdAt: AWSDateTime
+  updatedAt: AWSDateTime
+  long: String
+  latf1: String
+  longf1: String
+  latf2: String
+  longf2: String
+  userPostsId: ID
+}
+
+input DeletePostInput {
+  id: ID!
+}
+
+type ModelMessageConnection {
+  items: [Message]!
+  nextToken: String
+}
+
+input ModelMessageFilterInput {
+  id: ModelIDInput
+  createdAt: ModelStringInput
+  updatedAt: ModelStringInput
+  owner: ModelStringInput
+  type: ModelStringInput
+  index: ModelIntInput
+  content: ModelStringInput
+  and: [ModelMessageFilterInput]
+  or: [ModelMessageFilterInput]
+  not: ModelMessageFilterInput
+  userMessagesId: ModelIDInput
+  chatMessagesId: ModelIDInput
+}
+
+input ModelMessageConditionInput {
+  createdAt: ModelStringInput
+  updatedAt: ModelStringInput
+  owner: ModelStringInput
+  type: ModelStringInput
+  index: ModelIntInput
+  content: ModelStringInput
+  and: [ModelMessageConditionInput]
+  or: [ModelMessageConditionInput]
+  not: ModelMessageConditionInput
+  userMessagesId: ModelIDInput
+  chatMessagesId: ModelIDInput
+}
+
+input CreateMessageInput {
+  id: ID
+  createdAt: AWSDateTime
+  updatedAt: AWSDateTime
+  owner: String
+  type: String
+  image: ImageInput
+  index: Int
+  content: String
+  userMessagesId: ID
+  chatMessagesId: ID
+}
+
+input UpdateMessageInput {
+  id: ID!
+  createdAt: AWSDateTime
+  updatedAt: AWSDateTime
+  owner: String
+  type: String
+  image: ImageInput
+  index: Int
+  content: String
+  userMessagesId: ID
+  chatMessagesId: ID
+}
+
+input DeleteMessageInput {
+  id: ID!
+}
+
+type ModelChatMembersConnection {
+  items: [ChatMembers]!
+  nextToken: String
+}
+
+input ModelChatMembersFilterInput {
+  id: ModelIDInput
+  userID: ModelIDInput
+  chatID: ModelIDInput
+  and: [ModelChatMembersFilterInput]
+  or: [ModelChatMembersFilterInput]
+  not: ModelChatMembersFilterInput
+}
+
+input ModelChatMembersConditionInput {
+  userID: ModelIDInput
+  chatID: ModelIDInput
+  and: [ModelChatMembersConditionInput]
+  or: [ModelChatMembersConditionInput]
+  not: ModelChatMembersConditionInput
+}
+
+input CreateChatMembersInput {
+  id: ID
+  userID: ID!
+  chatID: ID!
+}
+
+input UpdateChatMembersInput {
+  id: ID!
+  userID: ID
+  chatID: ID
+}
+
+input DeleteChatMembersInput {
+  id: ID!
+}
+
+input ModelUserByLatf1CompositeKeyConditionInput {
+  eq: ModelUserByLatf1CompositeKeyInput
+  le: ModelUserByLatf1CompositeKeyInput
+  lt: ModelUserByLatf1CompositeKeyInput
+  ge: ModelUserByLatf1CompositeKeyInput
+  gt: ModelUserByLatf1CompositeKeyInput
+  between: [ModelUserByLatf1CompositeKeyInput]
+  beginsWith: ModelUserByLatf1CompositeKeyInput
+}
+
+input ModelUserByLatf1CompositeKeyInput {
+  longf1: String
+  longf2: String
+}
+
+input ModelUserByLatf2CompositeKeyConditionInput {
+  eq: ModelUserByLatf2CompositeKeyInput
+  le: ModelUserByLatf2CompositeKeyInput
+  lt: ModelUserByLatf2CompositeKeyInput
+  ge: ModelUserByLatf2CompositeKeyInput
+  gt: ModelUserByLatf2CompositeKeyInput
+  between: [ModelUserByLatf2CompositeKeyInput]
+  beginsWith: ModelUserByLatf2CompositeKeyInput
+}
+
+input ModelUserByLatf2CompositeKeyInput {
+  longf1: String
+  longf2: String
+}
+
+input ModelChatByLatf1CompositeKeyConditionInput {
+  eq: ModelChatByLatf1CompositeKeyInput
+  le: ModelChatByLatf1CompositeKeyInput
+  lt: ModelChatByLatf1CompositeKeyInput
+  ge: ModelChatByLatf1CompositeKeyInput
+  gt: ModelChatByLatf1CompositeKeyInput
+  between: [ModelChatByLatf1CompositeKeyInput]
+  beginsWith: ModelChatByLatf1CompositeKeyInput
+}
+
+input ModelChatByLatf1CompositeKeyInput {
+  longf1: String
+  longf2: String
+}
+
+input ModelChatByLatf2CompositeKeyConditionInput {
+  eq: ModelChatByLatf2CompositeKeyInput
+  le: ModelChatByLatf2CompositeKeyInput
+  lt: ModelChatByLatf2CompositeKeyInput
+  ge: ModelChatByLatf2CompositeKeyInput
+  gt: ModelChatByLatf2CompositeKeyInput
+  between: [ModelChatByLatf2CompositeKeyInput]
+  beginsWith: ModelChatByLatf2CompositeKeyInput
+}
+
+input ModelChatByLatf2CompositeKeyInput {
+  longf1: String
+  longf2: String
+}
+
+input ModelPostByLatf1CompositeKeyConditionInput {
+  eq: ModelPostByLatf1CompositeKeyInput
+  le: ModelPostByLatf1CompositeKeyInput
+  lt: ModelPostByLatf1CompositeKeyInput
+  ge: ModelPostByLatf1CompositeKeyInput
+  gt: ModelPostByLatf1CompositeKeyInput
+  between: [ModelPostByLatf1CompositeKeyInput]
+  beginsWith: ModelPostByLatf1CompositeKeyInput
+}
+
+input ModelPostByLatf1CompositeKeyInput {
+  longf1: String
+  longf2: String
+}
+
+input ModelPostByLatf2CompositeKeyConditionInput {
+  eq: ModelPostByLatf2CompositeKeyInput
+  le: ModelPostByLatf2CompositeKeyInput
+  lt: ModelPostByLatf2CompositeKeyInput
+  ge: ModelPostByLatf2CompositeKeyInput
+  gt: ModelPostByLatf2CompositeKeyInput
+  between: [ModelPostByLatf2CompositeKeyInput]
+  beginsWith: ModelPostByLatf2CompositeKeyInput
+}
+
+input ModelPostByLatf2CompositeKeyInput {
+  longf1: String
+  longf2: String
+}
+

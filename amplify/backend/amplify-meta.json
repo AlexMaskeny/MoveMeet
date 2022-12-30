@@ -1,0 +1,125 @@
+{
+  "providers": {
+    "awscloudformation": {
+      "AuthRoleName": "amplify-proxychat-dev-120629-authRole",
+      "UnauthRoleArn": "arn:aws:iam::285262675189:role/amplify-proxychat-dev-120629-unauthRole",
+      "AuthRoleArn": "arn:aws:iam::285262675189:role/amplify-proxychat-dev-120629-authRole",
+      "Region": "us-east-2",
+      "DeploymentBucketName": "amplify-proxychat-dev-120629-deployment",
+      "UnauthRoleName": "amplify-proxychat-dev-120629-unauthRole",
+      "StackName": "amplify-proxychat-dev-120629",
+      "StackId": "arn:aws:cloudformation:us-east-2:285262675189:stack/amplify-proxychat-dev-120629/2dca3080-426c-11ed-bc7f-0615aac567b0",
+      "AmplifyAppId": "d2gwtumzarbym5"
+    }
+  },
+  "auth": {
+    "proxychat33e582f8": {
+      "service": "Cognito",
+      "providerPlugin": "awscloudformation",
+      "dependsOn": [],
+      "customAuth": false,
+      "frontendAuthConfig": {
+        "socialProviders": [],
+        "usernameAttributes": [],
+        "signupAttributes": [
+          "EMAIL"
+        ],
+        "passwordProtectionSettings": {
+          "passwordPolicyMinLength": 8,
+          "passwordPolicyCharacters": []
+        },
+        "mfaConfiguration": "OFF",
+        "mfaTypes": [
+          "SMS"
+        ],
+        "verificationMechanisms": [
+          "EMAIL"
+        ]
+      },
+      "providerMetadata": {
+        "s3TemplateURL": "https://s3.amazonaws.com/amplify-proxychat-dev-120629-deployment/amplify-cfn-templates/auth/proxychat33e582f8-cloudformation-template.json",
+        "logicalId": "authproxychat33e582f8"
+      },
+      "lastPushTimeStamp": "2022-12-13T01:09:27.290Z",
+      "output": {
+        "UserPoolId": "us-east-2_s3nLQlqM3",
+        "AppClientIDWeb": "1428p5t7rqg66bk3udborusejd",
+        "AppClientID": "rdus5mdk60bbaf8ig955djbfu",
+        "IdentityPoolId": "us-east-2:abec5914-36cb-477f-83f0-d85b189d04ad",
+        "UserPoolArn": "arn:aws:cognito-idp:us-east-2:285262675189:userpool/us-east-2_s3nLQlqM3",
+        "IdentityPoolName": "proxychat33e582f8_identitypool_33e582f8__dev",
+        "UserPoolName": "proxychat33e582f8_userpool_33e582f8"
+      },
+      "lastPushDirHash": "MNHy9k6bFlN4EYCc1eApGXxaOgk="
+    }
+  },
+  "api": {
+    "proxychat": {
+      "service": "AppSync",
+      "providerPlugin": "awscloudformation",
+      "dependsOn": [
+        {
+          "category": "auth",
+          "resourceName": "proxychat33e582f8",
+          "attributes": [
+            "UserPoolId"
+          ]
+        }
+      ],
+      "output": {
+        "authConfig": {
+          "defaultAuthentication": {
+            "authenticationType": "AMAZON_COGNITO_USER_POOLS",
+            "userPoolConfig": {
+              "userPoolId": "authproxychat33e582f8"
+            }
+          },
+          "additionalAuthenticationProviders": []
+        },
+        "GraphQLAPIIdOutput": "wxtv7v6xufavlmhd2zztm6le6e",
+        "GraphQLAPIEndpointOutput": "https://ox3rwstqbjcotp66fwkj367nuq.appsync-api.us-east-2.amazonaws.com/graphql"
+      },
+      "providerMetadata": {
+        "s3TemplateURL": "https://s3.amazonaws.com/amplify-proxychat-dev-120629-deployment/amplify-cfn-templates/api/cloudformation-template.json",
+        "logicalId": "apiproxychat"
+      },
+      "lastPushTimeStamp": "2022-12-13T01:09:27.294Z",
+      "lastPushDirHash": "MS4EZK4c8C6bWUeB1REcSwrC2mU="
+    }
+  },
+  "function": {},
+  "storage": {
+    "ProxyChatStorage": {
+      "service": "S3",
+      "providerPlugin": "awscloudformation",
+      "dependsOn": [],
+      "output": {
+        "BucketName": "proxychatf2d762e9bc784204880374b0ca905be4120629-dev",
+        "Region": "us-east-2"
+      },
+      "lastPushTimeStamp": "2022-12-13T01:09:29.173Z",
+      "providerMetadata": {
+        "s3TemplateURL": "https://s3.amazonaws.com/amplify-proxychat-dev-120629-deployment/amplify-cfn-templates/storage/cloudformation-template.json",
+        "logicalId": "storageProxyChatStorage"
+      },
+      "lastPushDirHash": "76A4S5HdV7ZRPhDR8OyK/xWMhSU="
+    }
+  },
+  "analytics": {
+    "proxychat": {
+      "service": "Pinpoint",
+      "providerPlugin": "awscloudformation",
+      "providerMetadata": {
+        "s3TemplateURL": "https://s3.amazonaws.com/amplify-proxychat-dev-120629-deployment/amplify-cfn-templates/analytics/pinpoint-cloudformation-template.json",
+        "logicalId": "analyticsproxychat"
+      },
+      "lastPushTimeStamp": "2022-12-13T01:09:27.305Z",
+      "output": {
+        "appName": "proxychat-dev",
+        "Region": "us-east-1",
+        "Id": "0433e75c5e7747c48f6ff8d28960c1c6"
+      },
+      "lastPushDirHash": "DYJJGwDa6+jC3N8Xq5oOX+th1/w="
+    }
+  }
+}

@@ -1,0 +1,13 @@
+{
+  "version": 1,
+  "serviceConfiguration": {
+    "apiName": "proxychat",
+    "serviceName": "AppSync",
+    "defaultAuthType": {
+      "mode": "AMAZON_COGNITO_USER_POOLS",
+      "cognitoUserPoolId": "authproxychat33e582f8"
+    },
+    "conflictResolution": {},
+    "additionalAuthTypes": []
+  }
+}

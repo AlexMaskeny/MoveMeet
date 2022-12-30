@@ -26,7 +26,6 @@ function Chat({
     userChatMembersID,
     id,
     numMembers,
-    messageHandler,
     distance,
     title,
     created,
@@ -68,7 +67,6 @@ function Chat({
     }
     const navigate = () => {
         onPress(); 
-        messageHandler();
         navigation.dispatch(
             CommonActions.navigate({
                 name: "ChatPage",
