@@ -1,14 +1,11 @@
 {
   "ExpandedNodes": [
     "",
-    "\\amplify\\backend",
-    "\\amplify\\backend\\auth",
-    "\\amplify\\backend\\auth\\proxychat33e582f8",
-    "\\amplify\\backend\\auth\\proxychat33e582f8\\build",
     "\\src",
     "\\src\\api",
+    "\\src\\functions",
     "\\src\\pages"
   ],
-  "SelectedNode": "\\src\\pages\\ChatPage.js",
+  "SelectedNode": "\\src\\pages\\ChatsPage.js",
   "PreviewInSolutionExplorer": false
 }

@@ -12,6 +12,7 @@ import ChatPage from './pages/ChatPage';
 import IconButton from './comps/IconButton';
 import UProfileSettings from './pages/UProfileSettings';
 import TestPage from './pages/TestPage';
+import * as logger from './functions/logger';
 
 //The navigation screen starts on the loading screen which uses
 //the useEffect hook immediately calling an inner async function
@@ -49,7 +50,7 @@ function navigation() {
                 headerShown: false,
                 tabBarActiveTintColor: colors.pBeamBright,
                 inactiveTintColor: colors.text2,
-                lazy: false,
+                lazy: true,
                 tabBarShowLabel: false,
                 tabBarStyle: SecondNavStyle.tabBarStyle,
             }}
@@ -59,8 +60,8 @@ function navigation() {
                 component={TChatNav}
                 options={({ navigation, route }) => {
                     React.useLayoutEffect(() => {
-                        const routeName = getFocusedRouteNameFromRoute(route);
-                        if (debug) console.log(routeName);
+                        const routeName = getFocusedRouteNameFromRoute(route) ?? "ChatsPage";
+                        logger.log("Page: " + routeName);
                         if (routeName === "ChatPage") {
                             navigation.setOptions({ tabBarStyle: { display: 'none' } });
                         } else {

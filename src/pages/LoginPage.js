@@ -1,6 +1,6 @@
 import React from 'react';
 import { View, StyleSheet, KeyboardAvoidingView, Keyboard, Image, Alert } from 'react-native';
-import { colors, debug } from '../config';
+import { colors, debug, storage } from '../config';
 import { Auth } from 'aws-amplify';
 
 import Screen from '../comps/Screen';
@@ -44,7 +44,7 @@ export default function LoginPage({navigation}) {
         } catch (error) {
             if (debug) console.log(error.code);
             if (error.code == "UserNotConfirmedException") {
-                await AsyncStorage.setItem('unconfirmed', JSON.stringify({ val: true })); 
+                await AsyncStorage.setItem(storage.UNCONFIRMED, JSON.stringify({ val: true })); 
                 //SEND TO SIGNUPPAGE with route UserNotConfirmedException
             } else if (error.code == "NotAuthorizedException" || error.code == "UserNotFoundException") {
                 Alert.alert("Incorrect Username or Password", "The username or password you entered was incorrect.", [
@@ -52,10 +52,9 @@ export default function LoginPage({navigation}) {
                 ])
             } else {
                 await Clipboard.setStringAsync(error.code + ": " + error.message);
-                Alert.alert("Error", "Some error occured...", [
+                Alert.alert("Some error occured...", "The error is in your copy/past clipboard.", [
                     { text: "Okay" },
                 ])
-
             }
         }
         setSubmitButtonLoad(false);

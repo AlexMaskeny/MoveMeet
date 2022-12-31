@@ -1,4 +1,4 @@
-import React from 'react';
+import React, { useCallback, useRef } from 'react';
 import { StyleSheet, Image, ActivityIndicator, View } from 'react-native';
 import { API, Auth, graphqlOperation } from 'aws-amplify';
 import AsyncStorage from '@react-native-async-storage/async-storage';
@@ -6,76 +6,82 @@ import * as Location from 'expo-location';
 import { useFocusEffect } from '@react-navigation/native';
 
 import { getUserByCognito, updateUser } from '../api/calls';
-import { colors, debug, locConversion2 } from '../config';
+import * as logger from '../functions/logger';
+import * as locConversion from '../functions/locConversion';
 import Screen from '../comps/Screen';
+import { storage, colors } from '../config';
 
-export default function LoadingPage({navigation, route}) {
+const NO_USER = "The user is not authenticated";
 
-    useFocusEffect(() => {
-        var loc;
-        const unsubscribe = () => {
-            if (loc) {
-                loc.remove();
+export default function LoadingPage({navigation}) {
+    const loc = useRef();
+    const currentUser = useRef();
 
-            }
-        }
+    const unsubscribe = useCallback(() => {
+        currentUser.current = null;
+        loc.current.remove();
+        logger.log("Unsubscribed from location updates");
+    });
+
+    useFocusEffect(useCallback(() => {
         const initialFunction = async () => {
-            if (debug) console.log("Initiating...");
-                try {
-                    var currentUser = await Auth.currentAuthenticatedUser();
-                    if (currentUser) {
-                        const perm = await Location.getForegroundPermissionsAsync();
-                        const user = await API.graphql(graphqlOperation(getUserByCognito, {
-                            id: currentUser.attributes.sub
-                        }))
-                        if (perm.granted) {
-                            loc = await Location.watchPositionAsync({ accuracy: 6, distanceInterval: 0, timeInterval: 10000, }, async (location) => {
-                                try {
-                                    currentUser = await Auth.currentAuthenticatedUser();
-                                    if (currentUser) {
-                                        const convertedLocs = locConversion2(location.coords.latitude, location.coords.longitude)
-                                        await API.graphql(graphqlOperation(updateUser, {
-                                            input: {
-                                                id: user.data.getUserByCognito.id,
-                                                ...convertedLocs
-                                            }
-                                        }))
-                                    } else {
-                                        unsubscribe()
-                                    }
-                                } catch (error) {
-                                    if (debug) console.log(error);
-                                    unsubscribe()
-                                }
-                                
-                            })
-                        }
-                        //not = Notifications.addNotificationReceivedListener(async (notification) => {
-                        //    if (debug) console.log(notification);
-                        //    await Notifications.cancelScheduledNotificationAsync(notification.request.identifier);
-                        //})
+            logger.log("Initiating...");
 
-                        navigation.navigate("SecondaryNav");
+            try {
+                currentUser.current = await Auth.currentAuthenticatedUser();
+                if (currentUser.current) {
+                    const perm = await Location.getForegroundPermissionsAsync();
+                    if (perm.granted) {
+                        const user = await API.graphql(graphqlOperation(getUserByCognito, {
+                            id: currentUser.current.attributes.sub
+                        }));
+                        loc.current = await Location.watchPositionAsync({ accuracy: 6, distanceInterval: 0, timeInterval: 10000 }, async (location) => {
+                            try {
+                                currentUser.current = await Auth.currentAuthenticatedUser();
+                                if (currentUser.current) {
+                                    const convertedLocs = locConversion.toUser(location.coords.latitude, location.coords.longitude);
+                                    await API.graphql(graphqlOperation(updateUser, {
+                                        input: {
+                                            id: user.data.getUserByCognito.id,
+                                            ...convertedLocs
+                                        }
+                                    }));
+                                } else throw NO_USER
+                            } catch (error) {
+                                logger.warn(error);
+                                if (error != NO_USER) {
+                                    logger.warn(error.errors);
+                                } else {
+                                    unsubscribe();
+                                }
+                            }
+                        });
                     }
-                } catch (error) {
-                    if (debug) console.log(error);
-                    if (error == "The user is not authenticated") {
-                        const result = await AsyncStorage.getItem("unconfirmed");
+                } else throw NO_USER;
+                navigation.navigate("SecondaryNav");
+            } catch (error) {
+                logger.log(error);
+                if (error == NO_USER) {
+                    try {
+                        const result = await AsyncStorage.getItem(storage.UNCONFIRMED);
                         if (result) {
                             const parsed = JSON.parse(result);
                             if (parsed.val) {
-                                if (debug) console.log("Unconfirmed User Exists");
-                                //navigate to signup with unconfirmed route.
+                                logger.log("Unconfirmed User Exists");
+                                //send to signup page;
+                                return;
                             }
                         }
-                        //else navigate to loginpage, possibly a general page if you want.
                         navigation.navigate("LoginPage");
-                    } else if (error == "No current user") unsubscribe();
-			    }
+                    } catch (error) {
+                        logger.warn(error);
+                    }
+                }
+            }
         }
+
         initialFunction();
-        return () => { unsubscribe(); }
-    });
+    }));
 
     return (
         <Screen innerStyle={styles.page}>

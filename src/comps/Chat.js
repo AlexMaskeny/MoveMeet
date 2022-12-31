@@ -23,7 +23,6 @@ function Chat({
     last3,
     user,
     glow = false,
-    userChatMembersID,
     id,
     numMembers,
     distance,
@@ -74,7 +73,6 @@ function Chat({
                 params: {
                     name: title,
                     created: created,
-                    userChatMembersID,
                     id: id,
                     user: user
                 }

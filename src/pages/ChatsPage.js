@@ -1,251 +1,233 @@
-import React, { useEffect } from 'react';
-import { StyleSheet, RefreshControl, View, FlatList } from 'react-native';
-import * as Location from 'expo-location';
-import { getUserByCognito, onReceiveMessage, listMessagesByTime, getUserChats, getChat, onMemberStatusChange, updateMessage } from '../api/calls';
-import { API, Auth, graphqlOperation, Storage } from 'aws-amplify';
-
-import { colors, debug, locConversion, distance, timeLogic } from '../config';
-import Screen from '../comps/Screen';
-import Chat from '../comps/Chat';
-import Loading from '../comps/Loading';
-import SubSafe from '../api/subSafe';
+import React, { useCallback, useState, useRef } from 'react';
+import { View, StyleSheet, FlatList, RefreshControl } from 'react-native';
+import { API, Auth, graphqlOperation, Storage} from 'aws-amplify';
 import { useFocusEffect } from '@react-navigation/native';
+import { useNetInfo } from "@react-native-community/netinfo";
+import * as Location from 'expo-location';
 
-export default function ChatsPage({ navigation, route }) {
-    const [ready, setReady] = React.useState(false);
-    const [refresh, setRefresh] = React.useState(false);
-    const [locEnabled, setLocEnabled] = React.useState(true);
-    const [chats, setChats] = React.useState([]);
-    const [update, setUpdate] = React.useState(false);
-    const chatsRef = React.useRef([]);
-    const user = React.useRef();
-    var memberSub;
-    var chatSubs = React.useRef([]);
+import Screen from '../comps/Screen';
+import Loading from '../comps/Loading';
+import Chat from '../comps/Chat';
+import { getUserByCognito, getUserChats, listMessagesByTime, updateMessage } from '../api/calls';
+import { colors } from '../config';
+import useSubSafe from '../hooks/useSubSafe';
+import * as logger from '../functions/logger';
+import * as subManager from '../functions/subManager';
+import * as locConversion from '../functions/locConversion';
+import * as timeLogic from '../functions/timeLogic';
+import * as distance from '../functions/distance';
 
-    const getLast3Images = async (last3) => {
-        for (var i = 0; i < last3.length; i++) {
-            const loadFull = await Storage.get(last3[i].user.profilePicture.loadFull);
-            last3[i].picture = loadFull;
-        }
-    }
+export default function ChatsPage({ navigation }) {
+    const memberStatusSub = useRef();
+    const userChatsSub = useRef([]);
+    const timeClockSub = useRef();
+    const currentUser = useRef();
 
-    const subscribeMembers = async () => {
-        try {
-            unSubscribeMembers();
-            memberSub = API.graphql(graphqlOperation(onMemberStatusChange, {
-                userID: user.current.id
-            })).subscribe({
-                next: () => { onRefresh() },
-                error: (error) => { setUpdate(!update) }
-            });
-        } catch (error) {
-            if (debug) console.log(error)
-        }
-    }
+    const [refresh, setRefresh] = useState(false);
+    const [ready, setReady] = useState(false);
+    const [connected, setConnected] = useState(true);
+    const [locEnabled, setLocEnabled] = useState(true);
+    const [noChats, setNoChats] = useState(false);
+    const [rerender, setRerender] = useState(false);
+    const [chats, setChats] = useState([]);
 
-    const rearrangeChats = async (value) => {
-        const index = chatsRef.current.findIndex(el => el.id == value.chatMessagesId)
-            if (chatsRef.current[index].last3.length == 3) {
-                chatsRef.current[index].last3[2] = chatsRef.current[index].last3[1];
-                chatsRef.current[index].last3[1] = chatsRef.current[index].last3[0];
-                chatsRef.current[index].last3[0] = value;
-            } 
-            if (chatsRef.current[index].last3.length == 2) {
-                chatsRef.current[index].last3.push(chatsRef.current[index].last3[1])
-                chatsRef.current[index].last3[1] = chatsRef.current[index].last3[0];
-                chatsRef.current[index].last3[0] = value;
+    const netInfo = useNetInfo();
+
+
+    useFocusEffect(useCallback(() => {
+        if (timeClockSub.current) clearInterval(timeClockSub.current);
+        logger.eLog("Generating Time Clock...");
+        timeClockSub.current = setInterval(updateTime, 10000);
+        logger.eLog("[SUBMANAGER] ChatsPage timeClock subscription begun.")
+
+        const initialFunction = async () => {
+            try {
+                if (netInfo.isConnected || !ready) {
+                    const cognitoUser = await Auth.currentAuthenticatedUser();
+                    currentUser.current = (await API.graphql(graphqlOperation(getUserByCognito, {
+                        id: cognitoUser.attributes.sub
+                    }))).data.getUserByCognito;
+                    subManager.onMemberStatusChange({
+                        userID: currentUser.current.id,
+                        subVariable: memberStatusSub.current,
+                        onReception: onRefresh,
+                    });
+                    onRefresh();
+                } else setConnected(false);
+            } catch (error) {
+                logger.warn(error);
             }
-            if (chatsRef.current[index].last3.length == 1) {
-                chatsRef.current[index].last3.push(chatsRef.current[index].last3[0]);
-                chatsRef.current[index].last3[0] = value;
-            }
-            if (chatsRef.current[index].last3.length == 0) {
-                chatsRef.current[index].last3.push(value);
-            }
-        getLast3Images(chatsRef.current[index].last3);
-        chatsRef.current[index].latest = "Now"
-        if (value.user.id != user.current.id ) {
-            chatsRef.current[index].glow = true
-        } else {
-            chatsRef.current[index].glow = false
         }
-        chatsRef.current = [
-            chatsRef.current[index],
-            ...chatsRef.current.filter(el => el.id != value.chatMessagesId)
-        ];
-        setChats(chatsRef.current.concat());
-    }
+        initialFunction();
+        logger.eLog("[SUBMANAGER] onMemberStatusChange subscription begun.")
+        return () => {
+            try {
+                clearInterval(timeClockSub.current);
+                logger.eLog("[SUBMANAGER] ChatsPage timeClock subscription closed.");
+            } catch (error) { }
+            try {
+                memberStatusSub.current.unsubscribe();
+                logger.eLog("[SUBMANAGER] ChatsPage onMemberStatusChange subscription closed.");
+            } catch (error) { }
+            try {
+                for (var i = 0; i < userChatsSub.current.length; i++) {
+                    userChatsSub.current[i].unsubscribe();
+                }
+                logger.eLog("[SUBMANAGER] " + userChatsSub.current.length + " ChatsPage userChatsSub subscriptions closed.");
+            } catch (error) {  }
+        }
+    },[rerender]));
+    useSubSafe(onRefresh);
 
-    const unSubscribeMembers = () => {
-        if (memberSub) {
-            memberSub.unsubscribe();
-        }
-    }
-
-    const unSubscribeChats = () => {
-        for (var i = 0; i < chatSubs.current.length; i++) {
-            chatSubs.current[i].unsubscribe()
-        }
-        chatSubs.current = [];
-    }
 
     const onRefresh = async () => {
         try {
-            //Resetting the page...
-            const netInfo = await 
-            unSubscribeChats();
+            if (netInfo.isConnected || !ready) {
+                const locPerm = await Location.getForegroundPermissionsAsync();
+                if (locPerm.granted) {
+                    const userLocation = await Location.getLastKnownPositionAsync();
+                    const userLocationConverted = locConversion.toChat(userLocation.coords.latitude, userLocation.coords.longitude);
 
-            const currentUser = await Auth.currentUserInfo();
-            const dbUser = await API.graphql(graphqlOperation(getUserByCognito, {
-                id: currentUser.attributes.sub
-            }))
-            user.current = dbUser.data.getUserByCognito;
-            const locPerm = await Location.getForegroundPermissionsAsync();
-            if (locPerm.granted) {
-                var loc = await Location.getLastKnownPositionAsync();
-                const convertedLocs = locConversion(loc.coords.latitude, loc.coords.longitude);
+                    const userChatsResponse = await API.graphql(graphqlOperation(getUserChats, {
+                        id: currentUser.current.id
+                    }));
+                    if (userChatsResponse) {
+                        const userChats = userChatsResponse.data.getUser.chats.items;
+                        if (userChats.length == 0) setNoChats(true);
+                        var chatData = [];
+                        for (var i = 0; i < userChats.length; i++) {
+                            var chat = userChats[i].chat;
+                            chat.background.full = await Storage.get(chat.background.full);
+                            chat.background.loadFull = await Storage.get(chat.background.loadFull);
+                            chat.createdAt = chat.createdAt.substring(0, 10);
+                            chat.numMembers = chat.members.items.length;
+                            chat.distance = distance.formula(userLocationConverted.lat, userLocationConverted.long, chat.lat, chat.long);
 
-                const Chats200 = await API.graphql(graphqlOperation(getUserChats, {
-                    id: user.current.id
-                }))
-                if (Chats200) {
-                    var cs = Chats200.data.getUser.chats.items;
-                    var chatData = []
-                    const now = Date.now()
-
-                    for (var i = 0; i < cs.length; i++) {
-                        var Chat = cs[i].chat
-                        const full = await Storage.get(Chat.background.full);
-                        const loadFull = await Storage.get(Chat.background.loadFull);
-                        Chat.background.full = full;
-                        Chat.background.loadFull = loadFull;
-
-                        var thisChat = Chat;
-                        thisChat.createdAt = thisChat.createdAt.substring(0, 10);
-
-                        const last3 = await API.graphql(graphqlOperation(listMessagesByTime, {
-                            chatMessagesId: Chat.id,
-                            limit: 3,
-                        }))
-                        if (last3.data.listMessagesByTime.items) {
-                            thisChat.last3 = last3.data.listMessagesByTime.items;
-                            getLast3Images(thisChat.last3);
-                            if (last3.data.listMessagesByTime.items[0]) {
-                                const msg = Date.parse(last3.data.listMessagesByTime.items[0].createdAt);
-                                const diff = now - msg;
-                                thisChat.latest = timeLogic(diff / 1000);
-                                if (!last3.data.listMessagesByTime.items[0].read.includes(user.current.id)) {
-                                    thisChat.glow = true;
-                                } else {
-                                    thisChat.glow = false;
+                            const last3 = await API.graphql(graphqlOperation(listMessagesByTime, {
+                                chatMessagesId: chat.id,
+                                limit: 3
+                            }));
+                            chat.last3 = [];
+                            chat.glow = false;
+                            chat.latest = "New Chat";
+                            if (last3) {
+                                chat.last3 = last3.data.listMessagesByTime.items;
+                                getLast3(chat.last3);
+                                if (last3.data.listMessagesByTime.items[0]) {
+                                    chat.latest = timeLogic.ago((Date.now() - Date.parse(last3.data.listMessagesByTime.items[0].createdAt)) / 1000);
+                                    if (!last3.data.listMessagesByTime.items[0].read.includes(currentUser.current.id)) { chat.glow = true }
                                 }
-                            }
-                        } else {
-                            thisChat.last3 = []
-                            thisChat.glow = false
-                        }
-                        if (!thisChat.latest) {
-                            thisChat.latest = "New Chat";
-                        }
-                        var num = 0;
-                        for (var j = 0; j < Chat.members.items.length; j++) {
-                            const loadFull = await Storage.get(Chat.members.items[j].user.profilePicture.loadFull);
-                            if (Chat.members.items[j].user.id == user.current.id) {
-                                thisChat.userChatMembersID = Chat.members.items[j].id;
-                                user.current.profilePicture.loadFull = loadFull;
-                            }
-                            thisChat.members.items[j].user.picture = loadFull;
-                            num++;
-                        }
-                        thisChat.numMembers = num;
-                        thisChat.distance = distance(convertedLocs.lat, convertedLocs.long, Chat.lat, Chat.long);
-                        Chat = thisChat;
-                        chatData.push(Chat);
-                        chatSubs.current.push(API.graphql(graphqlOperation(onReceiveMessage, {
-                            chatMessagesId: thisChat.id
-                        })).subscribe({
-                            next: ({ value }) => rearrangeChats(value.data.onReceiveMessage),
-                            error: (error) => { setUpdate(!update) }
-                        }));
-                    }
-
-                    chatData.sort((a, b) => {
-                        if (a.last3.length == 0 || b.last3.length == 0) {
-                            return -1
-                        } else {
-                            if (Date.parse(a.last3[0].createdAt) > Date.parse(b.last3[0].createdAt)) {
-                                return -1;
                             } else {
-                                return 1;
+                                chat.glow = false;
+                                throw "[CHATSPAGE] onRefresh failed because of an error getting a chat's last3 messages"
                             }
+
+                            for (var j = 0; j < chat.numMembers; j++) {
+                                chat.members.items[j].user.picture = await Storage.get(chat.members.items[j].user.profilePicture.loadFull);
+                            }
+                            chatData.push(chat);
                         }
-                    })
-                    setChats(chatData);
-                    chatsRef.current = chatData;
-                    subscribeMembers();
-                    if (!ready) setReady(true);
+                        subManager.userChats({
+                            chatData: chatData,
+                            subVariable: userChatsSub.current,
+                            onReception: messageUpdate,
+                        });
+                        sortChats(chatData);
+                        setChats(chatData);
+                    } else throw "[CHATSPAGE] onRefresh failed because of an error getting userChats."
+                } else {
+                    setLocEnabled(false);
+                    throw "[CHATSPAGE] onRefresh failed because location is disabled.";
                 }
             } else {
-                if (locEnabled) {
-                    await Location.requestForegroundPermissionsAsync();
-                }
-                setLocEnabled(false);
-                onRefresh();
-                if (!ready) setReady(true);
+                setConnected(false);
+                throw "[CHATSPAGE] onRefresh failed because there is no connection";
             }
         } catch (error) {
-            if (debug) console.log(error);
-            if (!ready) setReady(true);
-            setTimeout(function () {
-                onRefresh();
-            }, 5000);
+            logger.warn("ONREFRESH ERROR: " + error);
+        } finally {
+            setReady(true);
+            setRefresh(false);
+            logger.eLog("Finished Refreshing");
         }
-        setRefresh(false);
+    }
+    //HELPER FUNCTIONS
+    const getLast3 = async (last3) => {
+        for (var i = 0; i < last3.length; i++) {
+            last3[i].picture = await Storage.get(last3[i].user.profilePicture.loadFull);
+        }
+    }
+    const messageUpdate = async (data) => {
+        var Chats = chats.concat();
+        console.log(Chats);
+        const value = data.data.onReceiveMessage; 
+        const index = Chats.findIndex(el => el.id == value.chatMessagesId);
+        Chats[index].last3.unshift(value);
+        Chats[index].last3.splice(-1);
+        getLast3(Chats[index].last3);
+        Chats[index].latest = "Now";
+        if (value.user.id != currentUser.current.id) Chats[index].glow = true;
+        sortChats(Chats);
+        setChats(Chats.concat());
+    }
+    const sortChats = (chatData) => {
+        chatData.sort((a, b) => {
+            if (a.last3.length == 0 && b.last3.length != 0) {
+                return 1;
+            } else if (a.last3.length != 0 && b.last3.length == 0) { 
+                return -1;
+            } else if (a.last3.length == 0 && b.last3.length == 0) {
+                return 0;
+            } else {
+                if (Date.parse(a.last3[0].createdAt) > Date.parse(b.last3[0].createdAt)) {
+                    return -1;
+                } else {
+                    return 1;
+                }
+            }
+        })
     }
 
+    //UI ORIENTED FUNCTIONS
+    const navigate = async (item) => { //TRIGGERED UPON "OPEN CHAT". NAVIGATES TO THAT CHAT AFTER THIS.
+        try {
+            if (item.last3.length >= 1) {
+                if (!item.last3[0].read.includes(currentUser.current.id)) {
+                    item.last3[0].read.push(currentUser.current.id)
+                    await API.graphql(graphqlOperation(updateMessage, {
+                        input: {
+                            id: item.last3[0].id,
+                            read: item.last3[0].read
+                        }
+                    }))
+                    item.glow = false
+                    setRerender(!rerender);
+                }
+            }
+        } catch (error) {
+            logger.error(error);
+        }
+    }
     const updateTime = () => {
-        const iterator = chatsRef.current.values();
+        var Chats = [...chats];
+        const iterator = Chats.values();
         var i = 0;
         for (const value of iterator) {
             if (value.last3.length >= 1) {
                 const now = Date.now()
                 const diff = now - Date.parse(value.last3[0].createdAt);
-                chatsRef.current[i].latest = timeLogic(diff / 1000);
+                Chats[i].latest = timeLogic.ago(diff / 1000);
             }
             i++
         }
-        setChats(chatsRef.current.concat());
+
+        logger.eLog("TimeClock activated.");
     }
 
-    useFocusEffect(() => {
-        var timeClock;
-        var manager = new SubSafe({
-            unsubscribe: () => {
-                try {
-                    unSubscribeChats();
-                    clearInterval(timeClock);
-                    unSubscribeMembers();
-                } catch (error) {
-                    if (debug) console.log(error);
-                }
-            },
-            refresh: () => {
-                onRefresh();
-                timeClock = setInterval(() => updateTime(), 10000)
-            },
-            navigation: navigation
-        })
-        subscribeMembers();
-        manager.refresh();
-        manager.begin();
-        return () => {
-            manager.unsubscribe();
-            manager.end();
-            manager = null;
-        }
-    })
 
-
+    //UI COMPONENTS
+    const listFooterComponenet = React.useCallback(() => <View height={30} />, []);
+    const keyExtractor = React.useCallback((item) => item.id, [])
     const renderItem = React.useCallback(
         ({ item }) => {
             if (ready) {
@@ -258,11 +240,10 @@ export default function ChatsPage({ navigation, route }) {
                         }}
                         members={item.members.items}
                         latest={item.latest}
-                        onPress={() => navigate(item)}
+                        onPress={navigate(item)}
                         glow={item.glow}
                         id={item.id}
-                        userChatMembersID={item.userChatMembersID}
-                        user={user.current}
+                        user={currentUser.current}
                         last3={item.last3}
                         numMembers={item.numMembers}
                         distance={item.distance}
@@ -271,31 +252,11 @@ export default function ChatsPage({ navigation, route }) {
                         navigation={navigation}
                     />
                 )
+            } else {
+                return (<></>);
             }
         }, [chats, ready]
     )
-    const navigate = async (item) => {
-        try {
-            if (item.last3.length >= 1) {
-                if (!item.last3[0].read.includes(user.current.id)) {
-                    item.last3[0].read.push(user.current.id)
-                    await API.graphql(graphqlOperation(updateMessage, {
-                        input: {
-                            id: item.last3[0].id,
-                            read: item.last3[0].read
-                        }
-                    }))
-                    item.glow = false
-                    chatsRef.current = chats;
-                    setChats(chatsRef.current.concat())
-                }
-            }
-        } catch (error) {
-            console.log(error);
-        }
-    }
-    const listFooterComponenet = React.useCallback(()=><View height={30} />, []);
-    const keyExtractor = React.useCallback((item) => item.id, [])
     return (
         <>
             <Screen>
@@ -323,7 +284,6 @@ export default function ChatsPage({ navigation, route }) {
         </>
     );
 }
-
 const styles = StyleSheet.create({
     logo: {
         height: 60,
