@@ -8,11 +8,10 @@ import * as Location from 'expo-location';
 import Screen from '../comps/Screen';
 import Loading from '../comps/Loading';
 import Chat from '../comps/Chat';
-import { getUserByCognito, getUserChats, listMessagesByTime, updateMessage } from '../api/calls';
+import { getUserByCognito, getUserChats, listMessagesByTime, updateMessage, onMemberStatusChange, onReceiveMessage } from '../api/calls';
 import { colors } from '../config';
 import useSubSafe from '../hooks/useSubSafe';
 import * as logger from '../functions/logger';
-import * as subManager from '../functions/subManager';
 import * as locConversion from '../functions/locConversion';
 import * as timeLogic from '../functions/timeLogic';
 import * as distance from '../functions/distance';
@@ -47,11 +46,22 @@ export default function ChatsPage({ navigation }) {
                     currentUser.current = (await API.graphql(graphqlOperation(getUserByCognito, {
                         id: cognitoUser.attributes.sub
                     }))).data.getUserByCognito;
-                    subManager.onMemberStatusChange({
-                        userID: currentUser.current.id,
-                        subVariable: memberStatusSub.current,
-                        onReception: onRefresh,
-                    });
+
+                    if (memberStatusSub.current) memberStatusSub.current.unsubscribe();
+                    memberStatusSub.current = API.graphql(graphqlOperation(onMemberStatusChange, {
+                        userID: currentUser.current.id
+                    })).subscribe({
+                        next: () => {
+                            logger.eLog("[SUBMANAGER]: onMemberStatusChange notification received.");
+                            onRefresh();
+                        },
+                        error: (error) => {
+                            if (memberStatusSub.current) memberStatusSub.current.unsubscribe();
+                            logger.warn(error);
+                            logger.eWarn("[SUBMANAGER]: Error detected receiving onMemberStatusChange notification. Reconnecting...");
+                            setRerender(!rerender);
+                        }
+                    })
                     onRefresh();
                 } else setConnected(false);
             } catch (error) {
@@ -70,20 +80,24 @@ export default function ChatsPage({ navigation }) {
                 logger.eLog("[SUBMANAGER] ChatsPage onMemberStatusChange subscription closed.");
             } catch (error) { }
             try {
-                for (var i = 0; i < userChatsSub.current.length; i++) {
-                    userChatsSub.current[i].unsubscribe();
-                }
-                logger.eLog("[SUBMANAGER] " + userChatsSub.current.length + " ChatsPage userChatsSub subscriptions closed.");
+                unsubscribeChats();
             } catch (error) {  }
         }
     },[rerender]));
     useSubSafe(onRefresh);
-
+    const unsubscribeChats = () => {
+        for (var i = 0; i < userChatsSub.current.length; i++) {
+            userChatsSub.current[i].unsubscribe();
+        }
+        userChatsSub.current = [];
+        logger.eLog("[SUBMANAGER] " + userChatsSub.current.length + " ChatsPage userChatsSub subscriptions closed.");
+    }
 
     const onRefresh = async () => {
         try {
             if (netInfo.isConnected || !ready) {
                 const locPerm = await Location.getForegroundPermissionsAsync();
+                unsubscribeChats();
                 if (locPerm.granted) {
                     const userLocation = await Location.getLastKnownPositionAsync();
                     const userLocationConverted = locConversion.toChat(userLocation.coords.latitude, userLocation.coords.longitude);
@@ -126,12 +140,21 @@ export default function ChatsPage({ navigation }) {
                                 chat.members.items[j].user.picture = await Storage.get(chat.members.items[j].user.profilePicture.loadFull);
                             }
                             chatData.push(chat);
+                            userChatsSub.current.push(API.graphql(graphqlOperation(onReceiveMessage, {
+                                chatMessagesId: chatData[i].id,
+                            })).subscribe({
+                                next: ({ value }) => {
+                                    logger.eLog("[SUBMANAGER]: userChats notification received.");
+                                    messageUpdate(value);
+                                },
+                                error: (error) => {
+                                    unsubscribeChats();
+                                    logger.warn(error);
+                                    logger.eWarn("[SUBMANAGER]: Error detected receiving userChats notification. Reconnecting");
+                                    setRerender(!rerender);
+                                }
+                            }));
                         }
-                        subManager.userChats({
-                            chatData: chatData,
-                            subVariable: userChatsSub.current,
-                            onReception: messageUpdate,
-                        });
                         sortChats(chatData);
                         setChats(chatData);
                     } else throw "[CHATSPAGE] onRefresh failed because of an error getting userChats."
@@ -158,17 +181,20 @@ export default function ChatsPage({ navigation }) {
         }
     }
     const messageUpdate = async (data) => {
-        var Chats = chats.concat();
-        console.log(Chats);
         const value = data.data.onReceiveMessage; 
-        const index = Chats.findIndex(el => el.id == value.chatMessagesId);
-        Chats[index].last3.unshift(value);
-        Chats[index].last3.splice(-1);
-        getLast3(Chats[index].last3);
-        Chats[index].latest = "Now";
-        if (value.user.id != currentUser.current.id) Chats[index].glow = true;
-        sortChats(Chats);
-        setChats(Chats.concat());
+
+        setChats(existingItems => {
+            var Chats = [...existingItems];
+            const index = Chats.findIndex(el => el.id == value.chatMessagesId);
+            if (Chats[index].last3) {
+                Chats[index].last3.unshift(value);
+                Chats[index].last3.splice(-1);
+                Chats[index].latest = "Now";
+                if (value.user.id != currentUser.current.id) Chats[index].glow = true;
+            }
+
+            return [...Chats];
+        });
     }
     const sortChats = (chatData) => {
         chatData.sort((a, b) => {
@@ -201,7 +227,6 @@ export default function ChatsPage({ navigation }) {
                         }
                     }))
                     item.glow = false
-                    setRerender(!rerender);
                 }
             }
         } catch (error) {
@@ -209,18 +234,15 @@ export default function ChatsPage({ navigation }) {
         }
     }
     const updateTime = () => {
-        var Chats = [...chats];
-        const iterator = Chats.values();
-        var i = 0;
-        for (const value of iterator) {
-            if (value.last3.length >= 1) {
-                const now = Date.now()
-                const diff = now - Date.parse(value.last3[0].createdAt);
-                Chats[i].latest = timeLogic.ago(diff / 1000);
+        setChats(existingItems => {
+            var Chats = [...existingItems];
+            for (var i = 0; i < Chats.length; i++) {
+                if (Chats[i].last3.length >= 1) {
+                    Chats[i].latest = timeLogic.ago((Date.now() - Date.parse(Chats[i].last3[0].createdAt)) / 1000);
+                }
             }
-            i++
-        }
-
+            return [...Chats];
+        });
         logger.eLog("TimeClock activated.");
     }
 
@@ -240,7 +262,7 @@ export default function ChatsPage({ navigation }) {
                         }}
                         members={item.members.items}
                         latest={item.latest}
-                        onPress={navigate(item)}
+                        onPress={() => navigate(item)}
                         glow={item.glow}
                         id={item.id}
                         user={currentUser.current}
