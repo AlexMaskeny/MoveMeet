@@ -11,12 +11,14 @@ import { colors, css } from '../config';
 function SimpleButton({
     title,
     onPress,
+    innerStyle,
+    outerStyle,
     disabled = false,
     loading = false,
 }) {
     return (
-        <TouchableOpacity style={{ ...styles.bContainer, borderWidth: disabled ? 0 : 3, borderColor: disabled ? colors.pBeamDisabled : colors.pBeam }} onPress={onPress} disabled={disabled}>
-            <View style={styles.innerContainer}>
+        <TouchableOpacity style={[{ ...styles.bContainer, borderWidth: disabled ? 0 : 3, borderColor: disabled ? colors.pBeamDisabled : colors.pBeam }, outerStyle]} onPress={onPress} disabled={disabled}>
+            <View style={[styles.innerContainer, innerStyle]}>
                 {!loading &&
                     <Text style={styles.text}>{title}</Text>
                 }

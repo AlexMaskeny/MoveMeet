@@ -15,6 +15,9 @@ import * as logger from '../functions/logger';
 import * as locConversion from '../functions/locConversion';
 import * as timeLogic from '../functions/timeLogic';
 import * as distance from '../functions/distance';
+import NoConnectionAlert from '../comps/NoConnectionAlert';
+import NoLocationAlert from '../comps/NoLocationAlert';
+import NoChatsAlert from '../comps/NoChatsAlert';
 
 export default function ChatsPage({ navigation }) {
     const memberStatusSub = useRef();
@@ -89,8 +92,8 @@ export default function ChatsPage({ navigation }) {
         for (var i = 0; i < userChatsSub.current.length; i++) {
             userChatsSub.current[i].unsubscribe();
         }
-        userChatsSub.current = [];
         logger.eLog("[SUBMANAGER] " + userChatsSub.current.length + " ChatsPage userChatsSub subscriptions closed.");
+        userChatsSub.current = [];
     }
 
     const onRefresh = async () => {
@@ -108,6 +111,7 @@ export default function ChatsPage({ navigation }) {
                     if (userChatsResponse) {
                         const userChats = userChatsResponse.data.getUser.chats.items;
                         if (userChats.length == 0) setNoChats(true);
+                        else setNoChats(false);
                         var chatData = [];
                         for (var i = 0; i < userChats.length; i++) {
                             var chat = userChats[i].chat;
@@ -245,7 +249,13 @@ export default function ChatsPage({ navigation }) {
         });
         logger.eLog("TimeClock activated.");
     }
-
+    const enableLocation = async () => {
+        const result = await Location.requestForegroundPermissionsAsync();
+        if (result.granted) {
+            setLocEnabled(true);
+            navigation.navigate("LoadingPage");
+        }
+    }
 
     //UI COMPONENTS
     const listFooterComponenet = React.useCallback(() => <View height={30} />, []);
@@ -302,6 +312,9 @@ export default function ChatsPage({ navigation }) {
                     renderItem={renderItem}
                 />
             </Screen>
+            <NoChatsAlert visible={noChats} />
+            <NoLocationAlert visible={!locEnabled} enable={enableLocation}/>
+            <NoConnectionAlert visible={!connected} />
             <Loading enabled={!ready} />
         </>
     );

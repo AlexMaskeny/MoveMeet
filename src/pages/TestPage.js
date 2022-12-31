@@ -10,6 +10,8 @@ import SimpleButton from '../comps/SimpleButton';
 import Screen from '../comps/Screen';
 
 import LottieView from 'lottie-react-native';
+import NoConnectionAlert from '../comps/NoConnectionAlert';
+import NoLocationAlert from '../comps/NoLocationAlert';
 
 
 function TestScreen({ navigation }) {
@@ -38,29 +40,7 @@ function TestScreen({ navigation }) {
     }
     return (
         <Screen innerStyle={styles.page}>
-            <LottieView
-                style={{ width: 14, height: 14, }}
-                source={require('../lotties/loader.json')}
-                autoPlay={true}
-                loop={true}
-                colorFilters={[
-                    {
-                        keypath: 'Dot_1',
-                        color: colors.text3,
-                    },
-                    {
-                        keypath: 'Dot_2',
-                        color: colors.text3,
-                    },
-                    {
-                        keypath: 'Dot_3',
-                        color: colors.text3,
-                    },
-
-                ]}
-                speed={1.5}
-            />
-            <SimpleButton title="Enable Notifications" onPress={() => allowNotifications()} />
+            <NoLocationAlert visible={true} />
         </Screen>
     );
 }
