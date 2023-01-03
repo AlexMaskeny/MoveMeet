@@ -15,7 +15,6 @@ import * as logger from '../functions/logger';
 import * as locConversion from '../functions/locConversion';
 import * as timeLogic from '../functions/timeLogic';
 import * as distance from '../functions/distance';
-import NoConnectionAlert from '../comps/NoConnectionAlert';
 import NoLocationAlert from '../comps/NoLocationAlert';
 import NoChatsAlert from '../comps/NoChatsAlert';
 
@@ -27,7 +26,6 @@ export default function ChatsPage({ navigation }) {
 
     const [refresh, setRefresh] = useState(false);
     const [ready, setReady] = useState(false);
-    const [connected, setConnected] = useState(true);
     const [locEnabled, setLocEnabled] = useState(true);
     const [noChats, setNoChats] = useState(false);
     const [rerender, setRerender] = useState(false);
@@ -38,7 +36,6 @@ export default function ChatsPage({ navigation }) {
 
     useFocusEffect(useCallback(() => {
         if (timeClockSub.current) clearInterval(timeClockSub.current);
-        logger.eLog("Generating Time Clock...");
         timeClockSub.current = setInterval(updateTime, 10000);
         logger.eLog("[SUBMANAGER] ChatsPage timeClock subscription begun.")
 
@@ -66,7 +63,7 @@ export default function ChatsPage({ navigation }) {
                         }
                     })
                     onRefresh();
-                } else setConnected(false);
+                }
             } catch (error) {
                 logger.warn(error);
             }
@@ -139,9 +136,12 @@ export default function ChatsPage({ navigation }) {
                                 chat.glow = false;
                                 throw "[CHATSPAGE] onRefresh failed because of an error getting a chat's last3 messages"
                             }
-
+                            const userChatMembersIDIndex = chat.members.items.findIndex((el) => el.user.id == currentUser.current.id);
+                            chat.userChatMembersID = chat.members.items[userChatMembersIDIndex].id;
                             for (var j = 0; j < chat.numMembers; j++) {
-                                chat.members.items[j].user.picture = await Storage.get(chat.members.items[j].user.profilePicture.loadFull);
+                                const picture = await Storage.get(chat.members.items[j].user.profilePicture.loadFull);
+                                chat.members.items[j].user.picture = picture;
+                                currentUser.current.profilePicture.loadFull = picture;
                             }
                             chatData.push(chat);
                             userChatsSub.current.push(API.graphql(graphqlOperation(onReceiveMessage, {
@@ -167,7 +167,6 @@ export default function ChatsPage({ navigation }) {
                     throw "[CHATSPAGE] onRefresh failed because location is disabled.";
                 }
             } else {
-                setConnected(false);
                 throw "[CHATSPAGE] onRefresh failed because there is no connection";
             }
         } catch (error) {
@@ -247,7 +246,7 @@ export default function ChatsPage({ navigation }) {
             }
             return [...Chats];
         });
-        logger.eLog("TimeClock activated.");
+        logger.eLog("ChatsPage TimeClock activated.");
     }
     const enableLocation = async () => {
         const result = await Location.requestForegroundPermissionsAsync();
@@ -274,6 +273,7 @@ export default function ChatsPage({ navigation }) {
                         latest={item.latest}
                         onPress={() => navigate(item)}
                         glow={item.glow}
+                        userChatMembersID={item.userChatMembersID}
                         id={item.id}
                         user={currentUser.current}
                         last3={item.last3}
@@ -314,7 +314,6 @@ export default function ChatsPage({ navigation }) {
             </Screen>
             <NoChatsAlert visible={noChats} />
             <NoLocationAlert visible={!locEnabled} enable={enableLocation}/>
-            <NoConnectionAlert visible={!connected} />
             <Loading enabled={!ready} />
         </>
     );

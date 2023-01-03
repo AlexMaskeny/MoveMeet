@@ -63,23 +63,23 @@ export const createMessage = /* GraphQL */ `
         chatMessagesId
         read
         user {
-            id
-            username
-            profilePicture {
+          id
+          username
+          profilePicture {
             bucket
             region
             loadFull
             full
-            }
+          }
         }
         createdAt
         updatedAt
         image {
-            bucket
-            region
-            loadFull
-            full
-            thumbFull
+          bucket
+          region
+          loadFull
+          thumbFull
+          full
         }
         content
         type
@@ -547,6 +547,14 @@ export const updateTyping = /* GraphQL */ `
       }
     }
 
+`
+
+export const onUserRemoved = /* GraphQL */ `
+    subscription OnUserRemoved($chatID: String, $userID: String) {
+        onUserRemoved(chatID: $chatID, userID: $userID) {
+        	id
+        }
+    }
 `
 
 export const getMemberStatuses = /* GraphQL */ `

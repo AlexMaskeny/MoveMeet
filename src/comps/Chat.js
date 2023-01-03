@@ -24,6 +24,7 @@ function Chat({
     user,
     glow = false,
     id,
+    userChatMembersID,
     numMembers,
     distance,
     title,
@@ -66,6 +67,7 @@ function Chat({
     }
     const navigate = () => {
         onPress(); 
+        user.profilePicture.loadFull = "LOADFULLprofilePicture" + user.id + ".jpg";
         navigation.dispatch(
             CommonActions.navigate({
                 name: "ChatPage",
@@ -74,7 +76,8 @@ function Chat({
                     name: title,
                     created: created,
                     id: id,
-                    user: user
+                    userChatMembersID,
+                    user,
                 }
             })
         );
