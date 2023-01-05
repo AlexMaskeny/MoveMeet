@@ -6,7 +6,7 @@ import uuid from "react-native-uuid";
 import { API, graphqlOperation, Storage } from 'aws-amplify';
 import { useFocusEffect } from '@react-navigation/native';
 import { LongPressGestureHandler, State } from 'react-native-gesture-handler';
-import * as Clipboard from 'expo-clipboard';
+import * as Haptics from 'expo-haptics';
 import ImageView from 'react-native-image-viewing';
 
 import Screen from '../comps/Screen';
@@ -18,12 +18,13 @@ import ComplexMessage from '../comps/ComplexMessage';
 import BeamTitle from '../comps/BeamTitle';
 import SubTitle from '../comps/SubTitle';
 import ImageInput from '../comps/ImageInput';
+import ImageMessage from '../comps/ImageMessage';
+import ProfileCircle from '../comps/SpinningProfileCircle';
+import CopyMessage from '../comps/CopyMessage';
 import { listMessagesByTime, onReceiveMessage, onUserRemoved, onUserTyping, updateMessage, updateTyping, createMessage } from '../api/calls';
 import * as logger from '../functions/logger';
 import * as media from '../functions/media';
 import * as timeLogic from '../functions/timeLogic';
-import ImageMessage from '../comps/ImageMessage';
-import ProfileCircle from '../comps/SpinningProfileCircle';
 import useSubSafe from '../hooks/useSubSafe';
 
 //Now we just need to incorperate a nolongermember alert
@@ -41,6 +42,9 @@ export default function ChatPage({ route, navigation }) {
     const userMemberSub = useRef();
     const memberStatusTracker = useRef(new Map);
 
+    const [keyboardShown, setKeyboardShown] = useState(false);
+    const [copyMessage, setCopyMessage] = useState(false);
+    const [copiedMessage, setCopiedMessage] = useState({});
     const [nextToken, setNextToken] = useState("i2");
     const [noLongerMember, setNoLongerMember] = useState(false);
     const [textInput, setTextInput] = useState("");
@@ -383,8 +387,9 @@ export default function ChatPage({ route, navigation }) {
     }
     const longPressText = async (event, item) => {
         if (event.nativeEvent.state === State.ACTIVE) {
-            await Clipboard.setStringAsync(item.content);
-            //Do some sort of UI action
+            Haptics.impactAsync(Haptics.ImpactFeedbackStyle.Heavy);
+            setCopyMessage(true);
+            setCopiedMessage(item);
         }
     }
     const updateTime = () => {
@@ -463,8 +468,13 @@ export default function ChatPage({ route, navigation }) {
         } else {
             return (
                 <LongPressGestureHandler
-                    onHandlerStateChange={(event) => longPressText(event, item)}
-                    minDurationMs={800}
+                    onHandlerStateChange={(event) => longPressText(event, {
+                        ppic: ppic, 
+                        time: item.date,
+                        username: item.user.username, 
+                        message: item.content 
+                    })}
+                    minDurationMs={400}
                 >
                     <View style={styles.chat}>
                         <ComplexMessage
@@ -487,15 +497,15 @@ export default function ChatPage({ route, navigation }) {
         <View style={{ width: 10 }} />
         <IconButton icon="duplicate" brand="Ionicons" color={colors.text3} size={34} style={{ marginBottom: 6, }} onPress={() => media.openPhotos((item) => { setSelectedImage(item), setMsgIsImage(true) })} />
         <View style={{ width: 10 }} />
-        <IconButton icon="md-chevron-down-circle" brand="Ionicons" color={colors.text3} style={{ marginBottom: 6 }} size={34} onPress={() => Keyboard.dismiss()} />     
+        <IconButton icon="md-chevron-down-circle" brand="Ionicons" color={colors.text3} style={{ marginBottom: 6 }} size={34} onPress={() => { Keyboard.dismiss(); setKeyboardShown(false) }} />     
     </>)
     const RenderButtonsMinimized = () => (<IconButton icon="md-chevron-forward-circle" brand="Ionicons" color={colors.text3} style={{ marginBottom: 6 }} size={34} onPress={() => setButtonsMinimized(false)} />)
     const RenderTextInput = useCallback(() => (
         <SimpleInput
             reference={textInputRef}
             placeholder="Say something"
-            onFocus={() => {chatListRef.current.scrollToOffset({ offset: 0 })}}
-            onPressIn={() => {chatListRef.current.scrollToOffset({ offset: 0 })}}
+            onFocus={() => { chatListRef.current.scrollToOffset({ offset: 0 }); setKeyboardShown(true) }}
+            onPressIn={() => { chatListRef.current.scrollToOffset({ offset: 0 }); setKeyboardShown(true) }}
             cStyle={{ overflow: "hidden", flex: 1, }}
             tStyle={styles.message}
             multiline={true}
@@ -504,7 +514,7 @@ export default function ChatPage({ route, navigation }) {
             onChangeText={onTextInputChange}
         />
     ),[])
-    return (
+    return (<>
         <Screen innerStyle={styles.page}>
             <KeyboardAvoidingView style={{ flex: 1, justifyContent: "flex-end" }} behavior="padding" keyboardVerticalOffset={headerHeight + 4}>
                 <View style={styles.chats}>
@@ -539,13 +549,14 @@ export default function ChatPage({ route, navigation }) {
                 </View>
             </KeyboardAvoidingView>
             <ImageView
-                images={[{uri: previewImage}]}
+                images={[{ uri: previewImage }]}
                 imageIndex={0}
                 visible={showPreviewImage}
-                onRequestClose={() => setShowPreviewImage(false)}
+                onRequestClose={() => { setShowPreviewImage(false); setKeyboardShown(false) }}
             />
         </Screen>
-    );
+        <CopyMessage visible={copyMessage} item={copiedMessage} onRequestClose={() => setCopyMessage(false)} keyboardShown={keyboardShown} />
+    </>);
 }
 
 const styles = StyleSheet.create({
