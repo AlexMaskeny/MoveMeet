@@ -27,7 +27,7 @@ export default function CreateChat({ visible, onClose, currentUser }) {
     const [cBackground, setCBackground] = useState("");
     const [members, setMembers] = useState([]);
 
-    const id = useRef(uuid.v4());
+    const id = useRef();
 
     const close = () => {
         cTitleRef.current.clear();
@@ -38,6 +38,7 @@ export default function CreateChat({ visible, onClose, currentUser }) {
 
     const selectImage = async () => {
         setLoading(true);
+        id.current = uuid.v4();
         setMembers([{
             user: {
                 id: currentUser.id,
@@ -52,7 +53,7 @@ export default function CreateChat({ visible, onClose, currentUser }) {
 
     const CreateChat = async () => {
         try {
-            //TODO: Verify that the user doesn't already have many chats via owner field.
+            //TODO: Verify that the user doesn't already have many chats via owner field. Give user a list of presets backgrounds.
             setLoading2(true);
             const location = await Location.getForegroundPermissionsAsync();
             if (!location.granted) {
