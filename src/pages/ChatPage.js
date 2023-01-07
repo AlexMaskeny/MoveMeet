@@ -388,7 +388,6 @@ export default function ChatPage({ route, navigation }) {
     const longPressText = async (event, item) => {
         if (event.nativeEvent.state === State.ACTIVE) {
             Haptics.impactAsync(Haptics.ImpactFeedbackStyle.Heavy);
-            setCopyMessage(true);
             setCopiedMessage(item);
         }
     }
@@ -467,15 +466,15 @@ export default function ChatPage({ route, navigation }) {
             )
         } else {
             return (
-                <LongPressGestureHandler
-                    onHandlerStateChange={(event) => longPressText(event, {
-                        ppic: ppic, 
-                        time: item.date,
-                        username: item.user.username, 
-                        message: item.content 
-                    })}
-                    minDurationMs={400}
-                >
+                //<LongPressGestureHandler
+                //    onHandlerStateChange={(event) => longPressText(event, {
+                //        ppic: ppic, 
+                //        time: item.date,
+                //        username: item.user.username, 
+                //        message: item.content 
+                //    })}
+                //    minDurationMs={400}
+                //>
                     <View style={styles.chat}>
                         <ComplexMessage
                             ppic={ppic}
@@ -484,7 +483,7 @@ export default function ChatPage({ route, navigation }) {
                             message={item.content}
                         />
                     </View>
-                </LongPressGestureHandler>
+                //</LongPressGestureHandler>
             )
         }
     }, [data]);

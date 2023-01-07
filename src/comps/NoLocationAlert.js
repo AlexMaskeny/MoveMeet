@@ -12,6 +12,7 @@ import Screen from './Screen';
 export default function NoLocationAlert({
     style,
     enable,
+    feature = false,
     visible = false,
     ...otherProps
 }) {

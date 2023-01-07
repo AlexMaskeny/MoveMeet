@@ -6,14 +6,15 @@ import { colors, css } from '../config';
 
 function ProfileCircle({
     ppic,
-    style
+    style,
+    innerStyle,
     
 }) {
     return (
         <View style={[styles.container, style]}>
             <Image
                 source={{uri: ppic.loadImage ? ppic.loadImage : ppic.uri}}
-                style={styles.image}
+                style={[styles.image,innerStyle]}
                 resizeMode="cover"
             />
         </View>

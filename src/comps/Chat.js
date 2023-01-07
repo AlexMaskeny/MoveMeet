@@ -1,5 +1,5 @@
 import React, { useEffect } from 'react';
-import { View, StyleSheet, FlatList } from 'react-native';
+import { View, StyleSheet, FlatList, ImageBackground as NormalBackground } from 'react-native';
 
 import { colors, css } from '../config';
 import BeamTitle from './BeamTitle';
@@ -22,6 +22,7 @@ function Chat({
     latest,
     last3,
     user,
+    disabled = false,
     glow = false,
     id,
     userChatMembersID,
@@ -66,6 +67,7 @@ function Chat({
         }
     }
     const navigate = () => {
+        if (disabled) return;
         onPress(); 
         user.profilePicture.loadFull = "LOADFULLprofilePicture" + user.id + ".jpg";
         navigation.dispatch(
@@ -88,15 +90,28 @@ function Chat({
             height: getHeight(),
             ...glowStyle()
         }}>
-            <ImageBackground
-                source={background}
-                isBackground={true}
-                imageStyle={styles.image}
-                style={styles.imageBackground}
-                resizeMode="cover"
-            >
-            <BeamTitle style={styles.title}>{title}</BeamTitle>
-            </ImageBackground>
+            {disabled &&
+                <NormalBackground
+                    source={background}
+                    isBackground={true}
+                    imageStyle={styles.image}
+                    style={styles.imageBackground}
+                    resizeMode="cover"
+                >
+                    <BeamTitle style={styles.title}>{title}</BeamTitle>
+                </NormalBackground>
+            }
+            {!disabled &&
+                <ImageBackground
+                    source={background}
+                    isBackground={true}
+                    imageStyle={styles.image}
+                    style={styles.imageBackground}
+                    resizeMode="cover"
+                >
+                <BeamTitle style={styles.title}>{title}</BeamTitle>
+                </ImageBackground>
+            }
             <View style={styles.sub1}>
                 <View style={styles.listContain}> 
                     <FlatList

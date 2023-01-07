@@ -1,4 +1,4 @@
-import React, { useCallback, useState, useRef } from 'react';
+import React, { useCallback, useState, useRef, useEffect } from 'react';
 import { View, StyleSheet, FlatList, RefreshControl } from 'react-native';
 import { API, Auth, graphqlOperation, Storage} from 'aws-amplify';
 import { useFocusEffect } from '@react-navigation/native';
@@ -17,6 +17,8 @@ import * as timeLogic from '../functions/timeLogic';
 import * as distance from '../functions/distance';
 import NoLocationAlert from '../comps/NoLocationAlert';
 import NoChatsAlert from '../comps/NoChatsAlert';
+import CreateChat from '../comps/CreateChat';
+import IconButton from '../comps/IconButton';
 
 export default function ChatsPage({ navigation }) {
     const memberStatusSub = useRef();
@@ -30,9 +32,26 @@ export default function ChatsPage({ navigation }) {
     const [noChats, setNoChats] = useState(false);
     const [rerender, setRerender] = useState(false);
     const [chats, setChats] = useState([]);
+    const [showCreate, setShowCreate] = useState(false);
 
     const netInfo = useNetInfo();
 
+    //SIMPLY TO MAKE THE HEADERBUTTON WORK
+    useEffect(() => {
+        navigation.setOptions({
+            headerRight: () => (
+                <View style={{ alignItems: "center", justifyContent: "center", marginRight: 10, flex: 1 }}>
+                    <IconButton
+                        icon="add-circle"
+                        brand="Ionicons"
+                        color={colors.text1}
+                        size={32}
+                        onPress={() => setShowCreate(true)}
+                    />
+                </View>
+            )
+        })
+    },[navigation])
 
     useFocusEffect(useCallback(() => {
         if (timeClockSub.current) clearInterval(timeClockSub.current);
@@ -112,6 +131,7 @@ export default function ChatsPage({ navigation }) {
                         var chatData = [];
                         for (var i = 0; i < userChats.length; i++) {
                             var chat = userChats[i].chat;
+                            if (chat.private) continue;
                             chat.background.full = await Storage.get(chat.background.full);
                             chat.background.loadFull = await Storage.get(chat.background.loadFull);
                             chat.createdAt = chat.createdAt.substring(0, 10);
@@ -159,6 +179,7 @@ export default function ChatsPage({ navigation }) {
                                 }
                             }));
                         }
+                        if (chatData.length == 0) setNoChats(true);
                         sortChats(chatData);
                         setChats(chatData);
                     } else throw "[CHATSPAGE] onRefresh failed because of an error getting userChats."
@@ -313,7 +334,8 @@ export default function ChatsPage({ navigation }) {
                 />
             </Screen>
             <NoChatsAlert visible={noChats} />
-            <NoLocationAlert visible={!locEnabled} enable={enableLocation}/>
+            <NoLocationAlert visible={!locEnabled} enable={enableLocation} />
+            <CreateChat visible={showCreate} onClose={() => setShowCreate(false)} currentUser={currentUser.current} />
             <Loading enabled={!ready} />
         </>
     );

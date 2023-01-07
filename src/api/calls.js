@@ -137,7 +137,7 @@ export const getUserChats = /* GraphQL */ `
                 chat {
                     id
                     name
-                    type
+                    private
                     lat
                     long
                     background {

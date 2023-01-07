@@ -11,24 +11,42 @@ import Screen from './Screen';
 
 export default function NoChatsAlert({
     style,
+    privateChat = false,
     visible = false,
     ...otherProps
 }) {
     if (visible) {
-        return (
-            <Screen innerStyle={styles.innerStyle} style={styles.noLocation}>
-                <View style={styles.noLocationAlert}>
-                    <BeamTitle size={24}>No Chats</BeamTitle>
-                    <SubTitle size={16}>There are no chats near</SubTitle>
-                    <SubTitle size={16}>you. Go to a public area</SubTitle>
-                    <SubTitle size={16}>to start chatting with</SubTitle>
-                    <SubTitle size={16}>people near you.</SubTitle>
-                    <View height={20} />
-                    <MaterialIcons name="group" size={140} color={colors.text3} />
-                    <View height={20} />
-                </View>
-            </Screen>
-        );
+        if (!privateChat) {
+            return (
+                <Screen innerStyle={styles.innerStyle} style={styles.noLocation}>
+                    <View style={styles.noLocationAlert}>
+                        <BeamTitle size={24}>No Chats</BeamTitle>
+                        <SubTitle size={16}>There are no chats near</SubTitle>
+                        <SubTitle size={16}>you. Go to a public area</SubTitle>
+                        <SubTitle size={16}>to start chatting with</SubTitle>
+                        <SubTitle size={16}>people near you.</SubTitle>
+                        <View height={20} />
+                        <MaterialIcons name="group" size={140} color={colors.text3} />
+                        <View height={20} />
+                    </View>
+                </Screen>
+            );
+        } else {
+            return (
+                <Screen innerStyle={styles.innerStyle} style={styles.noLocation}>
+                    <View style={styles.noLocationAlert}>
+                        <BeamTitle size={24}>No Chats</BeamTitle>
+                        <SubTitle size={16}>You don't have any private</SubTitle>
+                        <SubTitle size={16}>messages right now. You should</SubTitle>
+                        <SubTitle size={16}>search for users or meet</SubTitle>
+                        <SubTitle size={16}>some people near you.</SubTitle>
+                        <View height={20} />
+                        <MaterialIcons name="group" size={140} color={colors.text3} />
+                        <View height={20} />
+                    </View>
+                </Screen>
+            );
+        }
     }
 }
 

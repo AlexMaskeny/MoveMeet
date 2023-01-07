@@ -1,5 +1,5 @@
 import React from 'react';
-import { StyleSheet } from 'react-native';
+import { StyleSheet, View } from 'react-native';
 import { NavigationContainer, getFocusedRouteNameFromRoute } from '@react-navigation/native';
 import { createBottomTabNavigator } from '@react-navigation/bottom-tabs';
 import { createStackNavigator } from '@react-navigation/stack';
@@ -9,6 +9,7 @@ import LoadingPage from './pages/LoadingPage';
 import LoginPage from './pages/LoginPage';
 import ChatsPage from './pages/ChatsPage';
 import ChatPage from './pages/ChatPage';
+import PrivateChatsPage from './pages/PrivateChatsPage';
 import IconButton from './comps/IconButton';
 import UProfileSettings from './pages/UProfileSettings';
 import TestPage from './pages/TestPage';
@@ -65,7 +66,7 @@ function navigation() {
                         if (routeName === "ChatPage") {
                             navigation.setOptions({ tabBarStyle: { display: 'none' } });
                         } else {
-                            navigation.setOptions({ tabBarStyle: SecondNavStyle.tabBarStyle });
+                            navigation.setOptions({tabBarStyle: SecondNavStyle.tabBarStyle});
                         }
                     }, [navigation, route]);
                     return (
@@ -81,6 +82,37 @@ function navigation() {
                                         shadowColor: color,
                                     }}
                                     onPress={() => navigation.navigate("TChatNav")}
+                                />
+                        }
+                    )
+                }}
+            />
+            <Secondary.Screen
+                name="PChatNav"
+                component={PChatNav}
+                options={({ navigation, route }) => {
+                    React.useLayoutEffect(() => {
+                        const routeName = getFocusedRouteNameFromRoute(route) ?? "PrivateChatsPage";
+                        logger.log("Page: " + routeName);
+                        if (routeName === "ChatPage") {
+                            navigation.setOptions({ tabBarStyle: { display: 'none' } });
+                        } else {
+                            navigation.setOptions({ tabBarStyle: SecondNavStyle.tabBarStyle });
+                        }
+                    }, [navigation, route]);
+                    return (
+                        {
+                            tabBarIcon: ({ color }) =>
+                                <IconButton
+                                    icon="wechat"
+                                    color={color}
+                                    brand="MaterialCommunityIcons"
+                                    size={36}
+                                    style={{
+                                        ...css.beamShadow,
+                                        shadowColor: color,
+                                    }}
+                                    onPress={() => navigation.navigate("PChatNav")}
                                 />
                         }
                     )
@@ -128,25 +160,42 @@ function navigation() {
             />
         </Secondary.Navigator>
     );
+    const chatNavOptions = {
+        headerShown: true,
+        gestureEnabled: false,
+        headerStyle: {
+            backgroundColor: colors.container,
+            borderBottomColor: colors.pBeam,
+            borderBottomWidth: 1,
+            ...css.beamShadow
+        },
+        headerTintColor: colors.pBeamBright,
+        headerLeft: () => <></>,
+    }
     const TChat = createStackNavigator();
     const TChatNav = () => (
-        <TChat.Navigator
-            screenOptions={{
-                headerShown: true,
-                gestureEnabled: false,
-                headerStyle: {
-                    backgroundColor: colors.container,
-                    borderBottomColor: colors.pBeam,
-                    borderBottomWidth: 1,
-                    ...css.beamShadow
-                },
-                headerTintColor: colors.pBeamBright,
-                headerLeft: () => <></>,
-            }}
-            
-        >
-            <TChat.Screen name="ChatsPage" component={ChatsPage} options={{ title: "Chats" }} />
-            <TChat.Screen name="ChatPage" component={ChatPage} options={({ route, navigation }) => (
+        <TChat.Navigator screenOptions={chatNavOptions}>
+            <TChat.Screen name="ChatsPage" component={ChatsPage} options={({ navigation }) => ({
+                title: "Chats Near You",
+             })}/>
+            <TChat.Screen name="ChatPage" component={ChatPage} options={({ route, navigation }) => ({
+                title: route.params.name,
+                headerLeft: () => (
+                    <IconButton
+                        icon="ios-chevron-back-outline"
+                        color={colors.pBeamBright}
+                        brand="Ionicons"
+                        size={36}
+                        onPress={() => navigation.goBack()}
+                    />
+            )})}/>
+        </TChat.Navigator>
+    );
+    const PChat = createStackNavigator();
+    const PChatNav = () => (
+        <PChat.Navigator screenOptions={chatNavOptions}>
+            <PChat.Screen name="PrivateChatsPage" component={PrivateChatsPage} options={{ title: "Private Chats" }} />
+            <PChat.Screen name="ChatPage" component={ChatPage} options={({ route, navigation }) => (
                 {
                     title: route.params.name,
                     headerLeft: () => (
@@ -159,9 +208,9 @@ function navigation() {
                         />
                     )
                 }
-               )}
+            )}
             />
-        </TChat.Navigator>
+        </PChat.Navigator>
     );
     return (
         <NavigationContainer>

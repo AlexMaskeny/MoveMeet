@@ -25,24 +25,9 @@ export default function CopyMessage({
     }
     if (item && visible) {
         return (
-            <View style={styles.container} onPress={onRequestClose}>
-
-                    <ComplexMessage {...item} />
-             
-                {/*<View style={styles.belowContainer}>*/}
-                {/*    <TouchableOpacity style={styles.buttonContainer} onPress={copy}>*/}
-                {/*        <MaterialCommunityIcons name="content-copy" size={26} color={colors.text1} />*/}
-                {/*        <View style={{width: 10}} />*/}
-                {/*        <SubTitle color={colors.text2} size={18}>Copy Message</SubTitle>*/}
-                {/*    </TouchableOpacity>*/}
-                {/*    <DarkBeam style={{ backgroundColor: colors.text4, height: 1, marginVertical: 14 }} />*/}
-                {/*    <TouchableOpacity style={styles.buttonContainer} onPress={onRequestClose}>*/}
-                {/*        <MaterialCommunityIcons name="cancel" size={26} color={colors.text1} />*/}
-                {/*        <View style={{ width: 10 }} />*/}
-                {/*        <SubTitle color={colors.text2} size={18}>Cancel</SubTitle>*/}
-                {/*    </TouchableOpacity>*/}
-                {/*</View>*/}
-            </View>
+            <Modal visible={visible} transparent={true}>
+                <ComplexMessage {...item} />
+            </Modal>
         );
     }
 }
