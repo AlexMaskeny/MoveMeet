@@ -1,4 +1,4 @@
-import React, { useCallback, useRef, useState } from 'react';
+import React, { useCallback, useRef, useState, useEffect } from 'react';
 import { StyleSheet, ActivityIndicator, FlatList, View, KeyboardAvoidingView, Keyboard } from 'react-native'
 import { useHeaderHeight } from '@react-navigation/elements';
 import { useNetInfo } from '@react-native-community/netinfo';
@@ -7,6 +7,7 @@ import { API, graphqlOperation, Storage } from 'aws-amplify';
 import { useFocusEffect } from '@react-navigation/native';
 import { LongPressGestureHandler, State } from 'react-native-gesture-handler';
 import * as Haptics from 'expo-haptics';
+import * as Notifications from 'expo-notifications';
 import ImageView from 'react-native-image-viewing';
 
 import Screen from '../comps/Screen';
@@ -59,8 +60,35 @@ export default function ChatPage({ route, navigation }) {
 
     const netInfo = useNetInfo();
 
+    //SIMPLY TO MAKE THE HEADERBUTTON WORK
+    useEffect(() => {
+        navigation.setOptions({
+            title: route.params.name,
+            headerLeft: () => (
+                <IconButton
+                    icon="ios-chevron-back-outline"
+                    color={colors.pBeamBright}
+                    brand="Ionicons"
+                    size={36}
+                    onPress={() => {
+                        if (route.params.private) {
+                            navigation.navigate("PChatNav", { screen: "PrivateChatsPage" });
+                        } else navigation.navigate("TChatNav", { screen: "ChatsPage" });
+                    }}
+                />
+            )
+        })
+    }, [navigation])
+
     //INITIALIATION & SUBSCRIPTION HANDLING
     useFocusEffect(useCallback(() => {
+        Notifications.setNotificationHandler({
+            handleNotification: async (notification) => ({
+                shouldShowAlert: notification.request.content.data.chatID == route.params.id ? false : true,
+                shouldPlaySound: false,
+                shouldSetBadge: false,
+            }),
+        });
         if (timeClockSub.current) clearInterval(timeClockSub.current);
         timeClockSub.current = setInterval(updateTime, 10000);
         logger.eLog("[SUBMANAGER] ChatPage timeClock subscription open.");
@@ -137,7 +165,7 @@ export default function ChatPage({ route, navigation }) {
                 logger.eLog("[SUBMANAGER]: Error detected receiving a user status update in a ChatPage. Reconnecting...");
             }
         })
- 
+
         getMoreMessages({ initial: true });
         return () => {
             try {
@@ -167,6 +195,15 @@ export default function ChatPage({ route, navigation }) {
                     clearTimeout(value);
                     logger.eLog("[SUBMANAGER] A member that was typing was cleared from the array.");
                 })
+            } catch (error) { }
+            try {
+                Notifications.setNotificationHandler({
+                    handleNotification: async (notification) => ({
+                        shouldShowAlert: true,
+                        shouldPlaySound: false,
+                        shouldSetBadge: false,
+                    }),
+                });
             } catch (error) { }
         }
     }, [rerender]));

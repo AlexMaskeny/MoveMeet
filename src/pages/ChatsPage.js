@@ -216,7 +216,7 @@ export default function ChatsPage({ navigation }) {
                 Chats[index].latest = "Now";
                 if (value.user.id != currentUser.current.id) Chats[index].glow = true;
             }
-
+            sortChats(Chats);
             return [...Chats];
         });
     }
@@ -273,6 +273,7 @@ export default function ChatsPage({ navigation }) {
         const result = await Location.requestForegroundPermissionsAsync();
         if (result.granted) {
             setLocEnabled(true);
+            setReady(false);
             navigation.navigate("LoadingPage");
         }
     }

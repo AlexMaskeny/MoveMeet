@@ -35,6 +35,7 @@ export default function PrivateChat({
                     id: id,
                     userChatMembersID,
                     user,
+                    private: true,
                 }
             })
         );

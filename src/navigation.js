@@ -178,38 +178,14 @@ function navigation() {
             <TChat.Screen name="ChatsPage" component={ChatsPage} options={({ navigation }) => ({
                 title: "Chats Near You",
              })}/>
-            <TChat.Screen name="ChatPage" component={ChatPage} options={({ route, navigation }) => ({
-                title: route.params.name,
-                headerLeft: () => (
-                    <IconButton
-                        icon="ios-chevron-back-outline"
-                        color={colors.pBeamBright}
-                        brand="Ionicons"
-                        size={36}
-                        onPress={() => navigation.goBack()}
-                    />
-            )})}/>
+            <TChat.Screen name="ChatPage" component={ChatPage} />
         </TChat.Navigator>
     );
     const PChat = createStackNavigator();
     const PChatNav = () => (
         <PChat.Navigator screenOptions={chatNavOptions}>
             <PChat.Screen name="PrivateChatsPage" component={PrivateChatsPage} options={{ title: "Private Chats" }} />
-            <PChat.Screen name="ChatPage" component={ChatPage} options={({ route, navigation }) => (
-                {
-                    title: route.params.name,
-                    headerLeft: () => (
-                        <IconButton
-                            icon="ios-chevron-back-outline"
-                            color={colors.pBeamBright}
-                            brand="Ionicons"
-                            size={36}
-                            onPress={() => navigation.goBack()}
-                        />
-                    )
-                }
-            )}
-            />
+            <PChat.Screen name="ChatPage" component={ChatPage} />
         </PChat.Navigator>
     );
     return (

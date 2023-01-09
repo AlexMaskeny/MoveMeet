@@ -211,6 +211,14 @@ export const getChat = /* GraphQL */ `
         }
         nextToken
       }
+      members {
+        items {
+          id
+          user {
+            id
+          }
+        }
+      }
       createdAt
       updatedAt
     }
@@ -363,6 +371,7 @@ export const getUserByCognito = /* GraphQL */ `
     getUserByCognito(id: $id) {
       id
       username
+      allowNotifications
       profilePicture {
         bucket
         region

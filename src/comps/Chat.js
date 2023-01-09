@@ -1,5 +1,6 @@
 import React, { useEffect } from 'react';
 import { View, StyleSheet, FlatList, ImageBackground as NormalBackground } from 'react-native';
+import { CommonActions } from '@react-navigation/native';
 
 import { colors, css } from '../config';
 import BeamTitle from './BeamTitle';
@@ -9,7 +10,6 @@ import ChatButton from './ChatButton';
 import { LinearGradient } from 'expo-linear-gradient';
 import SimpleMessage from './SimpleMessage';
 import ImageBackground from './ImageLoader'
-import { CommonActions } from '@react-navigation/native';
 
 //DESCRIPTION: A generalized chat box which will be embedded
 //             inside of a flatlist on the ChatsPage

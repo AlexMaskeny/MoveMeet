@@ -1,11 +1,13 @@
-import React, { useCallback, useRef } from 'react';
+import React, { useCallback, useRef, useEffect } from 'react';
 import { StyleSheet, Image, ActivityIndicator, View } from 'react-native';
 import { API, Auth, graphqlOperation } from 'aws-amplify';
 import AsyncStorage from '@react-native-async-storage/async-storage';
 import * as Location from 'expo-location';
 import { useFocusEffect } from '@react-navigation/native';
+import * as Notifications from 'expo-notifications';
+import { CommonActions } from '@react-navigation/native';
 
-import { getUserByCognito, updateUser } from '../api/calls';
+import { getChat, getUserByCognito, updateUser } from '../api/calls';
 import * as logger from '../functions/logger';
 import * as locConversion from '../functions/locConversion';
 import Screen from '../comps/Screen';
@@ -15,27 +17,97 @@ const NO_USER = "The user is not authenticated";
 
 export default function LoadingPage({navigation}) {
     const loc = useRef();
+    const not = useRef();
     const currentUser = useRef();
 
-    const unsubscribe = useCallback(() => {
+
+    const unsubscribe = () => {
         currentUser.current = null;
-        loc.current.remove();
-        logger.log("Unsubscribed from location updates");
-    });
+        try { loc.current.remove() } catch { }
+        try { not.current.remove()} catch { }
+        logger.log("Unsubscribed from notification / location updates.");
+    };
+
+    useEffect(() => { return () => {unsubscribe()} }, []);
 
     useFocusEffect(useCallback(() => {
         const initialFunction = async () => {
+            unsubscribe();
             logger.log("Initiating...");
-
             try {
                 currentUser.current = await Auth.currentAuthenticatedUser();
                 if (currentUser.current) {
                     const perm = await Location.getForegroundPermissionsAsync();
+                    const user = await API.graphql(graphqlOperation(getUserByCognito, {
+                        id: currentUser.current.attributes.sub
+                    }));
+                    if (user.data.getUserByCognito.allowNotifications) {
+                        const result = await Notifications.getPermissionsAsync();
+                        if (result.ios.status == Notifications.IosAuthorizationStatus.NOT_DETERMINED) {
+                            const result2 = await Notifications.requestPermissionsAsync();
+                            if (result2.granted) {
+                                const key = await Notifications.getExpoPushTokenAsync();
+                                await API.graphql(graphqlOperation(updateUser, {
+                                    input: {
+                                        id: user.data.getUserByCognito.id,
+                                        allowNotifications: true,
+                                        expoToken: key.data
+                                    }
+                                }))
+                            }
+                        }
+                        const result3 = await Notifications.getPermissionsAsync();
+                        if (result3.ios.status == Notifications.IosAuthorizationStatus.AUTHORIZED) {
+                            not.current = Notifications.addNotificationResponseReceivedListener(notification => {
+                                const iF = async () => {
+                                    const chat = await API.graphql(graphqlOperation(getChat, {
+                                        id: notification.notification.request.content.data.chatID
+                                    }));
+                                    const userChatMembersID = chat.data.getChat.members.items[chat.data.getChat.members.items.findIndex((el) => el.user.id == user.data.getUserByCognito.id)];
+                                    if (notification.notification.request.content.data.privateChat) {
+                                        navigation.dispatch(
+                                            CommonActions.navigate({
+                                                name: "ChatPage",
+                                                key: chat.data.getChat.id,
+                                                params: {
+                                                    name: notification.notification.request.content.title,
+                                                    created: chat.data.getChat.createdAt,
+                                                    id: chat.data.getChat.id,
+                                                    userChatMembersID,
+                                                    user: user.data.getUserByCognito,
+                                                    private: true,
+                                                }
+                                            })
+                                        );
+                                    } else {
+                                        navigation.dispatch(
+                                            CommonActions.navigate({
+                                                name: "ChatPage",
+                                                key: chat.data.getChat.id,
+                                                params: {
+                                                    name: chat.data.getChat.name,
+                                                    created: chat.data.getChat.createdAt,
+                                                    id: chat.data.getChat.id,
+                                                    userChatMembersID,
+                                                    user: user.data.getUserByCognito,
+                                                }
+                                            })
+                                        );
+                                    }
+                                }
+                                iF();
+                            });
+                        } else {
+                            await API.graphql(graphqlOperation(updateUser, {
+                                input: {
+                                    id: user.data.getUserByCognito.id,
+                                    allowNotifications: false,
+                                }
+                            }))
+                        }
+                    }
                     if (perm.granted) {
-                        const user = await API.graphql(graphqlOperation(getUserByCognito, {
-                            id: currentUser.current.attributes.sub
-                        }));
-                        loc.current = await Location.watchPositionAsync({ accuracy: 6, distanceInterval: 0, timeInterval: 10000 }, async (location) => {
+                        loc.current = await Location.watchPositionAsync({ accuracy: 5, distanceInterval: 0, timeInterval: 10000 }, async (location) => {
                             try {
                                 currentUser.current = await Auth.currentAuthenticatedUser();
                                 if (currentUser.current) {
