@@ -60,39 +60,44 @@ export default function LoadingPage({navigation}) {
                         if (result3.ios.status == Notifications.IosAuthorizationStatus.AUTHORIZED) {
                             not.current = Notifications.addNotificationResponseReceivedListener(notification => {
                                 const iF = async () => {
-                                    const chat = await API.graphql(graphqlOperation(getChat, {
-                                        id: notification.notification.request.content.data.chatID
-                                    }));
-                                    const userChatMembersID = chat.data.getChat.members.items[chat.data.getChat.members.items.findIndex((el) => el.user.id == user.data.getUserByCognito.id)];
-                                    if (notification.notification.request.content.data.privateChat) {
-                                        navigation.dispatch(
-                                            CommonActions.navigate({
-                                                name: "ChatPage",
-                                                key: chat.data.getChat.id,
-                                                params: {
-                                                    name: notification.notification.request.content.title,
-                                                    created: chat.data.getChat.createdAt,
-                                                    id: chat.data.getChat.id,
-                                                    userChatMembersID,
-                                                    user: user.data.getUserByCognito,
-                                                    private: true,
-                                                }
-                                            })
-                                        );
-                                    } else {
-                                        navigation.dispatch(
-                                            CommonActions.navigate({
-                                                name: "ChatPage",
-                                                key: chat.data.getChat.id,
-                                                params: {
-                                                    name: chat.data.getChat.name,
-                                                    created: chat.data.getChat.createdAt,
-                                                    id: chat.data.getChat.id,
-                                                    userChatMembersID,
-                                                    user: user.data.getUserByCognito,
-                                                }
-                                            })
-                                        );
+                                    try {
+                                        const chat = await API.graphql(graphqlOperation(getChat, {
+                                            id: notification.notification.request.content.data.chatID
+                                        }));
+                                        const userChatMembersID = chat.data.getChat.members.items[chat.data.getChat.members.items.findIndex((el) => el.user.id == user.data.getUserByCognito.id)];
+                                        if (notification.notification.request.content.data.privateChat) {
+                                            navigation.dispatch(
+                                                CommonActions.navigate({
+                                                    name: "ChatPage",
+                                                    key: chat.data.getChat.id,
+                                                    params: {
+                                                        name: notification.notification.request.content.title,
+                                                        created: chat.data.getChat.createdAt,
+                                                        id: chat.data.getChat.id,
+                                                        userChatMembersID,
+                                                        user: user.data.getUserByCognito,
+                                                        private: true,
+                                                    }
+                                                })
+                                            );
+                                        } else {
+                                            navigation.dispatch(
+                                                CommonActions.navigate({
+                                                    name: "ChatPage",
+                                                    key: chat.data.getChat.id,
+                                                    params: {
+                                                        name: chat.data.getChat.name,
+                                                        created: chat.data.getChat.createdAt,
+                                                        id: chat.data.getChat.id,
+                                                        userChatMembersID,
+                                                        user: user.data.getUserByCognito,
+                                                    }
+                                                })
+                                            );
+                                        }
+                                        await Notifications.dismissAllNotificationsAsync();
+                                    } catch (error) {
+                                        logger.warn(error);
                                     }
                                 }
                                 iF();

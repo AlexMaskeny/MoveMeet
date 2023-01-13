@@ -11,7 +11,7 @@ import ChatsPage from './pages/ChatsPage';
 import ChatPage from './pages/ChatPage';
 import PrivateChatsPage from './pages/PrivateChatsPage';
 import IconButton from './comps/IconButton';
-import UProfileSettings from './pages/UProfileSettings';
+import UProfilePage from './pages/UProfilePage';
 import TestPage from './pages/TestPage';
 import * as logger from './functions/logger';
 
@@ -73,9 +73,9 @@ function navigation() {
                         {
                             tabBarIcon: ({ color }) =>
                                 <IconButton
-                                    icon="md-chatbubble-ellipses"
+                                    icon="earth"
                                     color={color}
-                                    brand="Ionicons"
+                                    brand="MaterialCommunityIcons"
                                     size={36}
                                     style={{
                                         ...css.beamShadow,
@@ -104,9 +104,9 @@ function navigation() {
                         {
                             tabBarIcon: ({ color }) =>
                                 <IconButton
-                                    icon="wechat"
+                                    icon="md-chatbubble-ellipses"
                                     color={color}
-                                    brand="MaterialCommunityIcons"
+                                    brand="Ionicons"
                                     size={36}
                                     style={{
                                         ...css.beamShadow,
@@ -119,13 +119,13 @@ function navigation() {
                 }}
             />
             <Secondary.Screen
-                name="UProfileSettings"
-                component={UProfileSettings}
+                name="UProfileNav"
+                component={UProfileNav}
                 options={({ navigation }) => (
                     {
                         tabBarIcon: ({ color }) =>
                             <IconButton
-                                icon="baby-face"
+                                icon="account-circle"
                                 brand="MaterialCommunityIcons"
                                 color={color}
                                 size={36}
@@ -133,27 +133,7 @@ function navigation() {
                                     ...css.beamShadow,
                                     shadowColor: color,
                                 }}
-                                onPress={() => navigation.navigate("UProfileSettings")}
-                            />
-                    }
-                )}
-            />
-            <Secondary.Screen
-                name="OtherScreen2"
-                component={TestPage}
-                options={({ navigation }) => (
-                    {
-                        tabBarIcon: ({ color }) =>
-                            <IconButton
-                                icon="nuclear"
-                                color={color}
-                                brand="Ionicons"
-                                size={36}
-                                style={{
-                                    ...css.beamShadow,
-                                    shadowColor: color,
-                                }}
-                                onPress={() => navigation.navigate("OtherScreen2")}
+                                onPress={() => navigation.navigate("UProfileNav")}
                             />
                     }
                 )}
@@ -187,6 +167,13 @@ function navigation() {
             <PChat.Screen name="PrivateChatsPage" component={PrivateChatsPage} options={{ title: "Private Chats" }} />
             <PChat.Screen name="ChatPage" component={ChatPage} />
         </PChat.Navigator>
+    );
+    const UProfile = createStackNavigator();
+    const UProfileNav = () => (
+        <UProfile.Navigator screenOptions={chatNavOptions}>
+            <UProfile.Screen name="UProfilePage" component={UProfilePage} options={{ title: "Your Profile" }} />
+            <UProfile.Screen name="OtherPage" component={UProfilePage} options={{ title: "Other Page" }} />
+        </UProfile.Navigator>
     );
     return (
         <NavigationContainer>

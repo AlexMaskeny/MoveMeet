@@ -372,6 +372,7 @@ export const getUserByCognito = /* GraphQL */ `
       id
       username
       allowNotifications
+      bio
       profilePicture {
         bucket
         region
