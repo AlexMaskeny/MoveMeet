@@ -213,10 +213,16 @@ export const getChat = /* GraphQL */ `
       }
       members {
         items {
-          id
-          user {
             id
-          }
+            user {
+                id
+                name
+                username
+                profilePicture {
+                    full
+                    loadFull
+                }
+            }
         }
       }
       createdAt
@@ -373,6 +379,7 @@ export const getUserByCognito = /* GraphQL */ `
       username
       allowNotifications
       bio
+      name
       profilePicture {
         bucket
         region
@@ -380,6 +387,45 @@ export const getUserByCognito = /* GraphQL */ `
         thumbFull
         full
       }
+    }
+  }
+`;
+
+export const getDetailedUserByCognito = /* GraphQL */ `
+  query GetUserByCognito($id: String!) {
+    getUserByCognito(id: $id) {
+        id
+        username
+        allowNotifications
+        bio
+        name
+        profilePicture {
+            bucket
+            region
+            loadFull
+            thumbFull
+            full
+        }
+        posts {
+            items {
+                id
+                lat
+                image {
+                    bucket
+                    full
+                    loadFull
+                    region
+                }
+                latf1
+                latf2
+                longf1
+                long
+                longf2
+                owner
+                createdAt
+                userPostsId
+            }
+        }
     }
   }
 `;
@@ -480,6 +526,10 @@ export const onReceiveMessage = /* GraphQL */ `
         user {
           id
           username
+          friends {
+             friendID
+             status
+          }
           profilePicture {
             bucket
             region
@@ -586,6 +636,99 @@ export const getMemberStatuses = /* GraphQL */ `
 	    status
         }
       }
+    }
+  }
+`;
+
+export const getUserFriends = /* GraphQL */ `
+  query GetUserFriends($UserID: ID!) {
+    getUser(id: $UserID) {
+        friends {
+            friendID
+            status
+            chatID
+        }
+    }
+  }
+`
+export const deletePost = /* GraphQL */ `
+  mutation DeletePost(
+    $input: DeletePostInput!
+    $condition: ModelPostConditionInput
+  ) {
+    deletePost(input: $input, condition: $condition) {
+      id
+    }
+  }
+`;
+export const createPost = /* GraphQL */ `
+  mutation CreatePost(
+    $input: CreatePostInput!
+    $condition: ModelPostConditionInput
+  ) {
+    createPost(input: $input, condition: $condition) {
+      id
+    }
+  }
+`;
+export const deleteChatMembers = /* GraphQL */ `
+  mutation DeleteChatMembers(
+    $input: DeleteChatMembersInput!
+    $condition: ModelChatMembersConditionInput
+  ) {
+    deleteChatMembers(input: $input, condition: $condition) {
+      id
+    }
+  }
+`;
+
+export const getChatMembersByIds = /* GraphQL */ `
+    query GetChatMembersByIds(
+        $userID: String!
+    ) {
+      getChatMembersByIds(userID: $userID) {
+        items {
+            chatID
+            id
+        }
+      }
+    }
+
+`
+
+export const getDetailedUser = /* GraphQL */ `
+  query GetDetailedUser($id: ID!) {
+    getUser(id: $id) {
+        id
+        username
+        bio
+        name
+        profilePicture {
+            bucket
+            region
+            loadFull
+            thumbFull
+            full
+        }
+        posts {
+            items {
+                id
+                lat
+                image {
+                    bucket
+                    full
+                    loadFull
+                    region
+                }
+                latf1
+                latf2
+                longf1
+                long
+                longf2
+                createdAt
+                userPostsId
+            }
+        }
     }
   }
 `;

@@ -1,0 +1,238 @@
+import React, { useState, useRef, useCallback, useEffect } from 'react';
+import { StyleSheet, View, Image, FlatList, RefreshControl} from 'react-native';
+import { API, graphqlOperation, Storage } from 'aws-amplify';
+import { LinearGradient } from 'expo-linear-gradient';
+import * as Location from 'expo-location';
+
+import Screen from '../comps/Screen';
+import Loading from '../comps/Loading';
+import { colors, css } from '../config';
+import * as logger from '../functions/logger';
+import * as timeLogic from '../functions/timeLogic';
+import * as distance from '../functions/distance';
+import * as locConversion from '../functions/locConversion';
+import { getDetailedUser } from '../api/calls';
+import Beam from '../comps/Beam';
+import ProfileCircle from '../comps/ProfileCircle';
+import SubTitle from '../comps/SubTitle';
+import Post from '../comps/Post';
+import SimpleInput from '../comps/SimpleInput';
+import IconButton from '../comps/IconButton';
+
+
+export default function OProfilePage({ navigation, route }) {
+    const currentUser = useRef();
+
+    const [posts, setPosts] = useState([]);
+    const [username, setUsername] = useState("");
+    const [bio, setBio] = useState(""); 
+    const [name, setName] = useState("");
+    const [profilePicture, setProfilePicture] = useState({});
+    const [ready, setReady] = useState(false);
+    const [refresh, setRefresh] = useState(false);
+    const [rerender, setRerender] = useState(false);
+
+
+    //SIMPLY TO MAKE THE HEADERBUTTON WORK
+    useEffect(() => {
+        navigation.setOptions({
+            title: name,
+            headerLeft: () => (
+                <View style={{ alignItems: "center", justifyContent: "center", flexDirection: "row", flex: 1 }}>
+                    <IconButton
+                        icon="chevron-back"
+                        brand="Ionicons"
+                        color={colors.pBeamBright}
+                        size={34}
+                        onPress={() => navigation.goBack()}
+                    />
+                </View>
+            ),
+        })
+    }, [name])
+
+    //DATA FETCHING
+    useEffect(() => {
+        const initialFunction = async () => {
+            try {
+                logger.eLog("[OProfilePage] Fetching User Data...");
+                const user = await API.graphql(graphqlOperation(getDetailedUser, {
+                    id: route.params.opposingUser.id
+                }));
+                currentUser.current = user.data.getUser;
+                setUsername(currentUser.current.username);
+                setName(currentUser.current.name);
+                setBio(currentUser.current.bio);
+                const loadFull = await Storage.get(currentUser.current.profilePicture.loadFull);
+                const full = await Storage.get(currentUser.current.profilePicture.full);
+                const locPerms = await Location.getForegroundPermissionsAsync();
+                var location;
+                if (locPerms.granted) {
+                    const locResponse = await Location.getLastKnownPositionAsync();
+                    location = locConversion.toUser(locResponse.coords.latitude, locResponse.coords.longitude);
+                };
+                for (var i = 0; i < currentUser.current.posts.items.length; i++) {
+                    currentUser.current.posts.items[i].image.loadFull = await Storage.get(currentUser.current.posts.items[i].image.loadFull);
+                    currentUser.current.posts.items[i].image.full = await Storage.get(currentUser.current.posts.items[i].image.full);
+                    currentUser.current.posts.items[i].time = timeLogic.ago((Date.now() - Date.parse(currentUser.current.posts.items[i].createdAt)) / 1000);
+                    if (locPerms.granted) {
+                        currentUser.current.posts.items[i].distance = distance.formula(
+                            location.lat,
+                            location.long,
+                            currentUser.current.posts.items[i].lat,
+                            currentUser.current.posts.items[i].long,
+                        );
+                        currentUser.current.posts.items[i].distance
+                    } else currentUser.current.posts.items[i].distance = "an unknown distance"
+                }
+                    
+                setPosts(currentUser.current.posts.items.sort((a, b) => {
+                    if (Date.parse(a.createdAt) > Date.parse(b.createdAt)) {
+                        return -1;
+                    } else return 1;
+                }));
+                setProfilePicture({ uri: full, loadImage: loadFull });
+                
+            } catch (error) {
+                logger.warn(error);
+            } finally {
+                setReady(true);
+                setRefresh(false);
+            }
+        }
+        initialFunction();
+    }, [rerender]);
+
+    const keyExtractor = useCallback((item) => item.id, []);
+    const renderItem = useCallback(({ item }) => (
+        <Post
+            user={currentUser.current}
+            profilePicture={profilePicture}
+            post={item}
+            edit={false}
+            onDelete={()=>logger.eLog("This shouldn't happen")}
+        />
+    ), [posts, profilePicture]);
+
+    const ListHeaderComponent = useCallback(()=>(<>
+        <Image
+            style={{ height: 100, width: "100%" }}
+            resizeMode="cover"
+            source={profilePicture}
+        />
+        <LinearGradient
+            colors={['rgba(18, 18, 18,0.4)', colors.background]}
+            style={{ height: 120, width: "100%", marginTop: -120}}
+        />
+        <View style={styles.beamCircle}>
+            <Beam style={styles.beam} />
+            <View style={{ justifyContent: "center" }}>
+                <ProfileCircle ppic={profilePicture} style={styles.ppic} innerStyle={styles.innerPpic} />
+            </View>         
+            <Beam style={styles.beam} />
+        </View>
+        <View style={styles.upperBody}>
+            <View>
+                <SubTitle style={styles.title2} size={16} color={colors.text1}>@{username}</SubTitle>
+            </View>
+            {/*<View>*/}
+            {/*    <SubTitle style={styles.title2} size={18} color={colors.text1}>Message</SubTitle>*/}
+            {/*</View>*/}
+        </View>
+        <View style={styles.midBody}>
+            <SimpleInput
+                autoCorrect={true}
+                editable={false}
+                multiline={true}
+                maxLength={160}
+                style={styles.textInput}
+                defaultValue={bio}
+                onChangeText={setBio}
+            />
+        </View>
+        <View style={{ height: 20 }} />
+    </>), [rerender, ready, profilePicture]);
+
+    return (
+        <Screen innerStyle={styles.page}>
+            {ready &&         
+                <FlatList
+                    data={posts}
+                    style={styles.posts}
+                    showsVerticalScrollIndicator={false}
+                    keyboardShouldPersistTaps="always"
+                    keyboardDismissMode="on-drag"
+                    keyExtractor={keyExtractor}
+                    maxToRenderPerBatch={4}
+                    windowSize={4}
+                    refreshControl={
+                        <RefreshControl
+                            refreshing={refresh}
+                            onRefresh={() => {
+                                setRefresh(true);
+                                setRerender(!rerender);
+                            }}
+                            tintColor={colors.pBeam}
+                        />
+                    }
+                    ListHeaderComponent={ListHeaderComponent}
+                    renderItem={renderItem}
+                />
+            }
+            <Loading enabled={!ready} />
+        </Screen>
+    );
+}
+
+const styles = StyleSheet.create({
+    page: {
+
+    },
+    beamCircle: {
+        flexDirection: 'row',
+        alignItems: "center",
+        marginTop: -50,
+    },
+    beam: {
+        flex: 1,
+    },
+    ppic: {
+        width: 100,
+        height: 100,
+        borderRadius: 50,
+    },
+    innerPpic: {
+        borderRadius: 50,
+    },
+    upperBody: {
+        marginTop: -50,
+        padding: 10,
+        flexDirection: "row",
+        justifyContent: "space-between"
+    },
+    midBody: {
+        padding: 10,
+        margin: 10,
+        marginTop: 40,
+        minHeight: 70,
+        alignItems: "center",
+        backgroundColor: colors.container,
+        borderRadius: 20,
+        ...css.beamShadow,
+        shadowColor: "rgba(0,0,0,0.5)",
+    },
+    title: {
+        fontWeight: "400"
+    },
+    title2: {
+        fontWeight: "500"
+    },
+    textInput: {
+        color: colors.text1,
+        fontSize: 18,
+        maxHeight: 140,
+    },
+    posts: {
+        flex: 1,
+    },
+})

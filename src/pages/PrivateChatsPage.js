@@ -7,7 +7,7 @@ import { useNetInfo } from "@react-native-community/netinfo";
 import Screen from '../comps/Screen';
 import Loading from '../comps/Loading';
 import { colors } from '../config';
-import { getUserByCognito, getUserChats, listMessagesByTime, updateMessage, onReceiveMessage } from '../api/calls';
+import { getUserByCognito, getUserChats, listMessagesByTime, updateMessage, onReceiveMessage, getUserFriends, getChat, updateUser } from '../api/calls';
 import useSubSafe from '../hooks/useSubSafe';
 import * as logger from '../functions/logger';
 import * as locConversion from '../functions/locConversion';
@@ -74,18 +74,22 @@ export default function PrivateChatsPage({ navigation }) {
     const onRefresh = async () => {
         try {
             if (netInfo.isConnected || !ready) {
-                const userChatsResponse = await API.graphql(graphqlOperation(getUserChats, {
-                    id: currentUser.current.id,
-                    private: true,
+                const userFriendsResponse = await API.graphql(graphqlOperation(getUserFriends, {
+                    UserID: currentUser.current.id,
                 }));
-                if (userChatsResponse) {
-                    const userChats = userChatsResponse.data.getUser.chats.items;
-                    if (userChats.length == 0) setNoChats(true);
+                if (userFriendsResponse) {
+                    var userFriends = userFriendsResponse.data.getUser.friends;
+                    if (userFriends.length == 0) setNoChats(true);
                     else setNoChats(false);
                     var chatData = [];
-                    for (var i = 0; i < userChats.length; i++) {
-                        var chat = userChats[i].chat;
-                        if (!chat.private) continue;
+                    for (var i = 0; i < userFriends.length; i++) {
+                        if (userFriends[i].status == "666") continue;
+                        const chatResponse = await API.graphql(graphqlOperation(getChat, {
+                            id: userFriends[i].chatID
+                        }));
+                        var chat = chatResponse.data.getChat;
+                        chat.friend = userFriends[i];
+                        if (chat.members.items.length < 2) continue;
                         if (chat.members.items[0].user.id == currentUser.current.id) { chat.opposingMember = chat.members.items[1]; chat.userChatMembersID = chat.members.items[0].id }
                         else { chat.opposingMember = chat.members.items[0]; chat.userChatMembersID = chat.members.items[1].id }
                         chat.profilePicture = await Storage.get(chat.opposingMember.user.profilePicture.loadFull);
@@ -96,8 +100,9 @@ export default function PrivateChatsPage({ navigation }) {
                             limit: 1
                         }));
                         chat.last1 = [];
+                        chat.status = userFriends[i].status;
                         chat.glow = false;
-                        chat.latest = "New Chat";
+                        chat.latest = "";
                         if (last1) {
                             chat.last1 = last1.data.listMessagesByTime.items;
                             if (last1.data.listMessagesByTime.items[0]) {
@@ -105,7 +110,18 @@ export default function PrivateChatsPage({ navigation }) {
                                 if (!last1.data.listMessagesByTime.items[0].read.includes(currentUser.current.id)) { chat.glow = true }
                             }
                         } else throw "[PRIVATECHATSPAGE] onRefresh failed because of an error getting a chat's last1 messages";
-                        chatData.push(chat);
+                        if (!chat.glow && (userFriends[i].status == "1" || userFriends[i].status == "3")) chat.glow = false;
+                        else chatData.push(chat);
+                        if (chat.glow) {
+                            if (userFriends[i].status == "1") userFriends[i].status = "0";
+                            if (userFriends[i].status == "3") userFriends[i].status = "2";
+                            await API.graphql(graphqlOperation(updateUser, {
+                                input: {
+                                    id: currentUser.current.id,
+                                    friends: userFriends
+                                }
+                            }));
+                        }
                         userChatsSub.current.push(API.graphql(graphqlOperation(onReceiveMessage, {
                             chatMessagesId: chat.id,
                         })).subscribe({
@@ -137,15 +153,20 @@ export default function PrivateChatsPage({ navigation }) {
 
     const messageUpdate = async (data) => {
         const value = data.data.onReceiveMessage;
-
         setChats(existingItems => {
             var Chats = [...existingItems];
             const index = Chats.findIndex(el => el.id == value.chatMessagesId);
-            Chats[index].latest = "Now";
-            Chats[index].last1 = [value];  
-            if (value.user.id != currentUser.current.id) Chats[index].glow = true;
+            if (index == -1) {
+                unsubscribeChats();
+                onRefresh();
 
+            } else {
+                Chats[index].latest = "Now";
+                Chats[index].last1 = [value];  
+                if (value.user.id != currentUser.current.id) Chats[index].glow = true;
+            }
             return [...Chats];
+
         });
     }
     const sortChats = (chatData) => {
@@ -202,6 +223,8 @@ export default function PrivateChatsPage({ navigation }) {
     const closeSettings = () => {
         setShowSettings(false);
         setSettingsChat({});
+        setRefresh(true);
+        onRefresh();
     }
     const listFooterComponenet = React.useCallback(() => <View height={30} />, []);
     const keyExtractor = React.useCallback((item) => item.id, []);
@@ -210,6 +233,7 @@ export default function PrivateChatsPage({ navigation }) {
             if (ready) {
                 return (
                     <PrivateChat
+                        status={item.status}
                         profilePicture={item.profilePicture}
                         last1={item.last1}
                         latest={item.latest}

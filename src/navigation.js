@@ -1,10 +1,10 @@
 import React from 'react';
-import { StyleSheet, View } from 'react-native';
+import { StyleSheet} from 'react-native';
 import { NavigationContainer, getFocusedRouteNameFromRoute } from '@react-navigation/native';
 import { createBottomTabNavigator } from '@react-navigation/bottom-tabs';
 import { createStackNavigator } from '@react-navigation/stack';
 
-import { colors, footerHeight, css, debug } from './config';
+import { colors, footerHeight, css } from './config';
 import LoadingPage from './pages/LoadingPage';
 import LoginPage from './pages/LoginPage';
 import ChatsPage from './pages/ChatsPage';
@@ -12,7 +12,7 @@ import ChatPage from './pages/ChatPage';
 import PrivateChatsPage from './pages/PrivateChatsPage';
 import IconButton from './comps/IconButton';
 import UProfilePage from './pages/UProfilePage';
-import TestPage from './pages/TestPage';
+import OProfilePage from './pages/OProfilePage';
 import * as logger from './functions/logger';
 
 //The navigation screen starts on the loading screen which uses
@@ -159,6 +159,7 @@ function navigation() {
                 title: "Chats Near You",
              })}/>
             <TChat.Screen name="ChatPage" component={ChatPage} />
+            <TChat.Screen name="OProfilePage" component={OProfilePage} />
         </TChat.Navigator>
     );
     const PChat = createStackNavigator();
@@ -166,6 +167,7 @@ function navigation() {
         <PChat.Navigator screenOptions={chatNavOptions}>
             <PChat.Screen name="PrivateChatsPage" component={PrivateChatsPage} options={{ title: "Private Chats" }} />
             <PChat.Screen name="ChatPage" component={ChatPage} />
+            <PChat.Screen name="OProfilePage" component={OProfilePage} />
         </PChat.Navigator>
     );
     const UProfile = createStackNavigator();

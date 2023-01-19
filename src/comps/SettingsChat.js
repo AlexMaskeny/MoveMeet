@@ -1,16 +1,16 @@
 import React, { useEffect, useState } from 'react';
-import { Modal, StyleSheet, View } from 'react-native';
-import { Storage } from 'aws-amplify';
+import { Modal, StyleSheet, View, TouchableOpacity, Alert } from 'react-native';
+import { API, graphqlOperation, Storage } from 'aws-amplify';
 import { CommonActions } from '@react-navigation/native';
 
-import Screen from './Screen';
 import SimpleButton from './SimpleButton';
 import Loading from './Loading';
 import ProfileCircle from './ProfileCircle';
 import { colors, css } from '../config';
-import BeamTitle from './BeamTitle';
 import IconButton from './IconButton';
 import SubTitle from './SubTitle';
+import * as logger from '../functions/logger';
+import { deleteChatMembers,  getChatMembersByIds, getUserFriends, listMessagesByTime, updateMessage, updateUser } from '../api/calls';
 
 export default function SettingsChat({ item, onClose, visible, navigate, currentUser, navigation }) {
     const [ready, setReady] = useState(false);
@@ -31,11 +31,83 @@ export default function SettingsChat({ item, onClose, visible, navigate, current
             initialFunction();
         }
     }, [visible]);
-    const removeChat = async () => {
+    const clearChat = async () => {
+        if (item.friend.status == "0") await updateStatus("1");
+        if (item.friend.status == "2") await updateStatus("3");
+        close();
+    }
+    const block = () => {
+        Alert.alert("Are you sure?", "Blocking this user will block them from private messaging you.", [
+            {text: "Cancel"},
+            {
+                text: "Confirm", onPress: () => {
+                    const Close = async () => {
+                        try {
+                            await updateStatus("666");
+                            const result = await API.graphql(graphqlOperation(getChatMembersByIds, {
+                                userID: currentUser.id
+                            }));
+                            const memberIndex = result.data.getChatMembersByIds.items.findIndex((el) => el.chatID == item.friend.chatID);
+                            await API.graphql(graphqlOperation(deleteChatMembers, {
+                                input: {
+                                    id: result.data.getChatMembersByIds.items[memberIndex].id
+                                }
+                            }))
+                            close();
+                        } catch (error) {
+                            logger.warn(error);
+                        }
+                    }
+                    Close();
+                }
+            }
+        ])
 
     }
-    const block = async () => {
+    const updateStatus = async (statusCode) => {
+        try {
+            const userFriendsResponse = await API.graphql(graphqlOperation(getUserFriends, {
+                UserID: currentUser.id,
+            }));
+            if (userFriendsResponse) {
+                var userFriends = userFriendsResponse.data.getUser.friends;
+                const friendIndex = userFriends.findIndex((el) => el.friendID == item.friend.friendID);
+                userFriends[friendIndex].status = statusCode;
+                await API.graphql(graphqlOperation(updateUser, {
+                    input: {
+                        id: currentUser.id,
+                        friends: userFriends
+                    }
+                }));
 
+                const userMessagesResult = await API.graphql(graphqlOperation(listMessagesByTime, {
+                    chatMessagesId: userFriends[friendIndex].chatID,
+                    limit: 1
+                }));
+                var newRead = userMessagesResult.data.listMessagesByTime.items[0].read;
+                if (!newRead.includes(currentUser.id)) {
+                    newRead.push(currentUser.id);
+                    await API.graphql(graphqlOperation(updateMessage, {
+                        input: {
+                            id: userMessagesResult.data.listMessagesByTime.items[0].id,
+                            read: newRead
+                        }
+                    }))
+                }
+            }
+        } catch (error) {
+            logger.warn(error);
+        }
+    }
+    const viewProfile = () => {
+        navigation.dispatch(CommonActions.navigate({
+            name: "OProfilePage",
+            key: item.friend.friendID,
+            params: {
+                opposingUser: { id: item.friend.friendID }
+            }
+        }))
+        close();
     }
     const close = () => {
         setReady(false);
@@ -54,6 +126,7 @@ export default function SettingsChat({ item, onClose, visible, navigate, current
                     id: item.id,
                     userChatMembersID: item.userChatMembersID,
                     user: currentUser,
+                    private: true,
                 }
             })
         );
@@ -67,22 +140,28 @@ export default function SettingsChat({ item, onClose, visible, navigate, current
                         <IconButton color={colors.pBeamBright} icon="md-chatbubble-ellipses" brand="Ionicons" size={32} style={{
                             ...css.beamShadow,
                             shadowColor: colors.pBeam,
-                        }} onPress={message}/>
+                        }} onPress={message} />
+                        <SubTitle color={colors.text2} style={styles.titlePrimary} size={20}>{item.opposingMember.user.username}</SubTitle>
                         <IconButton color={colors.text1} icon="ios-close-circle" brand="Ionicons" size={32} onPress={close} />
                     </View>
                     <View style={styles.body}>
                         <View style={styles.container1}>
                             <ProfileCircle ppic={profilePicture} style={styles.profilePicture} innerStyle={styles.innerStyle}/>
                             <View style={styles.container1sub}>
-                                <SubTitle style={styles.title} size={22}>{item.opposingMember.user.username}</SubTitle>
+                                <View style={styles.username}>
+                                    <SubTitle style={styles.title} size={22}>{item.opposingMember.user.username}</SubTitle>
+                                    <TouchableOpacity style={{ marginLeft: 10 }} onPress={viewProfile }>
+                                        <SubTitle style={styles.subTitlePrimary} size={16}>View</SubTitle>
+                                    </TouchableOpacity>
+                                </View>
                                 <SubTitle style={styles.subTitle} color={colors.text2} size={16}>You last spoke {item.latest}</SubTitle>
-                                <SubTitle style={styles.subTitle} color={colors.text2} size={16}>You first spoke on {item.createdAt}</SubTitle>
+                                <SubTitle style={styles.subTitle} color={colors.text2} size={16}>You first spoke on {(new Date(Date.parse(item.createdAt))).toLocaleDateString()}</SubTitle>
                             </View>
                         </View>
-                        {/*<View style={styles.container2}>*/}
-                        {/*    <SimpleButton title="Remove Chat" onPress={removeChat} outerStyle={styles.removeChat} />*/}
-                        {/*    <SimpleButton title="Block User" onPress={block} outerStyle={styles.block}/>*/}
-                        {/*</View>*/}
+                        <View style={styles.container2}>
+                            <SimpleButton title="Clear Chat" onPress={clearChat} outerStyle={styles.clearChat} />
+                            <SimpleButton title="Block User" onPress={block} outerStyle={styles.block}/>
+                        </View>
                     </View>
                 </>}
 
@@ -114,7 +193,8 @@ const styles = StyleSheet.create({
         flexDirection: "row",
         paddingHorizontal: 14,
         paddingTop: 50,
-        paddingBottom: 10
+        paddingBottom: 10,
+        alignItems: "center"
 
     },
     body: {
@@ -144,12 +224,23 @@ const styles = StyleSheet.create({
     title: {
         fontWeight: "500",
     },
-    removeChat: {
+    titlePrimary: {
+        fontWeight: "500",
+        colors: colors.pBeamBright
+    },
+    clearChat: {
         backgroundColor: colors.container
     },
     block: {
         backgroundColor: colors.errorTransparent,
         borderColor: colors.error,
         shadowColor: colors.error,
+    },
+    username: {
+        flexDirection: "row",
+        alignItems: "center"
+    },
+    subTitlePrimary: {
+        color: colors.pBeamBright
     }
 });

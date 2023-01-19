@@ -20,6 +20,7 @@ export default function PrivateChat({
     created,
     onPress,
     navigation,
+    status
 
 }) {
     const navigate = () => {
@@ -41,8 +42,8 @@ export default function PrivateChat({
         );
     }
     return (<>
-        <View style={[styles.container, glow ? styles.beam : {}]}>
-            <TouchableOpacity style={styles.subContainer} onPress={navigate}>
+        <TouchableOpacity style={[styles.container, glow ? styles.beam : {}]} onPress={navigate}>
+            <View style={styles.subContainer}>
                 <ProfileCircle username={title} ppic={{
                     uri: profilePicture,
                     loadImage: profilePicture
@@ -57,11 +58,11 @@ export default function PrivateChat({
                         {last1.length > 0 ? (last1[0].type == "Text" ? last1[0].content.substring(0, 32) + (last1[0].content.length > 32 ? "..." : "") : "Sent an image") : "Start chatting with " + title}
                     </SubTitle>
                 </View>
-            </TouchableOpacity>
-            <View style={styles.settings}>
-                <IconButton icon="dots-vertical" brand="MaterialCommunityIcons" size={20} onPress={openSettings} />
             </View>
-        </View>
+            <TouchableOpacity style={styles.settings} onPress={openSettings}>
+                <IconButton icon="dots-vertical" brand="MaterialCommunityIcons" size={20} disabled={true} />
+            </TouchableOpacity>
+        </TouchableOpacity>
     </>)
 }
 
@@ -71,7 +72,7 @@ const styles = StyleSheet.create({
         padding: 10,
         flexDirection: "row",
         alignItems: "center",
-        justifyContent: "flex-start",
+        justifyContent: "space-between",
         backgroundColor: colors.container,
         marginHorizontal: 10,
         marginVertical: 6,
@@ -107,9 +108,8 @@ const styles = StyleSheet.create({
         borderWidth: 2
     },
     settings: {
-        flex: 1,
         alignItems: "flex-end",
-        paddingRight: 10,
-    }
+        padding: 10,
+    },
 
 });

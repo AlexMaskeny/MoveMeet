@@ -132,8 +132,8 @@ export default function CreateChat({ visible, onClose, currentUser }) {
                     <SimpleButton outerStyle={styles.button} title="Select Chat Image" onPress={selectImage} loading={loading} disabled={loading} />
                     <View style={styles.desc}>
                         <SubTitle size={16} style={styles.subtitle}>When you create a chat you cannot</SubTitle>
-                        <SubTitle size={16} style={styles.subtitle}>delete it, but it will automatically</SubTitle>
-                        <SubTitle size={16} style={styles.subtitle}>delete after 36 hours. Also, you cannot</SubTitle>
+                        <SubTitle size={16} style={styles.subtitle}>delete it, but it will automatically delete</SubTitle>
+                        <SubTitle size={16} style={styles.subtitle}>after 36 hours of inactivity. Also, you can't</SubTitle>
                         <SubTitle size={16} style={styles.subtitle}>create more than 3 public chats at a time.</SubTitle>
                     </View>
                     <Beam style={{ marginTop: 20, marginBottom: 10 }} />

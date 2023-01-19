@@ -451,7 +451,7 @@ export default function ChatPage({ route, navigation }) {
                 <View style={styles.beginChat}>
                     <BeamTitle size={18}>Begining of Chat</BeamTitle>
                     <SubTitle size={14}>Say Something in {route.params.name}</SubTitle>
-                    <SubTitle color={colors.text3}>Created on {route.params.created}</SubTitle>
+                    <SubTitle color={colors.text3}>Created on {(new Date(Date.parse(route.params.created))).toLocaleDateString()}</SubTitle>
                 </View>
                 <DarkBeam style={styles.darkBeam2} />
             </>);
@@ -515,6 +515,9 @@ export default function ChatPage({ route, navigation }) {
                     <View style={styles.chat}>
                         <ComplexMessage
                             ppic={ppic}
+                            userId={route.params.user.id}
+                            navigation={navigation}
+                            opposingUserId={item.user.id}
                             time={item.date}
                             username={item.user.username}
                             message={item.content}
