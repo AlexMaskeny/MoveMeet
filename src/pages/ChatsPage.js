@@ -8,7 +8,7 @@ import * as Location from 'expo-location';
 import Screen from '../comps/Screen';
 import Loading from '../comps/Loading';
 import Chat from '../comps/Chat';
-import { getUserByCognito, getUserChats, listMessagesByTime, updateMessage, onMemberStatusChange, onReceiveMessage } from '../api/calls';
+import { getUserByCognito, getUserChats, listMessagesByTime, updateMessage, onMemberStatusChange, onReceiveMessage, updateChat } from '../api/calls';
 import { colors } from '../config';
 import useSubSafe from '../hooks/useSubSafe';
 import * as logger from '../functions/logger';
@@ -65,7 +65,7 @@ export default function ChatsPage({ navigation }) {
                     currentUser.current = (await API.graphql(graphqlOperation(getUserByCognito, {
                         id: cognitoUser.attributes.sub
                     }))).data.getUserByCognito;
-
+                    currentUser.current.profilePicture.loadFull = await Storage.get(currentUser.current.profilePicture.loadFull);
                     if (memberStatusSub.current) memberStatusSub.current.unsubscribe();
                     memberStatusSub.current = API.graphql(graphqlOperation(onMemberStatusChange, {
                         userID: currentUser.current.id
@@ -132,11 +132,7 @@ export default function ChatsPage({ navigation }) {
                         for (var i = 0; i < userChats.length; i++) {
                             var chat = userChats[i].chat;
                             if (chat.private) continue;
-                            chat.background.full = await Storage.get(chat.background.full);
-                            chat.background.loadFull = await Storage.get(chat.background.loadFull);
-                            chat.createdAt = chat.createdAt.substring(0, 10);
-                            chat.numMembers = chat.members.items.length;
-                            chat.distance = distance.formula(userLocationConverted.lat, userLocationConverted.long, chat.lat, chat.long);
+                            if (!chat.enabled) continue;
 
                             const last3 = await API.graphql(graphqlOperation(listMessagesByTime, {
                                 chatMessagesId: chat.id,
@@ -145,27 +141,58 @@ export default function ChatsPage({ navigation }) {
                             chat.last3 = [];
                             chat.glow = false;
                             chat.latest = "New Chat";
+
+                            try {
+                                if ((Date.now() - Date.parse(last3.data.listMessagesByTime.items[0].createdAt)) / 1000 > 60 * 60 * 36) { //if enabled and greater than 36 hours old then remove
+                                    await API.graphql(graphqlOperation(updateChat, {
+                                        input: {
+                                            id: chat.id,
+                                            enabled: false
+                                        }
+                                    }))
+                                    continue;
+                                }
+                            } catch (error) { }
+                            try {
+                                if (last3.data.listMessagesByTime.items.length == 0 && (Date.now() - Date.parse(chat.createdAt)) / 1000 > 60 * 60 * 36) {
+                                    await API.graphql(graphqlOperation(updateChat, {
+                                        input: {
+                                            id: chat.id,
+                                            enabled: false
+                                        }
+                                    }))
+                                    continue;
+                                }
+                            } catch (error) {  }
+
                             if (last3) {
                                 chat.last3 = last3.data.listMessagesByTime.items;
-                                getLast3(chat.last3);
                                 if (last3.data.listMessagesByTime.items[0]) {
                                     chat.latest = timeLogic.ago((Date.now() - Date.parse(last3.data.listMessagesByTime.items[0].createdAt)) / 1000);
                                     if (!last3.data.listMessagesByTime.items[0].read.includes(currentUser.current.id)) { chat.glow = true }
                                 }
+                                getLast3(chat.last3);
                             } else {
                                 chat.glow = false;
                                 throw "[CHATSPAGE] onRefresh failed because of an error getting a chat's last3 messages"
                             }
+
+                            chat.background.full = await Storage.get(chat.background.full);
+                            chat.background.loadFull = await Storage.get(chat.background.loadFull);
+                            chat.createdAt = chat.createdAt.substring(0, 10);
+                            chat.numMembers = chat.members.items.length;
+                            chat.distance = distance.formula(userLocationConverted.lat, userLocationConverted.long, chat.lat, chat.long);
+
                             const userChatMembersIDIndex = chat.members.items.findIndex((el) => el.user.id == currentUser.current.id);
                             chat.userChatMembersID = chat.members.items[userChatMembersIDIndex].id;
                             for (var j = 0; j < chat.numMembers; j++) {
                                 const picture = await Storage.get(chat.members.items[j].user.profilePicture.loadFull);
                                 chat.members.items[j].user.picture = picture;
-                                currentUser.current.profilePicture.loadFull = picture;
+
                             }
                             chatData.push(chat);
                             userChatsSub.current.push(API.graphql(graphqlOperation(onReceiveMessage, {
-                                chatMessagesId: chatData[i].id,
+                                chatMessagesId: chat.id,
                             })).subscribe({
                                 next: ({ value }) => {
                                     logger.eLog("[SUBMANAGER]: userChats notification received.");

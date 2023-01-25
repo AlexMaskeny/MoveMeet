@@ -13,6 +13,7 @@ import PrivateChatsPage from './pages/PrivateChatsPage';
 import IconButton from './comps/IconButton';
 import UProfilePage from './pages/UProfilePage';
 import OProfilePage from './pages/OProfilePage';
+import DiscoverPage from './pages/DiscoverPage';
 import * as logger from './functions/logger';
 
 //The navigation screen starts on the loading screen which uses
@@ -86,6 +87,30 @@ function navigation() {
                         }
                     )
                 }}
+            />
+            <Secondary.Screen
+                name="DiscoverNav"
+                component={DiscoverNav}
+                options={({ navigation }) => (
+                    {
+                        headerShown: false,
+                        gestureEnabled: false,
+
+                        title: "Discover",
+                        tabBarIcon: ({ color }) =>
+                            <IconButton
+                                icon="supervised-user-circle"
+                                brand="MaterialIcons"
+                                color={color}
+                                size={36}
+                                style={{
+                                    ...css.beamShadow,
+                                    shadowColor: color,
+                                }}
+                                onPress={() => navigation.navigate("DiscoverNav")}
+                            />
+                    }
+                )}
             />
             <Secondary.Screen
                 name="PChatNav"
@@ -176,6 +201,13 @@ function navigation() {
             <UProfile.Screen name="UProfilePage" component={UProfilePage} options={{ title: "Your Profile" }} />
             <UProfile.Screen name="OtherPage" component={UProfilePage} options={{ title: "Other Page" }} />
         </UProfile.Navigator>
+    );
+    const Discover = createStackNavigator();
+    const DiscoverNav = () => (
+        <Discover.Navigator screenOptions={chatNavOptions}>
+            <Discover.Screen name="DiscoverPage" component={DiscoverPage} options={{ title: "Discover" }} />
+            <Discover.Screen name="OProfilePage" component={OProfilePage} />
+        </Discover.Navigator>
     );
     return (
         <NavigationContainer>

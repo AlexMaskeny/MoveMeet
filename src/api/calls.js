@@ -38,6 +38,7 @@ export const createChat = /* GraphQL */ `
   ) {
     createChat(input: $input, condition: $condition) {
       id
+      createdAt
     }
   }
 `;
@@ -128,6 +129,22 @@ export const getMessage = /* GraphQL */ `
   }
 `;
 
+export const getSimpleUserChats = /* GraphQL */ `
+  query GetSimpleUserChats($id: ID!) {
+    getUser(id: $id) {
+        id
+        chats {
+            items {
+                chat {
+                    id
+                    private
+                }
+            }
+        }
+    }
+  }
+`
+
 export const getUserChats = /* GraphQL */ `
   query GetUserChats($id: ID!) {
     getUser(id: $id) {
@@ -138,6 +155,7 @@ export const getUserChats = /* GraphQL */ `
                     id
                     name
                     private
+                    enabled
                     lat
                     long
                     background {
@@ -184,6 +202,23 @@ export const getUserChats = /* GraphQL */ `
             }
         }
     }
+  }
+`
+
+export const getSimplifiedChat = /* GraphQL */ `
+    query GetSimplifiedChat($id: ID!) {
+        getChat(id: $id) {
+          id
+          members {
+            items {
+                id
+                user {
+                    id
+                }
+            }
+          }
+          createdAt
+        }
   }
 `
 
@@ -262,28 +297,7 @@ export const listChatsByLocation = /* GraphQL */ `
     listChatsByLocation(latf1: $latf1, latf2: $latf2, lat: $lat, long: $long, long1: $long1, long2: $long2, long3: $long3, radius: $radius) {
       items {
         id
-        lat
-        long
-        createdAt
-        name
-        type
-        members {
-            items {
-                user {
-                    id
-                    username
-                    profilePicture {
-                        full
-                        loadFull
-                    }
-                }
-
-            }
-        }
-        background {
-            full
-            loadFull
-        }
+        private
       }
     }
   }
@@ -306,10 +320,12 @@ export const listUsersByLocation = /* GraphQL */ `
         lat
         long
         username
+        bio
         profilePicture {
             full
             loadFull
         }
+        updatedAt
       }
     }
   }
@@ -387,6 +403,7 @@ export const getUserByCognito = /* GraphQL */ `
         thumbFull
         full
       }
+      createdAt
     }
   }
 `;
@@ -399,6 +416,11 @@ export const getDetailedUserByCognito = /* GraphQL */ `
         allowNotifications
         bio
         name
+        friends {
+            friendID
+            status
+            chatID
+        }
         profilePicture {
             bucket
             region
@@ -689,6 +711,9 @@ export const getChatMembersByIds = /* GraphQL */ `
       getChatMembersByIds(userID: $userID) {
         items {
             chatID
+            chat {
+                private            
+            }
             id
         }
       }

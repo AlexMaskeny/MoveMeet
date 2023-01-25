@@ -7,24 +7,27 @@ import { useFocusEffect } from '@react-navigation/native';
 import * as Notifications from 'expo-notifications';
 import { CommonActions } from '@react-navigation/native';
 
-import { getChat, getUserByCognito, updateUser } from '../api/calls';
+import { createChatMembers, deleteChatMembers, getChat, getChatMembersByIds, getSimpleUserChats, getUserByCognito, listChatsByLocation, updateUser } from '../api/calls';
 import * as logger from '../functions/logger';
 import * as locConversion from '../functions/locConversion';
 import Screen from '../comps/Screen';
 import { storage, colors } from '../config';
+import Chat from '../comps/Chat';
 
 const NO_USER = "The user is not authenticated";
 
 export default function LoadingPage({navigation}) {
     const loc = useRef();
     const not = useRef();
+    const lc = useRef();
     const currentUser = useRef();
 
 
     const unsubscribe = () => {
         currentUser.current = null;
         try { loc.current.remove() } catch { }
-        try { not.current.remove()} catch { }
+        try { not.current.remove() } catch { }
+        try { clearInteveral(lc.current) } catch { }
         logger.log("Unsubscribed from notification / location updates.");
     };
 
@@ -123,6 +126,7 @@ export default function LoadingPage({navigation}) {
                                             ...convertedLocs
                                         }
                                     }));
+
                                 } else throw NO_USER
                             } catch (error) {
                                 logger.warn(error);
@@ -133,6 +137,59 @@ export default function LoadingPage({navigation}) {
                                 }
                             }
                         });
+                        const updateChatMembership = async () => {
+                            try {
+                                if (currentUser.current) {
+                                    const location = await Location.getLastKnownPositionAsync();
+                                    const convertedLocs2 = locConversion.toChat(location.coords.latitude, location.coords.longitude);
+                                    const newChats = await API.graphql(graphqlOperation(listChatsByLocation, {
+                                        ...convertedLocs2,
+                                        radius: 500,
+                                    }));
+                                    const oldChats = await API.graphql(graphqlOperation(getChatMembersByIds, {
+                                        userID: user.data.getUserByCognito.id
+                                    }));
+                                    for (var i = 0; i < oldChats.data.getChatMembersByIds.items.length; i++) {
+                                        if (newChats.data.listChatsByLocation.items.findIndex(el => {
+                                            if (el.id == oldChats.data.getChatMembersByIds.items[i].chatID) return true;
+                                            else return false;
+                                        }) == -1) {
+                                            if (!oldChats.data.getChatMembersByIds.items[i].chat.private) {
+                                                await API.graphql(graphqlOperation(deleteChatMembers, {
+                                                    input: {
+                                                        id: oldChats.data.getChatMembersByIds.items[i].id
+                                                    }
+                                                }))
+                                            }
+                                        }
+                                    }
+                                    for (var i = 0; i < newChats.data.listChatsByLocation.items.length; i++) {
+                                        if (oldChats.data.getChatMembersByIds.items.findIndex(el => {
+                                            if (el.chatID == newChats.data.listChatsByLocation.items[i].id) return true;
+                                            else return false;
+                                        }) == -1) {
+                                            if (!newChats.data.listChatsByLocation.items[i].private) {
+                                                await API.graphql(graphqlOperation(createChatMembers, {
+                                                    input: {
+                                                        userID: user.data.getUserByCognito.id,
+                                                        chatID: newChats.data.listChatsByLocation.items[i].id
+                                                    }
+                                                }))
+                                            }
+                                        }
+                                    }
+                                }
+                            } catch (error) {
+                                logger.warn(error);
+                                if (error != NO_USER) {
+                                    logger.warn(error);
+                                } else {
+                                    unsubscribe();
+                                }
+                            }
+                        }
+                        updateChatMembership();
+                        lc.current = setInterval(updateChatMembership, 10000);
                     }
                 } else throw NO_USER;
                 navigation.navigate("SecondaryNav");

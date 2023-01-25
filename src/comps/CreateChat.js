@@ -1,11 +1,11 @@
 import React, { useEffect, useRef, useState } from 'react';
 import { StyleSheet, Modal, View, TouchableWithoutFeedback, Keyboard, Alert} from 'react-native';
 import uuid from "react-native-uuid";
-import { API, graphqlOperation, Storage } from 'aws-amplify';
+import { API, Auth, graphqlOperation, Storage } from 'aws-amplify';
 import * as Location from 'expo-location';
 
 import { colors } from '../config';
-import { createChat, createChatMembers } from '../api/calls';
+import { createChat, createChatMembers, getUserChats } from '../api/calls';
 import IconButton from './IconButton';
 import SimpleButton from './SimpleButton';
 import SimpleInput from './SimpleInput';
@@ -22,11 +22,34 @@ export default function CreateChat({ visible, onClose, currentUser }) {
     const cTitleRef = useRef();
     const [loading, setLoading] = useState("");
     const [loading2, setLoading2] = useState("");
+    const [numChats, setNumChats] = useState(0);
+    const [enabled, setEnabled] = useState(false);
 
     const [cTitle, setcTitle] = useState("");
     const [cBackground, setCBackground] = useState("");
     const [members, setMembers] = useState([]);
 
+    useEffect(() => {
+        const initialFunction = async () => {
+            try {
+                const result = await API.graphql(graphqlOperation(getUserChats, {
+                    id: currentUser.id
+                }));
+                var count = 0;
+                for (var i = 0; i < result.data.getUser.chats.items.length; i++) {
+                    if (result.data.getUser.chats.items[i].chat.owner == currentUser.username.toLowerCase() && !result.data.getUser.chats.items[i].chat.private && result.data.getUser.chats.items[i].chat.enabled) {
+                        count++;
+                    }
+                }
+                setNumChats(count);
+                if (count < 1) setEnabled(true);
+            } catch (error) {
+                logger.log(error);
+            }
+        }
+        initialFunction();
+    }, [visible]);
+    
     const id = useRef();
 
     const close = () => {
@@ -53,7 +76,10 @@ export default function CreateChat({ visible, onClose, currentUser }) {
 
     const CreateChat = async () => {
         try {
-            //TODO: Verify that the user doesn't already have many chats via owner field. Give user a list of presets backgrounds.
+            if (!enabled) {
+                Alert.alert("You can't create a chat", "You already have a chat in this area...");
+                throw "Already a chat";
+            }
             setLoading2(true);
             const location = await Location.getForegroundPermissionsAsync();
             if (!location.granted) {
@@ -62,6 +88,7 @@ export default function CreateChat({ visible, onClose, currentUser }) {
                 ]);
                 return;
             }
+            const currentCognitoUser = await Auth.currentAuthenticatedUser();
             const userLocation = await Location.getLastKnownPositionAsync();
             const userLocationConverted = locConversion.toUser(userLocation.coords.latitude, userLocation.coords.longitude);
             const response = await fetch(cBackground);
@@ -82,13 +109,14 @@ export default function CreateChat({ visible, onClose, currentUser }) {
                     },
                     name: cTitle,
                     private: false,
+                    enabled: true,
+                    owner: currentCognitoUser.attributes.sub,
                     lat: userLocationConverted.lat,
                     long: userLocationConverted.long,
                     latf1: userLocationConverted.latf1,
                     latf2: userLocationConverted.latf2,
                     longf1: userLocationConverted.longf1,
                     longf2: userLocationConverted.longf2,
-                    owner: currentUser.id
                 }
             }));
             const result3 = await API.graphql(graphqlOperation(createChatMembers, {
@@ -134,7 +162,7 @@ export default function CreateChat({ visible, onClose, currentUser }) {
                         <SubTitle size={16} style={styles.subtitle}>When you create a chat you cannot</SubTitle>
                         <SubTitle size={16} style={styles.subtitle}>delete it, but it will automatically delete</SubTitle>
                         <SubTitle size={16} style={styles.subtitle}>after 36 hours of inactivity. Also, you can't</SubTitle>
-                        <SubTitle size={16} style={styles.subtitle}>create more than 3 public chats at a time.</SubTitle>
+                        <SubTitle size={16} style={styles.subtitle}>create overlapping chats.</SubTitle>
                     </View>
                     <Beam style={{ marginTop: 20, marginBottom: 10 }} />
 

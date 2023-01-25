@@ -2,10 +2,10 @@
   "ExpandedNodes": [
     "",
     "\\src",
+    "\\src\\api",
     "\\src\\comps",
-    "\\src\\functions",
     "\\src\\pages"
   ],
-  "SelectedNode": "\\src\\comps\\CreateChat.js",
+  "SelectedNode": "\\src\\api\\calls.js",
   "PreviewInSolutionExplorer": false
 }

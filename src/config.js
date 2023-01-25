@@ -10,6 +10,8 @@ export const colors = {
     text2: "#A6A6A6", //Second Lighest Grey Text
     text3: "#b5b5b5", //Third Lighest Grey Text
     text4: "rgba(137,137,137,0.80)",
+    text5: "rgba(255,255,255,0.80)",
+    text6: "rgba(255,255,255,0.90)",
     error: "#FF4D4D",
     errorTransparent: "rgba(255,77,77,0.05)"
 }

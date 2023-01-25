@@ -1,8 +1,9 @@
 import React, { useState, useRef, useCallback, useEffect } from 'react';
-import { StyleSheet, View, Image, FlatList, RefreshControl} from 'react-native';
-import { API, graphqlOperation, Storage } from 'aws-amplify';
+import { StyleSheet, View, Image, FlatList, RefreshControl, Alert, ActivityIndicator} from 'react-native';
+import { API, graphqlOperation, Storage, Auth } from 'aws-amplify';
 import { LinearGradient } from 'expo-linear-gradient';
 import * as Location from 'expo-location';
+import { CommonActions } from '@react-navigation/native';
 
 import Screen from '../comps/Screen';
 import Loading from '../comps/Loading';
@@ -11,7 +12,7 @@ import * as logger from '../functions/logger';
 import * as timeLogic from '../functions/timeLogic';
 import * as distance from '../functions/distance';
 import * as locConversion from '../functions/locConversion';
-import { getDetailedUser } from '../api/calls';
+import { createChat, createChatMembers, getUserByCognito, getDetailedUser, getSimplifiedChat, getUserFriends, listMessagesByTime, updateMessage, updateUser } from '../api/calls';
 import Beam from '../comps/Beam';
 import ProfileCircle from '../comps/ProfileCircle';
 import SubTitle from '../comps/SubTitle';
@@ -20,8 +21,10 @@ import SimpleInput from '../comps/SimpleInput';
 import IconButton from '../comps/IconButton';
 
 
+
 export default function OProfilePage({ navigation, route }) {
     const currentUser = useRef();
+    const cUser = useRef();
 
     const [posts, setPosts] = useState([]);
     const [username, setUsername] = useState("");
@@ -29,9 +32,9 @@ export default function OProfilePage({ navigation, route }) {
     const [name, setName] = useState("");
     const [profilePicture, setProfilePicture] = useState({});
     const [ready, setReady] = useState(false);
+    const [loading, setLoading] = useState(false);
     const [refresh, setRefresh] = useState(false);
     const [rerender, setRerender] = useState(false);
-
 
     //SIMPLY TO MAKE THE HEADERBUTTON WORK
     useEffect(() => {
@@ -56,6 +59,11 @@ export default function OProfilePage({ navigation, route }) {
         const initialFunction = async () => {
             try {
                 logger.eLog("[OProfilePage] Fetching User Data...");
+                const cognitoUser = await Auth.currentAuthenticatedUser();
+                const cUserResponse = await API.graphql(graphqlOperation(getUserByCognito, {
+                    id: cognitoUser.attributes.sub
+                }))
+                cUser.current = cUserResponse.data.getUserByCognito;
                 const user = await API.graphql(graphqlOperation(getDetailedUser, {
                     id: route.params.opposingUser.id
                 }));
@@ -103,6 +111,130 @@ export default function OProfilePage({ navigation, route }) {
         initialFunction();
     }, [rerender]);
 
+    const message = async () => {
+        try {
+            setLoading(true);
+            const userID = cUser.current.id;
+            var userFriends = (await API.graphql(graphqlOperation(getUserFriends, {
+                UserID: userID
+            }))).data.getUser.friends;
+            const opposingUserEl = userFriends.findIndex(el => el.friendID == currentUser.current.id);
+            if (opposingUserEl != -1) {
+                const friend = userFriends[opposingUserEl];
+                if (friend.status == "666") {
+                    Alert.alert("This user is blocked.", "You blocked this user. Go into your settings to unblock them.");
+                    throw "Blocked";
+                } else {
+                    const last1response = await API.graphql(graphqlOperation(listMessagesByTime, {
+                        limit: 1,
+                        chatMessagesId: friend.chatID
+                    }));
+                    if (last1response.data.listMessagesByTime.items.length > 0) {
+                        var read = last1response.data.listMessagesByTime.items[0].read;
+                        if (!read.includes(userID)) read.push(userID);
+                        await API.graphql(graphqlOperation(updateMessage, {
+                            input: {
+                                id: last1response.data.listMessagesByTime.items[0].id,
+                                read: read
+                            }
+                        }));
+                        if (userFriends[opposingUserEl].status == "1" || userFriends[opposingUserEl].status == "3") {
+                            if (userFriends[opposingUserEl].status == "1") userFriends[opposingUserEl].status = "0";
+                            if (userFriends[opposingUserEl].status == "3") userFriends[opposingUserEl].status = "2";
+                            await API.graphql(graphqlOperation(updateUser, {
+                                input: {
+                                    id: userID,
+                                    friends: userFriends
+                                }
+                            }));
+                        }
+                    }
+                    const chat = await API.graphql(graphqlOperation(getSimplifiedChat, {
+                        id: friend.chatID
+                    }));
+                    if (chat.data.getChat.members.items.length < 2) throw "Blocked 2";
+                    navigation.dispatch(
+                        CommonActions.navigate({
+                            name: "ChatPage",
+                            key: friend.chatID,
+                            params: {
+                                name: currentUser.current.username,
+                                created: chat.data.getChat.createdAt,
+                                id: friend.chatID,
+                                userChatMembersID: chat.data.getChat.members.items[0].user.id == userID ? chat.data.getChat.members.items[0].id : chat.data.getChat.members.items[1],
+                                user: cUser.current,
+                                private: true
+                            }
+                        })
+                    )
+                }
+            } else {
+                const newChat = await API.graphql(graphqlOperation(createChat, {
+                    input: {
+                        enabled: true,
+                        private: true,
+                    }
+                }));
+                const newChatID = newChat.data.createChat.id;
+                const newMember = await API.graphql(graphqlOperation(createChatMembers, {
+                    input: {
+                        chatID: newChatID,
+                        userID: userID,
+                    }
+                }));
+                await API.graphql(graphqlOperation(createChatMembers, {
+                    input: {
+                        chatID: newChatID,
+                        userID: currentUser.current.id,
+                    }
+                }));
+                navigation.dispatch(
+                    CommonActions.navigate({
+                        name: "ChatPage",
+                        key: newChatID,
+                        params: {
+                            name: currentUser.current.username,
+                            created: newChat.data.createChat.createdAt,
+                            id: newChatID,
+                            userChatMembersID: newMember.data.createChatMembers.id,
+                            user: cUser.current,
+                            private: true
+                        }
+                    })
+                )
+                var opposingUserFriends = (await API.graphql(graphqlOperation(getUserFriends, {
+                    UserID: currentUser.current.id
+                }))).data.getUser.friends;
+                opposingUserFriends.push({
+                    friendID: userID,
+                    chatID: newChatID,
+                    status: 0,
+                })
+                userFriends.push({
+                    friendID: currentUser.current.id,
+                    chatID: newChatID,
+                    status: 0
+                });
+                await API.graphql(graphqlOperation(updateUser, {
+                    input: {
+                        id: userID,
+                        friends: userFriends
+                    }
+                }));
+                await API.graphql(graphqlOperation(updateUser, {
+                    input: {
+                        id: currentUser.current.id,
+                        friends: opposingUserFriends
+                    }
+                }));
+            }
+        } catch (error) {
+            logger.warn(error);
+        } finally {
+            setLoading(false);
+        }
+    }
+
     const keyExtractor = useCallback((item) => item.id, []);
     const renderItem = useCallback(({ item }) => (
         <Post
@@ -135,9 +267,16 @@ export default function OProfilePage({ navigation, route }) {
             <View>
                 <SubTitle style={styles.title2} size={16} color={colors.text1}>@{username}</SubTitle>
             </View>
-            {/*<View>*/}
-            {/*    <SubTitle style={styles.title2} size={18} color={colors.text1}>Message</SubTitle>*/}
-            {/*</View>*/}
+            {loading &&
+                <View>
+                    <ActivityIndicator color={colors.text1} size="small" />
+                </View>
+            }
+            {!loading &&
+                <View>
+                    <SubTitle style={styles.title2} size={18} color={colors.text1} onPress={message}>Message</SubTitle>
+                </View>
+            }
         </View>
         <View style={styles.midBody}>
             <SimpleInput
@@ -151,7 +290,7 @@ export default function OProfilePage({ navigation, route }) {
             />
         </View>
         <View style={{ height: 20 }} />
-    </>), [rerender, ready, profilePicture]);
+    </>), [rerender, ready, profilePicture, loading]);
 
     return (
         <Screen innerStyle={styles.page}>
