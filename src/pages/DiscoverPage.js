@@ -1,5 +1,5 @@
 import React, { useState, useRef, useCallback, useEffect } from 'react';
-import { StyleSheet, View, Image, FlatList, RefreshControl} from 'react-native';
+import { StyleSheet, View, Image, FlatList, RefreshControl, TouchableOpacity } from 'react-native';
 import { API, graphqlOperation, Storage, Auth } from 'aws-amplify';
 import { LinearGradient } from 'expo-linear-gradient';
 import * as Location from 'expo-location';
@@ -21,12 +21,15 @@ import Post from '../comps/Post';
 import SimpleInput from '../comps/SimpleInput';
 import IconButton from '../comps/IconButton';
 import UserSquare from '../comps/UserSquare';
+import DarkBeam from '../comps/DarkBeam';
 
 
 export default function DiscoverPage({ navigation, route }) {
     const currentUser = useRef();
 
     const [users, setUsers] = useState([]);
+    const [search, setSearch] = useState(false);
+    const [searchText, setSearchText] = useState("");
     const [locEnabled, setLocEnabled] = useState(true);
     const [noUsers, setNoUsers] = useState(false);
     const [ready, setReady] = useState(false);
@@ -98,17 +101,36 @@ export default function DiscoverPage({ navigation, route }) {
         }
     }
 
+    const ListHeaderComponent = useCallback(() => {
+        //return (<>
+        //    <View style={styles.headerContainer}>
+        //        <TouchableOpacity style={search ? styles.headerDisabled : styles.headerEnabled} onPress={()=>setSearch(false)}>
+        //            <SubTitle style={styles.headerTextEnabled} size={16} color={colors.text1}>Near You</SubTitle>
+        //        </TouchableOpacity>    
+        //        <TouchableOpacity style={search ? styles.headerEnabled : styles.headerDisabled} onPress={() => setSearch(true)}>
+        //            <SubTitle style={styles.headerTextDisabled} size={16} color={colors.text1 }>Search</SubTitle>
+        //        </TouchableOpacity>   
+        //    </View>
+        //    <DarkBeam style={{backgroundColor: colors.container, marginBottom: 10, borderRadius: 5} } />
+        //    {search && 
+        //        <View style={styles.searchContainer}>
+        //            <SimpleInput placeholder="Search" icon="account-search" />
+        //        </View>
+        //    }
+        //</>)
+    }, [search]);
     const keyExtractor = useCallback((item) => item.id, []);
-    const renderItem = useCallback(({ item }) => (
-        <UserSquare user={item} navigation={navigation} />
-    ), [users]);
-
+    const renderItem = useCallback(({ item }) => {
+        if (!search) return <UserSquare user={item} navigation={navigation} />
+        else return <></>
+    }, [users, search]);
     return (
         <Screen innerStyle={styles.page}>
             {ready &&         
                 <FlatList
                     data={users}
                     numColumns={2}
+                    ListHeaderComponent={ListHeaderComponent}
                     style={styles.users}
                     showsVerticalScrollIndicator={true}
                     keyboardShouldPersistTaps="always"
@@ -138,5 +160,44 @@ const styles = StyleSheet.create({
     users: {
         flex: 1,
         paddingTop: 10,
+        paddingHorizontal: 6
+    },
+    headerDisabled: {
+        flex: 1,
+        height: 38,
+        alignItems: "center",
+        justifyContent: "center",
+        backgroundColor: colors.container,
+        ...css.beamShadow,
+        shadowColor: "black",
+        shadowRadius: 2,
+        shadowOpacity: 0.5,
+        marginBottom: 14,
+        marginTop: 6,
+        marginHorizontal: 6,
+        borderRadius: 20,
+    },
+    headerEnabled: {
+        flex: 1,
+        height: 38,
+        alignItems: "center",
+        justifyContent: "center",
+        backgroundColor: colors.container,
+        ...css.beamShadow,
+        borderColor: colors.pBeam,
+        borderWidth: 1,
+        marginBottom: 14,
+        marginTop: 6,
+        marginHorizontal: 6,
+        borderRadius: 20,
+    },
+    headerTextDisabled: {
+        fontWeight: "500",
+    },
+    headerTextEnabled: {
+        fontWeight: "600"
+    },
+    headerContainer: {
+        flexDirection: "row",
     }
 })

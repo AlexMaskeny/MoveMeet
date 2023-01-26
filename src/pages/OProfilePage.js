@@ -153,20 +153,18 @@ export default function OProfilePage({ navigation, route }) {
                         id: friend.chatID
                     }));
                     if (chat.data.getChat.members.items.length < 2) throw "Blocked 2";
-                    navigation.dispatch(
-                        CommonActions.navigate({
-                            name: "ChatPage",
-                            key: friend.chatID,
-                            params: {
-                                name: currentUser.current.username,
-                                created: chat.data.getChat.createdAt,
-                                id: friend.chatID,
-                                userChatMembersID: chat.data.getChat.members.items[0].user.id == userID ? chat.data.getChat.members.items[0].id : chat.data.getChat.members.items[1],
-                                user: cUser.current,
-                                private: true
-                            }
-                        })
-                    )
+                    navigation.navigate("PChatNav", {
+                        screen: "ChatPage",
+                        key: friend.chatID,
+                        params: {
+                            name: currentUser.current.username,
+                            created: chat.data.getChat.createdAt,
+                            id: friend.chatID,
+                            userChatMembersID: chat.data.getChat.members.items[0].user.id == userID ? chat.data.getChat.members.items[0].id : chat.data.getChat.members.items[1],
+                            user: cUser.current,
+                            private: true
+                        }
+                    })
                 }
             } else {
                 const newChat = await API.graphql(graphqlOperation(createChat, {
@@ -188,20 +186,18 @@ export default function OProfilePage({ navigation, route }) {
                         userID: currentUser.current.id,
                     }
                 }));
-                navigation.dispatch(
-                    CommonActions.navigate({
-                        name: "ChatPage",
-                        key: newChatID,
-                        params: {
-                            name: currentUser.current.username,
-                            created: newChat.data.createChat.createdAt,
-                            id: newChatID,
-                            userChatMembersID: newMember.data.createChatMembers.id,
-                            user: cUser.current,
-                            private: true
-                        }
-                    })
-                )
+                navigation.navigate("PChatNav", {
+                    screen: "ChatPage",
+                    key: newChatID,
+                    params: {
+                        name: currentUser.current.username,
+                        created: newChat.data.createChat.createdAt,
+                        id: newChatID,
+                        userChatMembersID: newMember.data.createChatMembers.id,
+                        user: cUser.current,
+                        private: true
+                    }
+                })
                 var opposingUserFriends = (await API.graphql(graphqlOperation(getUserFriends, {
                     UserID: currentUser.current.id
                 }))).data.getUser.friends;
