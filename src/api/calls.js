@@ -154,6 +154,7 @@ export const getUserChats = /* GraphQL */ `
                 chat {
                     id
                     name
+                    creator
                     private
                     enabled
                     lat
@@ -164,23 +165,6 @@ export const getUserChats = /* GraphQL */ `
                         loadFull
                         thumbFull
                         full
-                    }
-                    messages {
-                        items {
-                            id
-                            type
-                            content
-                            index
-                            user {
-                                id
-                                username
-                                profilePicture {
-                                    full
-                                    loadFull
-                                }
-                            }
-                        }
-                        nextToken
                     }
                     members {
                         items {
@@ -193,6 +177,7 @@ export const getUserChats = /* GraphQL */ `
                                     loadFull
                                 }
                             }
+                            createdAt
 
                         }
                     }

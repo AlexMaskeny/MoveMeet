@@ -1,4 +1,4 @@
-import React, { useCallback, useRef, useState } from 'react';
+import React, { useCallback, useEffect, useRef, useState } from 'react';
 import { View, StyleSheet, FlatList, RefreshControl } from 'react-native';
 import { API, Auth, graphqlOperation, Storage } from 'aws-amplify';
 import { useFocusEffect } from '@react-navigation/native';
@@ -7,7 +7,7 @@ import { useNetInfo } from "@react-native-community/netinfo";
 import Screen from '../comps/Screen';
 import Loading from '../comps/Loading';
 import { colors } from '../config';
-import { getUserByCognito, getUserChats, listMessagesByTime, updateMessage, onReceiveMessage, getUserFriends, getChat, updateUser } from '../api/calls';
+import { getUserByCognito, listMessagesByTime, updateMessage, onReceiveMessage, getUserFriends, getChat, updateUser } from '../api/calls';
 import useSubSafe from '../hooks/useSubSafe';
 import * as logger from '../functions/logger';
 import * as locConversion from '../functions/locConversion';
@@ -31,7 +31,6 @@ export default function PrivateChatsPage({ navigation }) {
     const [settingsChat, setSettingsChat] = useState({});
 
     const netInfo = useNetInfo();
-
 
     useFocusEffect(useCallback(() => {
         if (timeClockSub.current) clearInterval(timeClockSub.current);

@@ -26,8 +26,15 @@ export const css = {
 }
 
 export const debug = true; //changes whether or not error messages print
-export const enhancedDebug = true;
+export const enhancedDebug = false;
 export const footerHeight = 80;
 export const storage = {
     UNCONFIRMED: "unconfirmed"
-}
+};
+export const rules = {
+    nearYouRadius: 500, // in feet
+    chatDeletionTime: 48, // in hours
+    locationAccuracy: 5, //1-6
+    locationUpdateFrequency: 10000, // in ms
+    maxNumChats: 3,
+};

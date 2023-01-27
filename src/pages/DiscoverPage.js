@@ -4,7 +4,7 @@ import { API, graphqlOperation, Storage, Auth } from 'aws-amplify';
 import * as Location from 'expo-location';
 import { useNetInfo } from "@react-native-community/netinfo";
 
-import { colors, css } from '../config';
+import { colors, css, rules } from '../config';
 import {listUsersByLocation, getUserByCognito} from '../api/calls';
 import Screen from '../comps/Screen';
 import Loading from '../comps/Loading';
@@ -56,7 +56,7 @@ export default function DiscoverPage({ navigation, route }) {
 
                     const nearbyUsersResponse = await API.graphql(graphqlOperation(listUsersByLocation, {
                         ...userLocationConverted,
-                        radius: 500
+                        radius: rules.nearYouRadius
                     }));
                     if (nearbyUsersResponse) {
                         const nearbyUsers = nearbyUsersResponse.data.listUsersByLocation.items;
@@ -72,8 +72,8 @@ export default function DiscoverPage({ navigation, route }) {
                             userData.push(user);
                         }
                         userData.sort((a, b) => {
-                            if (a.distance > b.distance) return -1;
-                            else return 1;
+                            if (a.distance > b.distance) return 1;
+                            else return -1;
                         })
                         setUsers(userData);
                     } else throw "[DISCOVERPAGE] onRefresh failed because there was an error getting nearby users";

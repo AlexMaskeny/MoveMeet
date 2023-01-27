@@ -11,7 +11,7 @@ import { createChatMembers, deleteChatMembers, getChat, getChatMembersByIds, get
 import * as logger from '../functions/logger';
 import * as locConversion from '../functions/locConversion';
 import Screen from '../comps/Screen';
-import { storage, colors } from '../config';
+import { storage, colors, rules } from '../config';
 import Chat from '../comps/Chat';
 
 const NO_USER = "The user is not authenticated";
@@ -111,7 +111,7 @@ export default function LoadingPage({navigation}) {
                         }
                     }
                     if (perm.granted) {
-                        loc.current = await Location.watchPositionAsync({ accuracy: 5, distanceInterval: 0, timeInterval: 10000 }, async (location) => {
+                        loc.current = await Location.watchPositionAsync({ accuracy: rules.locationAccuracy, distanceInterval: 0, timeInterval: rules.locationUpdateFrequency }, async (location) => {
                             try {
                                 currentUser.current = await Auth.currentAuthenticatedUser();
                                 if (currentUser.current) {
@@ -140,7 +140,7 @@ export default function LoadingPage({navigation}) {
                                     const convertedLocs2 = locConversion.toChat(location.coords.latitude, location.coords.longitude);
                                     const newChats = await API.graphql(graphqlOperation(listChatsByLocation, {
                                         ...convertedLocs2,
-                                        radius: 500,
+                                        radius: rules.nearYouRadius,
                                     }));
                                     const oldChats = await API.graphql(graphqlOperation(getChatMembersByIds, {
                                         userID: user.data.getUserByCognito.id
@@ -185,7 +185,7 @@ export default function LoadingPage({navigation}) {
                             }
                         }
                         updateChatMembership();
-                        lc.current = setInterval(updateChatMembership, 10000);
+                        lc.current = setInterval(updateChatMembership, rules.locationUpdateFrequency);
                     }
                 } else throw NO_USER;
                 navigation.navigate("SecondaryNav");

@@ -4,8 +4,8 @@ import uuid from "react-native-uuid";
 import { API, Auth, graphqlOperation, Storage } from 'aws-amplify';
 import * as Location from 'expo-location';
 
-import { colors } from '../config';
-import { createChat, createChatMembers, getUserChats } from '../api/calls';
+import { colors, rules } from '../config';
+import { createChat, createChatMembers, getUserChats, listMessagesByTime, updateChat } from '../api/calls';
 import IconButton from './IconButton';
 import SimpleButton from './SimpleButton';
 import SimpleInput from './SimpleInput';
@@ -15,7 +15,6 @@ import * as media from '../functions/media';
 import * as logger from '../functions/logger'
 import * as locConversion from '../functions/locConversion';
 import Beam from './Beam';
-import NoLocationAlert from './NoLocationAlert';
 
 
 export default function CreateChat({ visible, onClose, currentUser }) {
@@ -37,12 +36,40 @@ export default function CreateChat({ visible, onClose, currentUser }) {
                 }));
                 var count = 0;
                 for (var i = 0; i < result.data.getUser.chats.items.length; i++) {
-                    if (result.data.getUser.chats.items[i].chat.owner == currentUser.username.toLowerCase() && !result.data.getUser.chats.items[i].chat.private && result.data.getUser.chats.items[i].chat.enabled) {
+                    const chat = result.data.getUser.chats.items[i].chat;
+                    if ((chat.creator == currentUser.id) && !chat.private && chat.enabled) {
+                        const last3 = await API.graphql(graphqlOperation(listMessagesByTime, {
+                            chatMessagesId: chat.id,
+                            limit: 3
+                        })); 
+                        try {
+                            if ((Date.now() - Date.parse(last3.data.listMessagesByTime.items[0].createdAt)) / 1000 > 60 * 60 * rules.chatDeletionTime) { //if enabled and greater than rules.chatDeletionTime hours old then remove
+                                await API.graphql(graphqlOperation(updateChat, {
+                                    input: {
+                                        id: chat.id,
+                                        enabled: false
+                                    }
+                                }))
+                                continue;
+                            }
+                        } catch (error) { }
+                        try {
+                            if (last3.data.listMessagesByTime.items.length == 0 && (Date.now() - Date.parse(chat.createdAt)) / 1000 > 60 * 60 * rules.chatDeletionTime) {
+                                await API.graphql(graphqlOperation(updateChat, {
+                                    input: {
+                                        id: chat.id,
+                                        enabled: false
+                                    }
+                                }))
+                                continue;
+                            }
+                        } catch (error) { }
                         count++;
                     }
                 }
                 setNumChats(count);
-                if (count < 1) setEnabled(true);
+                console.log(count);
+                if (count < rules.maxNumChats) setEnabled(true);
             } catch (error) {
                 logger.log(error);
             }
@@ -77,7 +104,7 @@ export default function CreateChat({ visible, onClose, currentUser }) {
     const CreateChat = async () => {
         try {
             if (!enabled) {
-                Alert.alert("You can't create a chat", "You already have a chat in this area...");
+                Alert.alert("You can't create a chat", "You have to many active chats right now.");
                 throw "Already a chat";
             }
             setLoading2(true);
@@ -108,9 +135,10 @@ export default function CreateChat({ visible, onClose, currentUser }) {
                         region: "us-east-2",
                     },
                     name: cTitle,
+                    creator: currentUser.id,
+                    owner: currentCognitoUser.attributes.sub,
                     private: false,
                     enabled: true,
-                    owner: currentCognitoUser.attributes.sub,
                     lat: userLocationConverted.lat,
                     long: userLocationConverted.long,
                     latf1: userLocationConverted.latf1,
@@ -161,8 +189,8 @@ export default function CreateChat({ visible, onClose, currentUser }) {
                     <View style={styles.desc}>
                         <SubTitle size={16} style={styles.subtitle}>When you create a chat you cannot</SubTitle>
                         <SubTitle size={16} style={styles.subtitle}>delete it, but it will automatically delete</SubTitle>
-                        <SubTitle size={16} style={styles.subtitle}>after 36 hours of inactivity. Also, you can't</SubTitle>
-                        <SubTitle size={16} style={styles.subtitle}>create overlapping chats.</SubTitle>
+                        <SubTitle size={16} style={styles.subtitle}>after {rules.chatDeletionTime} hours of inactivity. You</SubTitle>
+                        <SubTitle size={16} style={styles.subtitle}>can only have {rules.maxNumChats} active chats at once.</SubTitle>
                     </View>
                     <Beam style={{ marginTop: 20, marginBottom: 10 }} />
 

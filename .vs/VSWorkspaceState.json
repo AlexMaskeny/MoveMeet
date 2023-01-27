@@ -3,9 +3,8 @@
     "",
     "\\src",
     "\\src\\api",
-    "\\src\\comps",
-    "\\src\\pages"
+    "\\src\\comps"
   ],
-  "SelectedNode": "\\src\\pages\\DiscoverPage.js",
+  "SelectedNode": "\\src\\comps\\Chat.js",
   "PreviewInSolutionExplorer": false
 }

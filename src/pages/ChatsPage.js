@@ -9,7 +9,7 @@ import Screen from '../comps/Screen';
 import Loading from '../comps/Loading';
 import Chat from '../comps/Chat';
 import { getUserByCognito, getUserChats, listMessagesByTime, updateMessage, onMemberStatusChange, onReceiveMessage, updateChat } from '../api/calls';
-import { colors } from '../config';
+import { colors, rules } from '../config';
 import useSubSafe from '../hooks/useSubSafe';
 import * as logger from '../functions/logger';
 import * as locConversion from '../functions/locConversion';
@@ -141,9 +141,9 @@ export default function ChatsPage({ navigation }) {
                             chat.last3 = [];
                             chat.glow = false;
                             chat.latest = "New Chat";
-
+                            
                             try {
-                                if ((Date.now() - Date.parse(last3.data.listMessagesByTime.items[0].createdAt)) / 1000 > 60 * 60 * 36) { //if enabled and greater than 36 hours old then remove
+                                if ((Date.now() - Date.parse(last3.data.listMessagesByTime.items[0].createdAt)) / 1000 > 60 * 60 * rules.chatDeletionTime) { //if enabled and greater than rules.chatDeletionTime hours old then remove
                                     await API.graphql(graphqlOperation(updateChat, {
                                         input: {
                                             id: chat.id,
@@ -154,7 +154,7 @@ export default function ChatsPage({ navigation }) {
                                 }
                             } catch (error) { }
                             try {
-                                if (last3.data.listMessagesByTime.items.length == 0 && (Date.now() - Date.parse(chat.createdAt)) / 1000 > 60 * 60 * 36) {
+                                if (last3.data.listMessagesByTime.items.length == 0 && (Date.now() - Date.parse(chat.createdAt)) / 1000 > 60 * 60 * rules.chatDeletionTime) {
                                     await API.graphql(graphqlOperation(updateChat, {
                                         input: {
                                             id: chat.id,

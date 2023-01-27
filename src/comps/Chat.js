@@ -44,7 +44,7 @@ function Chat({
         </View>
     ), [])
     const onEndReached = React.useCallback(() => {
-        console.log("End!!!");
+        
     }, [])
     const getChatsHeight = () => {
         if (last3.length == 3) return 156

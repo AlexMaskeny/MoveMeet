@@ -93,7 +93,7 @@ function navigation() {
                 component={DiscoverNav}
                 options={({ navigation, route }) => {
                     React.useLayoutEffect(() => {
-                        const routeName = getFocusedRouteNameFromRoute(route) ?? "ChatsPage";
+                        const routeName = getFocusedRouteNameFromRoute(route) ?? "DiscoverPage";
                         logger.log("Page: " + routeName);
                         if (routeName === "ChatPage") {
                             navigation.setOptions({ tabBarStyle: { display: 'none' } });
