@@ -44,8 +44,7 @@ export default function ChatPage({ route, navigation }) {
     const memberStatusTracker = useRef(new Map);
 
     const [keyboardShown, setKeyboardShown] = useState(false);
-    const [copyMessage, setCopyMessage] = useState(false);
-    const [copiedMessage, setCopiedMessage] = useState({});
+
     const [nextToken, setNextToken] = useState("i2");
     const [noLongerMember, setNoLongerMember] = useState(false);
     const [textInput, setTextInput] = useState("");
@@ -70,15 +69,11 @@ export default function ChatPage({ route, navigation }) {
                     color={colors.pBeamBright}
                     brand="Ionicons"
                     size={36}
-                    onPress={() => {
-                        if (route.params.private) {
-                            navigation.navigate("PChatNav", { screen: "PrivateChatsPage" });
-                        } else navigation.navigate("TChatNav", { screen: "ChatsPage" });
-                    }}
+                    onPress={() => navigation.goBack()}
                 />
             )
         })
-    }, [navigation])
+    }, [navigation, route])
 
     //INITIALIATION & SUBSCRIPTION HANDLING
     useFocusEffect(useCallback(() => {
@@ -292,7 +287,7 @@ export default function ChatPage({ route, navigation }) {
             message = {
                 ...message,
                 type: "Image",
-                content: "",
+                content: "Sent an image",
                 image: {
                     full: "FULLMESSAGE" + message.id + ".jpg",
                     loadFull: "LOADFULLMESSAGE" + message.id + ".jpg",
@@ -422,12 +417,7 @@ export default function ChatPage({ route, navigation }) {
             logger.warn(error);
         }
     }
-    const longPressText = async (event, item) => {
-        if (event.nativeEvent.state === State.ACTIVE) {
-            Haptics.impactAsync(Haptics.ImpactFeedbackStyle.Heavy);
-            setCopiedMessage(item);
-        }
-    }
+
     const updateTime = () => {
         setData(existingItems => {
             for (var i = 0; i < existingItems.length; i++) {
@@ -594,7 +584,7 @@ export default function ChatPage({ route, navigation }) {
                 onRequestClose={() => { setShowPreviewImage(false); setKeyboardShown(false) }}
             />
         </Screen>
-        <CopyMessage visible={copyMessage} item={copiedMessage} onRequestClose={() => setCopyMessage(false)} keyboardShown={keyboardShown} />
+
     </>);
 }
 

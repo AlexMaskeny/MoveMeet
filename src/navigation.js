@@ -91,8 +91,17 @@ function navigation() {
             <Secondary.Screen
                 name="DiscoverNav"
                 component={DiscoverNav}
-                options={({ navigation }) => (
-                    {
+                options={({ navigation, route }) => {
+                    React.useLayoutEffect(() => {
+                        const routeName = getFocusedRouteNameFromRoute(route) ?? "ChatsPage";
+                        logger.log("Page: " + routeName);
+                        if (routeName === "ChatPage") {
+                            navigation.setOptions({ tabBarStyle: { display: 'none' } });
+                        } else {
+                            navigation.setOptions({ tabBarStyle: SecondNavStyle.tabBarStyle });
+                        }
+                    }, [navigation, route]);
+                    return ({
                         headerShown: false,
                         gestureEnabled: false,
 
@@ -109,8 +118,8 @@ function navigation() {
                                 }}
                                 onPress={() => navigation.navigate("DiscoverNav")}
                             />
-                    }
-                )}
+                    })
+                }}
             />
             <Secondary.Screen
                 name="PChatNav"
@@ -207,6 +216,7 @@ function navigation() {
         <Discover.Navigator screenOptions={chatNavOptions}>
             <Discover.Screen name="DiscoverPage" component={DiscoverPage} options={{ title: "Discover" }} />
             <Discover.Screen name="OProfilePage" component={OProfilePage} />
+            <Discover.Screen name="ChatPage" component={ChatPage} />
         </Discover.Navigator>
     );
     return (

@@ -40,7 +40,7 @@ const openCamera = async (onSuccess) => {
                     text: "Give Access", onPress: async () => {
                         try {
                             const result = await ImagePicker.requestCameraPermissionsAsync();
-                            if (result.granted) openCamera();
+                            if (result.granted) openCamera(onSuccess);
                             else return;
                         } catch (error) {
                             logger.warn(error);

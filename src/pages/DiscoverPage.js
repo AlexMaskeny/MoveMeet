@@ -1,35 +1,24 @@
 import React, { useState, useRef, useCallback, useEffect } from 'react';
-import { StyleSheet, View, Image, FlatList, RefreshControl, TouchableOpacity } from 'react-native';
+import { StyleSheet, FlatList, RefreshControl} from 'react-native';
 import { API, graphqlOperation, Storage, Auth } from 'aws-amplify';
-import { LinearGradient } from 'expo-linear-gradient';
 import * as Location from 'expo-location';
 import { useNetInfo } from "@react-native-community/netinfo";
-import { useFocusEffect } from '@react-navigation/native';
 
 import { colors, css } from '../config';
 import {listUsersByLocation, getUserByCognito} from '../api/calls';
 import Screen from '../comps/Screen';
 import Loading from '../comps/Loading';
 import * as logger from '../functions/logger';
-import * as timeLogic from '../functions/timeLogic';
 import * as distance from '../functions/distance';
 import * as locConversion from '../functions/locConversion';
-import Beam from '../comps/Beam';
-import ProfileCircle from '../comps/ProfileCircle';
-import SubTitle from '../comps/SubTitle';
-import Post from '../comps/Post';
-import SimpleInput from '../comps/SimpleInput';
-import IconButton from '../comps/IconButton';
 import UserSquare from '../comps/UserSquare';
-import DarkBeam from '../comps/DarkBeam';
-
+import NoUsersAlert from '../comps/NoUsersAlert';
+import NoLocationAlert from '../comps/NoLocationAlert';
 
 export default function DiscoverPage({ navigation, route }) {
     const currentUser = useRef();
 
     const [users, setUsers] = useState([]);
-    const [search, setSearch] = useState(false);
-    const [searchText, setSearchText] = useState("");
     const [locEnabled, setLocEnabled] = useState(true);
     const [noUsers, setNoUsers] = useState(false);
     const [ready, setReady] = useState(false);
@@ -118,12 +107,11 @@ export default function DiscoverPage({ navigation, route }) {
         //        </View>
         //    }
         //</>)
-    }, [search]);
+    }, []);
     const keyExtractor = useCallback((item) => item.id, []);
     const renderItem = useCallback(({ item }) => {
-        if (!search) return <UserSquare user={item} navigation={navigation} />
-        else return <></>
-    }, [users, search]);
+        return <UserSquare user={item} navigation={navigation} />
+    }, [users]);
     return (
         <Screen innerStyle={styles.page}>
             {ready &&         
@@ -152,6 +140,8 @@ export default function DiscoverPage({ navigation, route }) {
                 />
             }
             <Loading enabled={!ready} />
+            <NoUsersAlert visible={noUsers} />
+            <NoLocationAlert visible={!locEnabled} />
         </Screen>
     );
 }
