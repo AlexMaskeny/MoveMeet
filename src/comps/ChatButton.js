@@ -33,7 +33,7 @@ const styles = StyleSheet.create({
     bContainer: {
         width: 160,
         justifyContent: "center",
-        backgroundColor: 'rgba(18, 18, 18,0.3)',
+        backgroundColor: colors.transContainer+"0)",
         alignItems: "center",
         padding: 10,
         marginHorizontal: 10,

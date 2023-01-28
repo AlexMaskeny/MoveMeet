@@ -1,49 +1,86 @@
 import React from 'react';
-import { StyleSheet, Text, View } from 'react-native';
-import { LongPressGestureHandler, State } from 'react-native-gesture-handler';
+import { StyleSheet, Text, View, TouchableWithoutFeedback, Dimensions } from 'react-native';
 import * as Haptics from 'expo-haptics';
 import { CommonActions } from '@react-navigation/native';
+import { MaterialIcons } from '@expo/vector-icons';
+import * as Clipboard from 'expo-clipboard';
+import {
+    Menu,
+    MenuOptions,
+    MenuOption,
+    MenuTrigger,
+} from 'react-native-popup-menu';
 
-import { colors } from '../config';
+
+import { colors, css } from '../config';
 import ProfileCircle from './ProfileCircle';
 import SubTitle from './SubTitle';
+import DarkBeam from './DarkBeam';
 
 function ComplexMessage({ navigation, opposingUserId, userId, children, ppic, username, message, style, time, ...props }) {
-    const onPress = async (event) => {
-        if (event.nativeEvent.state === State.ACTIVE) {
-            if (opposingUserId != userId) {
-                Haptics.impactAsync(Haptics.ImpactFeedbackStyle.Heavy);
-                navigation.dispatch(CommonActions.navigate({
-                    name: "OProfilePage",
-                    key: opposingUserId,
-                    params: {
-                        opposingUser: { id: opposingUserId }
-                    }
-                }))
-            }
+    const onView = async () => {
+        if (opposingUserId != userId) {
+            navigation.dispatch(CommonActions.navigate({
+                name: "OProfilePage",
+                key: opposingUserId,
+                params: {
+                    opposingUser: { id: opposingUserId }
+                }
+            }))
         }
     }
-    return (
+    const onCopy = async () => {
+        await Clipboard.setStringAsync(message);
+    }
+
+    const Message = () => (
         <View style={styles.container}>
             <ProfileCircle ppic={ppic} style={styles.pCircle} />
             <View style={{ width: 6 }} />
-            <View style={{ flex: 1, marginRight: 10}}>
+            <View style={{ flex: 1, marginRight: 10 }}>
                 <View style={{ flexDirection: 'row', flex: 1, justifyContent: "space-between" }}>
-                    <LongPressGestureHandler onHandlerStateChange={(event) => onPress(event)} minDurationMs={400}>
-                        <View>
-                            <SubTitle size={16} color={colors.text4}>{username}</SubTitle>
-                        </View>
-                    </LongPressGestureHandler>
+                    <View>
+                        <SubTitle size={16} color={colors.text4}>{username}</SubTitle>
+                    </View>
                     <SubTitle size={14} color={colors.text4}>{time}</SubTitle>
                 </View>
                 <Text
                     style={[styles.tStyle, style]}
                     numberOfLines={0}
-                    selectable={true}
+                    selectable={false}
                     {...props}
                 >{message}</Text>
             </View>
         </View>
+    );
+
+    return (
+        <Menu onOpen={() => Haptics.impactAsync(Haptics.ImpactFeedbackStyle.Heavy) }>
+            <MenuTrigger customStyles={{ TriggerTouchableComponent: TouchableWithoutFeedback }} triggerOnLongPress={true}>
+                <Message />
+            </MenuTrigger>
+            <MenuOptions customStyles={{ optionsContainer: styles.menu }}>
+                <View style={styles.innerMenu}>
+                    <Message />
+                </View>
+                <View style={{height: 20}} />
+                <View style={styles.innerMenu}>
+                    {opposingUserId != userId && <>
+                        <MenuOption style={styles.optionContainer} onSelect={onView}>
+                            <MaterialIcons name="account-box" size={26} color={colors.pBeamBright} />
+                            <View style={{ width: 10 }} />
+                            <SubTitle style={styles.title} size={18}>View User Profile</SubTitle>
+                        </MenuOption>
+                        <DarkBeam style={styles.seperator} />
+                    </>}
+                    <MenuOption style={styles.optionContainer} onSelect={onCopy}>
+                        <MaterialIcons name="content-copy" size={26} color={colors.pBeamBright} />
+                        <View style={{ width: 10 }} />
+                        <SubTitle style={styles.title} size={18}>Copy Message</SubTitle>
+                    </MenuOption>
+                </View>
+            </MenuOptions>
+        </Menu> 
     );
 }
 
@@ -66,6 +103,42 @@ const styles = StyleSheet.create({
         borderWidth: 1,
         shadowOpacity: 0,
         borderColor: colors.text3
+    },
+    iconBox: {
+        width: 50,
+        height: 50,
+        borderRadius: 8,
+        backgroundColor: colors.container,
+        alignItems: "center",
+        justifyContent: "center"
+    },
+    menu: {
+        width: "100%",
+        alignItems: "center",
+        backgroundColor: "transparent",
+        marginTop: -80,
+    },
+    innerMenu: {
+        borderRadius: 26,
+        padding: 16,
+        backgroundColor: colors.container,
+        width: Dimensions.get('screen').width * 0.9,
+        borderColor: colors.pBeamBright,
+        borderWidth: 2,
+        ...css.beamShadow,
+    },
+    optionContainer: {
+        flexDirection: 'row',
+        alignItems: "center"
+    },
+    title: {
+        fontWeight: "bold",
+        color: colors.text2
+    },
+    seperator: {
+        marginVertical: 8,
+        backgroundColor: colors.text4,
+        height: 1,
     }
 })
 

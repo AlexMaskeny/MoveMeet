@@ -1,6 +1,7 @@
 export const colors = {
     background: "#121212", //A dark grey rgba(18, 18, 18,1)
     container: "#1E1E1E", //A dark grey, but less dark than background
+    transContainer: "rgba(14,14,14,",
     pBeamBright: "rgba(25,178,255,1)",
     pBeam: "rgba(25,178,255,0.72)", //"rgba(245,182,195,0.72)", Blue Beam
     pBeamDisabled: "rgba(25,178,255,0.3)", //"rgba(245,182,195,0.3)", Dull Blue Beam

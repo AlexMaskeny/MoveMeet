@@ -180,7 +180,7 @@ function Chat({
                     {last3.length > 0 &&
                         <LinearGradient
                             // Background Linear Gradient
-                            colors={['rgba(18, 18, 18,0.4)', colors.background]}
+                            colors={[colors.transContainer+"0.4)", colors.background]}
                             style={{ flex: 1, marginTop: -156 } }
                         />
                     }
@@ -206,7 +206,7 @@ const styles = StyleSheet.create({
         borderRadius: 20,
         backgroundColor: colors.passiveImg,
         shadowOffset: { width: 0, height: 1 },
-        shadowRadius: 3,
+        shadowRadius: 2,
         shadowOpacity: 0.3,
         marginHorizontal: 3,
         marginVertical: 8,
@@ -229,7 +229,7 @@ const styles = StyleSheet.create({
     },
     image: {
         height: 90,
-        opacity: 0.5,
+        opacity: 0.7,
         alignItems: "center",
         justifyContent: "center",
         borderTopEndRadius: 18,

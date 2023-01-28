@@ -5,8 +5,7 @@ import { useNetInfo } from '@react-native-community/netinfo';
 import uuid from "react-native-uuid";
 import { API, graphqlOperation, Storage } from 'aws-amplify';
 import { useFocusEffect } from '@react-navigation/native';
-import { LongPressGestureHandler, State } from 'react-native-gesture-handler';
-import * as Haptics from 'expo-haptics';
+import { MenuProvider } from 'react-native-popup-menu';
 import * as Notifications from 'expo-notifications';
 import ImageView from 'react-native-image-viewing';
 
@@ -21,7 +20,6 @@ import SubTitle from '../comps/SubTitle';
 import ImageInput from '../comps/ImageInput';
 import ImageMessage from '../comps/ImageMessage';
 import ProfileCircle from '../comps/SpinningProfileCircle';
-import CopyMessage from '../comps/CopyMessage';
 import { listMessagesByTime, onReceiveMessage, onUserRemoved, onUserTyping, updateMessage, updateTyping, createMessage } from '../api/calls';
 import * as logger from '../functions/logger';
 import * as media from '../functions/media';
@@ -535,7 +533,7 @@ export default function ChatPage({ route, navigation }) {
             placeholder="Say something"
             onFocus={() => { chatListRef.current.scrollToOffset({ offset: 0 }); setKeyboardShown(true) }}
             onPressIn={() => { chatListRef.current.scrollToOffset({ offset: 0 }); setKeyboardShown(true) }}
-            cStyle={{ overflow: "hidden", flex: 1, }}
+            cStyle={{ overflow: "hidden", flex: 1, borderRadius: 20 }}
             tStyle={styles.message}
             multiline={true}
             maxLength={300}
@@ -543,7 +541,7 @@ export default function ChatPage({ route, navigation }) {
             onChangeText={onTextInputChange}
         />
     ),[])
-    return (<>
+    return (<MenuProvider customStyles={{ backdrop: {backgroundColor: 'black', opacity: 0.6}} }>
         <Screen innerStyle={styles.page}>
             <KeyboardAvoidingView style={{ flex: 1, justifyContent: "flex-end" }} behavior="padding" keyboardVerticalOffset={headerHeight + 4}>
                 <View style={styles.chats}>
@@ -585,7 +583,7 @@ export default function ChatPage({ route, navigation }) {
             />
         </Screen>
 
-    </>);
+    </MenuProvider>);
 }
 
 const styles = StyleSheet.create({

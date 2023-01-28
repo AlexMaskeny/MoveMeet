@@ -39,8 +39,8 @@ function navigation() {
         tabBarStyle: {
             height: footerHeight,
             borderTopColor: colors.pBeam,
-            borderTopWidth: 1,
-            backgroundColor: colors.container,
+            borderTopWidth: 2,
+            backgroundColor: colors.background,
             ...css.beamShadow,
 
         }
@@ -78,10 +78,6 @@ function navigation() {
                                     color={color}
                                     brand="MaterialCommunityIcons"
                                     size={36}
-                                    style={{
-                                        ...css.beamShadow,
-                                        shadowColor: color,
-                                    }}
                                     onPress={() => navigation.navigate("TChatNav")}
                                 />
                         }
@@ -112,10 +108,6 @@ function navigation() {
                                 brand="MaterialIcons"
                                 color={color}
                                 size={36}
-                                style={{
-                                    ...css.beamShadow,
-                                    shadowColor: color,
-                                }}
                                 onPress={() => navigation.navigate("DiscoverNav")}
                             />
                     })
@@ -142,10 +134,6 @@ function navigation() {
                                     color={color}
                                     brand="Ionicons"
                                     size={36}
-                                    style={{
-                                        ...css.beamShadow,
-                                        shadowColor: color,
-                                    }}
                                     onPress={() => navigation.navigate("PChatNav")}
                                 />
                         }
@@ -163,10 +151,6 @@ function navigation() {
                                 brand="MaterialCommunityIcons"
                                 color={color}
                                 size={36}
-                                style={{
-                                    ...css.beamShadow,
-                                    shadowColor: color,
-                                }}
                                 onPress={() => navigation.navigate("UProfileNav")}
                             />
                     }
@@ -178,9 +162,9 @@ function navigation() {
         headerShown: true,
         gestureEnabled: false,
         headerStyle: {
-            backgroundColor: colors.container,
+            backgroundColor: colors.background,
             borderBottomColor: colors.pBeam,
-            borderBottomWidth: 1,
+            borderBottomWidth: 2,
             ...css.beamShadow
         },
         headerTintColor: colors.pBeamBright,

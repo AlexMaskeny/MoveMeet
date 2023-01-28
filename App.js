@@ -5,6 +5,7 @@ import * as Notifications from 'expo-notifications';
 
 import Navigation from './src/navigation';
 
+
 Notifications.setNotificationHandler({
     handleNotification: async () => ({
         shouldShowAlert: true,
@@ -16,7 +17,5 @@ Notifications.setNotificationHandler({
 Amplify.configure(awsconfig);
 
 export default function App() {
-    return (
-        <Navigation />
-  );
+    return <Navigation />;
 }
