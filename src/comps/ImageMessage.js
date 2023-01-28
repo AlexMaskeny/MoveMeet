@@ -16,6 +16,7 @@ function ImageMessage({ children, ppic, username, source, style, time, onPress,.
                     <SubTitle size={16} color={colors.text4}>{username}</SubTitle>
                     <SubTitle size={14} color={colors.text4}>{time}</SubTitle>
                 </View>
+                <View style={{height: 4}} />
                 <TouchableOpacity onPress={onPress}> 
                 {!source.local &&
                     <ImageLoader style={styles.image} source={source} />

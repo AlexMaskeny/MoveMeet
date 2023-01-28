@@ -402,6 +402,8 @@ export default function ChatPage({ route, navigation }) {
     //UI FUNCTIONS
     const onTextInputChange = (text) => {
         setTextInput(text);
+        if (text.length > 16) setButtonsMinimized(true);
+        if (text.length <= 16) setButtonsMinimized(false);
         try {
             if (text.length > 0) {
                 API.graphql(graphqlOperation(updateTyping, {
@@ -441,7 +443,6 @@ export default function ChatPage({ route, navigation }) {
                     <SubTitle size={14}>Say Something in {route.params.name}</SubTitle>
                     <SubTitle color={colors.text3}>Created on {(new Date(Date.parse(route.params.created))).toLocaleDateString()}</SubTitle>
                 </View>
-                <DarkBeam style={styles.darkBeam2} />
             </>);
         } else {
             return (<></>);
@@ -491,27 +492,17 @@ export default function ChatPage({ route, navigation }) {
             )
         } else {
             return (
-                //<LongPressGestureHandler
-                //    onHandlerStateChange={(event) => longPressText(event, {
-                //        ppic: ppic, 
-                //        time: item.date,
-                //        username: item.user.username, 
-                //        message: item.content 
-                //    })}
-                //    minDurationMs={400}
-                //>
-                    <View style={styles.chat}>
-                        <ComplexMessage
-                            ppic={ppic}
-                            userId={route.params.user.id}
-                            navigation={navigation}
-                            opposingUserId={item.user.id}
-                            time={item.date}
-                            username={item.user.username}
-                            message={item.content}
-                        />
-                    </View>
-                //</LongPressGestureHandler>
+                <View style={styles.chat}>
+                    <ComplexMessage
+                        ppic={ppic}
+                        userId={route.params.user.id}
+                        navigation={navigation}
+                        opposingUserId={item.user.id}
+                        time={item.date}
+                        username={item.user.username}
+                        message={item.content}
+                    />
+                </View>
             )
         }
     }, [data]);
@@ -558,7 +549,7 @@ export default function ChatPage({ route, navigation }) {
                     />
                 </View>
 
-                <DarkBeam style={styles.darkBeam1} />
+                
                 <View style={[styles.textBox, { alignItems: msgIsImage ? "flex-start" : "flex-end" }]}>
                     {!(buttonsMinimized || msgIsImage) && <RenderButtons />}
                     {buttonsMinimized && <RenderButtonsMinimized />}
@@ -598,31 +589,26 @@ const styles = StyleSheet.create({
     },
     page: {
         justifyContent: "flex-end",
+        backgroundColor: colors.container
     },
     sendButton: {
-        ...css.beamShadow,
-        shadowColor: colors.pBeamShadow,
         marginBottom: 6,
     },
     textBox: {
         flexDirection: "row",
-        marginHorizontal: 10,
+        paddingTop: 8,
+        paddingBottom: 4,
+        borderColor: colors.text4,
+        borderTopWidth: 1,
+        shadowColor: "black",
+        shadowRadius: 2,
+        shadowOffset: { height: -2 },
+        shadowOpacity: 0.5,
+        paddingHorizontal: 10,
         alignItems: "flex-end",
+        backgroundColor: colors.background
     },
-    darkBeam1: {
-        backgroundColor: colors.container,
-        height: 1,
-        marginBottom: 4,
-        marginTop: 0,
-        ...css.beamShadow,
-        shadowColor: "black"
-    },
-    darkBeam2: {
-        backgroundColor: colors.container,
-        height: 1,
-        marginBottom: 4,
-        marginTop: 10,
-    },
+
     refresh: {
         margin: 10
     },
@@ -639,7 +625,8 @@ const styles = StyleSheet.create({
     beginChat: {
         alignItems: "center",
         justifyContent: "center",
-        marginTop: 14
+        marginTop: 14,
+        marginBottom: 10,
     },
     chat: {
         margin: 6,
