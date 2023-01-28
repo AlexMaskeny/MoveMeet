@@ -116,7 +116,6 @@ const styles = StyleSheet.create({
         width: "100%",
         alignItems: "center",
         backgroundColor: "transparent",
-        marginTop: -80,
     },
     innerMenu: {
         borderRadius: 26,

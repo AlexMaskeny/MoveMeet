@@ -20,6 +20,7 @@ export default function CreatePost({ visible, onClose, currentUser }) {
     const [loading2, setLoading2] = useState("");
 
     const [image, setImage] = useState("");
+    const [smallImage, setSmallImage] = useState("");
 
     const id = useRef();
 
@@ -31,7 +32,7 @@ export default function CreatePost({ visible, onClose, currentUser }) {
     const selectImage = async () => {
         setLoading1(true);
         id.current = uuid.v4();
-        await media.openPhotos((img) => setImage(img));
+        await media.openPhotos((img) => { setImage(img.full), setSmallImage(img.loadFull) });
         setLoading1(false);
     }
 
@@ -47,11 +48,18 @@ export default function CreatePost({ visible, onClose, currentUser }) {
             }
             const userLocation = await Location.getLastKnownPositionAsync();
             const userLocationConverted = locConversion.toUser(userLocation.coords.latitude, userLocation.coords.longitude);
-            const response = await fetch(image);
-            if (response) {
-                const img = await response.blob();
+            const response1 = await fetch(image);
+            if (response1) {
+                const img = await response1.blob();
                 if (img) {
                     await Storage.put("FULLpost" + id.current + ".jpg", img);
+                }
+            }
+            const response2 = await fetch(smallImage);
+            if (response2) {
+                const img = await response2.blob();
+                if (img) {
+                    await Storage.put("LOADFULLpost" + id.current + ".jpg", img);
                 }
             }
             const result2 = await API.graphql(graphqlOperation(createPost, {

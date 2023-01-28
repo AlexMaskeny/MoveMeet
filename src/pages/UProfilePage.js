@@ -21,7 +21,7 @@ import Post from '../comps/Post';
 import SimpleInput from '../comps/SimpleInput';
 import CreatePost from '../comps/CreatePost';
 import Settings from '../comps/Settings';
-import { CUR } from 'aws-sdk';
+
 
 
 
@@ -103,7 +103,7 @@ export default function UProfilePage({ navigation }) {
         const initialFunction = async () => {
             try {
                 logger.eLog("[UProfilePage] Fetching User Data...");
-                const cognitoUser = await Auth.currentUserInfo();
+                const cognitoUser = await Auth.currentAuthenticatedUser();
                 if (cognitoUser) {
                     setUsername(cognitoUser.username);
                     setEmail(cognitoUser.attributes.email);
@@ -167,12 +167,15 @@ export default function UProfilePage({ navigation }) {
                     text: "Confirm", onPress: async () => {
                         try {
                             if (changedImage) {
-                                const response = await fetch(profilePicture.uri);
-                                const img = await response.blob();
-                                if (img) {
-                                    const result1 = await Storage.remove(currentUser.current.profilePicture.loadFull);
-                                    const result2 = await Storage.remove(currentUser.current.profilePicture.full);
-                                    const result3 = await Storage.put(currentUser.current.profilePicture.full, img);
+                                const response1 = await fetch(profilePicture.uri);
+                                const response2 = await fetch(profilePicture.loadImage);
+                                const img1 = await response1.blob();
+                                const img2 = await response2.blob();
+                                if (img1 && img2) {
+                                    await Storage.remove(currentUser.current.profilePicture.loadFull);
+                                    await Storage.remove(currentUser.current.profilePicture.full);
+                                    await Storage.put(currentUser.current.profilePicture.full, img1);
+                                    await Storage.put(currentUser.current.profilePicture.loadFull, img2);
                                 }
                             }
                             if (bio != currentUser.current.bio) {
@@ -218,8 +221,8 @@ export default function UProfilePage({ navigation }) {
             const onSuccess = (uri) => {
                 setChangedImage(true);
                 setProfilePicture({
-                    uri: uri,
-                    loadImage: uri,
+                    uri: uri.full,
+                    loadImage: uri.loadFull,
                 });
             }
             Alert.alert("Take a photo or select one", "Pick one of the options below to change your profile picture.", [

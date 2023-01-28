@@ -50,7 +50,7 @@ export default function Settings({ visible, onClose, navigation }) {
     useEffect(() => {
         const initialFunction = async () => {
             try {
-                const cognitoUser = await Auth.currentUserInfo();
+                const cognitoUser = await Auth.currentAuthenticatedUser();
                 const user = await API.graphql(graphqlOperation(getDetailedUserByCognito, {
                     id: cognitoUser.attributes.sub
                 }));
@@ -77,11 +77,11 @@ export default function Settings({ visible, onClose, navigation }) {
                     allowNotifications: false,
                 }
             }))
-            await Auth.signOut();
-            logger.eLog("Signed User Out");
-            setLoading1(false);
             close();
+            setLoading1(false);
+            await Auth.signOut();
             navigation.navigate("LoginPage");
+            logger.log("Signed User Out");
         } catch (error) {
             logger.warn(error);
         }

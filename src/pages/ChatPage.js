@@ -5,15 +5,13 @@ import { useNetInfo } from '@react-native-community/netinfo';
 import uuid from "react-native-uuid";
 import { API, graphqlOperation, Storage } from 'aws-amplify';
 import { useFocusEffect } from '@react-navigation/native';
-import { MenuProvider } from 'react-native-popup-menu';
 import * as Notifications from 'expo-notifications';
 import ImageView from 'react-native-image-viewing';
 
 import Screen from '../comps/Screen';
 import IconButton from '../comps/IconButton';
-import { colors, css } from '../config'
+import { colors } from '../config'
 import SimpleInput from '../comps/SimpleInput';
-import DarkBeam from '../comps/DarkBeam';
 import ComplexMessage from '../comps/ComplexMessage';
 import BeamTitle from '../comps/BeamTitle';
 import SubTitle from '../comps/SubTitle';
@@ -50,6 +48,7 @@ export default function ChatPage({ route, navigation }) {
     const [showPreviewImage, setShowPreviewImage] = useState(false);
     const [previewImage, setPreviewImage] = useState("");
     const [selectedImage, setSelectedImage] = useState("");
+    const [selectedSmallImage, setSelectedSmallImage] = useState("");
     const [msgIsImage, setMsgIsImage] = useState(false);
     const [rerender, setRerender] = useState(false);
     const [members, setMembers] = useState([]); //use a timeclock to maintain membership
@@ -321,11 +320,18 @@ export default function ChatPage({ route, navigation }) {
                 }
             }));
             if (message.type == "Image") {
-                const response = await fetch(selectedImage);
-                if (response) {
-                    const img = await response.blob();
+                const response1 = await fetch(selectedImage);
+                if (response1) {
+                    const img = await response1.blob();
                     if (img) {
                         await Storage.put("FULLMESSAGE" + message.id + ".jpg", img);
+                    }
+                }
+                const response2 = await fetch(selectedSmallImage);
+                if (response2) {
+                    const img = await response2.blob();
+                    if (img) {
+                        await Storage.put("LOADFULLMESSAGE" + message.id + ".jpg", img);
                     }
                 }
             }
@@ -511,9 +517,9 @@ export default function ChatPage({ route, navigation }) {
 
     //UI COMPONENTS
     const RenderButtons = () => (<>    
-        <IconButton icon="camera" brand="Ionicons" color={colors.text3} style={{ marginBottom: 6 }} size={34} onPress={() => media.openCamera((item) => {setSelectedImage(item), setMsgIsImage(true)})} />
+        <IconButton icon="camera" brand="Ionicons" color={colors.text3} style={{ marginBottom: 6 }} size={34} onPress={() => media.openCamera((item) => {setSelectedImage(item.full), setMsgIsImage(true), setSelectedSmallImage(item.loadFull)})} />
         <View style={{ width: 10 }} />
-        <IconButton icon="duplicate" brand="Ionicons" color={colors.text3} size={34} style={{ marginBottom: 6, }} onPress={() => media.openPhotos((item) => { setSelectedImage(item), setMsgIsImage(true) })} />
+        <IconButton icon="duplicate" brand="Ionicons" color={colors.text3} size={34} style={{ marginBottom: 6, }} onPress={() => media.openPhotos((item) => { setSelectedImage(item.full), setMsgIsImage(true), setSelectedSmallImage(item.loadFull) })} />
         <View style={{ width: 10 }} />
         <IconButton icon="md-chevron-down-circle" brand="Ionicons" color={colors.text3} style={{ marginBottom: 6 }} size={34} onPress={() => { Keyboard.dismiss(); setKeyboardShown(false) }} />     
     </>)
@@ -532,7 +538,7 @@ export default function ChatPage({ route, navigation }) {
             onChangeText={onTextInputChange}
         />
     ),[])
-    return (<MenuProvider customStyles={{ backdrop: {backgroundColor: 'black', opacity: 0.6}} }>
+    return (<>
         <Screen innerStyle={styles.page}>
             <KeyboardAvoidingView style={{ flex: 1, justifyContent: "flex-end" }} behavior="padding" keyboardVerticalOffset={headerHeight + 4}>
                 <View style={styles.chats}>
@@ -541,6 +547,7 @@ export default function ChatPage({ route, navigation }) {
                         ref={chatListRef}
                         ListFooterComponent={ListFooterComponent}
                         ListHeaderComponent={ListHeaderComponent}
+                        showsVerticalScrollIndicator={false}
                         inverted={true}
                         keyExtractor={keyExtractor}
                         onEndReached={onEndReached}
@@ -574,7 +581,7 @@ export default function ChatPage({ route, navigation }) {
             />
         </Screen>
 
-    </MenuProvider>);
+    </>);
 }
 
 const styles = StyleSheet.create({

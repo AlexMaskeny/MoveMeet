@@ -46,7 +46,8 @@
     "react-native-popup-menu": "^0.16.1",
     "react-native-safe-area-context": "4.4.1",
     "react-native-screens": "~3.18.0",
-    "react-native-uuid": "^2.0.1"
+    "react-native-uuid": "^2.0.1",
+    "expo-image-manipulator": "~11.0.0"
   },
   "devDependencies": {
     "@babel/core": "^7.19.3"

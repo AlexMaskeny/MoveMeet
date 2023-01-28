@@ -345,8 +345,8 @@ export default function ChatsPage({ navigation }) {
                     data={chats}
                     style={styles.page}
                     keyExtractor={keyExtractor}
-                    maxToRenderPerBatch={4}
-                    windowSize={6}
+                    maxToRenderPerBatch={10}
+                    windowSize={4}
                     refreshControl={
                         <RefreshControl
                             refreshing={refresh}

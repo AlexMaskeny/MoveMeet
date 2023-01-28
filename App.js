@@ -2,6 +2,7 @@ import react from 'react';
 import { Amplify } from 'aws-amplify';
 import awsconfig from './src/aws-exports';
 import * as Notifications from 'expo-notifications';
+import { MenuProvider } from 'react-native-popup-menu';
 
 import Navigation from './src/navigation';
 
@@ -17,5 +18,9 @@ Notifications.setNotificationHandler({
 Amplify.configure(awsconfig);
 
 export default function App() {
-    return <Navigation />;
+    return (
+        <MenuProvider customStyles={{ backdrop: { backgroundColor: 'black', opacity: 0.6 } }}>
+            <Navigation />
+        </MenuProvider>
+    );
 }

@@ -5,14 +5,13 @@ import AsyncStorage from '@react-native-async-storage/async-storage';
 import * as Location from 'expo-location';
 import { useFocusEffect } from '@react-navigation/native';
 import * as Notifications from 'expo-notifications';
-import { CommonActions } from '@react-navigation/native';
 
-import { createChatMembers, deleteChatMembers, getChat, getChatMembersByIds, getSimpleUserChats, getUserByCognito, listChatsByLocation, updateUser } from '../api/calls';
+
+import { createChatMembers, deleteChatMembers, getChat, getChatMembersByIds, getUserByCognito, listChatsByLocation, updateUser } from '../api/calls';
 import * as logger from '../functions/logger';
 import * as locConversion from '../functions/locConversion';
 import Screen from '../comps/Screen';
 import { storage, colors, rules } from '../config';
-import Chat from '../comps/Chat';
 
 const NO_USER = "The user is not authenticated";
 
@@ -41,9 +40,27 @@ export default function LoadingPage({navigation}) {
                 currentUser.current = await Auth.currentAuthenticatedUser();
                 if (currentUser.current) {
                     const perm = await Location.getForegroundPermissionsAsync();
-                    const user = await API.graphql(graphqlOperation(getUserByCognito, {
+                    var user = await API.graphql(graphqlOperation(getUserByCognito, {
                         id: currentUser.current.attributes.sub
                     }));
+                    const notificationStatus = await Notifications.getPermissionsAsync();
+                    if (notificationStatus.granted && !user.data.getUserByCognito.allowNotifications) {
+                        await API.graphql(graphqlOperation(updateUser, {
+                            input: {
+                                id: user.data.getUserByCognito.id,
+                                allowNotifications: true,
+                            }
+                        }));
+                        user.data.getUserByCognito.allowNotifications = true;
+                    } else if (!notificationStatus.granted && user.data.getUserByCognito.allowNotifications) {
+                        await API.graphql(graphqlOperation(updateUser, {
+                            input: {
+                                id: user.data.getUserByCognito.id,
+                                allowNotifications: false,
+                            }
+                        }));
+                        user.data.getUserByCognito.allowNotifications = false;
+                    }
                     if (user.data.getUserByCognito.allowNotifications) {
                         const result = await Notifications.getPermissionsAsync();
                         if (result.ios.status == Notifications.IosAuthorizationStatus.NOT_DETERMINED) {

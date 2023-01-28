@@ -1,5 +1,6 @@
 import { Alert } from 'react-native';
 import * as ImagePicker from 'expo-image-picker';
+import { manipulateAsync } from 'expo-image-manipulator'
 
 import * as logger from '../functions/logger';
 const openPhotos = async (onSuccess) => {
@@ -24,7 +25,14 @@ const openPhotos = async (onSuccess) => {
             const result = await ImagePicker.launchImageLibraryAsync();
             if (result) {
                 if (result.canceled) return
-                else onSuccess(result.assets[0].uri);
+                else {
+                    const full = await manipulateAsync(result.assets[0].uri, [{ resize: { width: 1080 } }]);
+                    const loadFull = await manipulateAsync(result.assets[0].uri, [{ resize: { width: 80 } }]);
+                    onSuccess({
+                        full: full.uri,
+                        loadFull: loadFull.uri
+                    })
+                }
             } else Alert.alert("Try Again", "Something went wrong when opening your photos. Try Again.");
         }
     } catch (error) {
@@ -53,7 +61,14 @@ const openCamera = async (onSuccess) => {
             const result = await ImagePicker.launchCameraAsync();
             if (result) {
                 if (result.canceled) return
-                else onSuccess(result.assets[0].uri);
+                else {
+                    const full = await manipulateAsync(result.assets[0].uri, [{ resize: { width: 1080 } }]);
+                    const loadFull = await manipulateAsync(result.assets[0].uri, [{ resize: { width: 80 } }]);
+                    onSuccess({
+                        full: full.uri,
+                        loadFull: loadFull.uri
+                    })
+                }
             } else Alert.alert("Try Again", "Something went wrong when opening your camera. Try Again.");
         }
     } catch (error) {

@@ -26,6 +26,7 @@ export default function CreateChat({ visible, onClose, currentUser }) {
 
     const [cTitle, setcTitle] = useState("");
     const [cBackground, setCBackground] = useState("");
+    const [cSmallBackground, setCSmallBackground] = useState("");
     const [members, setMembers] = useState([]);
 
     useEffect(() => {
@@ -96,7 +97,7 @@ export default function CreateChat({ visible, onClose, currentUser }) {
                 picture: currentUser.profilePicture.loadFull,
             }
         }]);
-        await media.openPhotos((image) => setCBackground(image));
+        await media.openPhotos((image) => { setCBackground(image.full), setCSmallBackground(image.loadFull) });
         Keyboard.dismiss();
         setLoading(false);
     }
@@ -123,6 +124,13 @@ export default function CreateChat({ visible, onClose, currentUser }) {
                 const img = await response.blob();
                 if (img) {
                     const result1 = await Storage.put("FULLchatBackground" + id.current + ".jpg", img);
+                }
+            }
+            const response2 = await fetch(cSmallBackground);
+            if (response2) {
+                const img = await response2.blob();
+                if (img) {
+                    const result1 = await Storage.put("LOADFULLchatBackground" + id.current + ".jpg", img);
                 }
             }
             const result2 = await API.graphql(graphqlOperation(createChat, {
