@@ -4,6 +4,7 @@ import { MaterialCommunityIcons } from "@expo/vector-icons"
 
 import { colors } from '../config';
 import BeamTitle from './BeamTitle';
+import IconButton from './IconButton';
 
 //DESCRIPTION: An input component which does NOT support multilines
 //             It posses icon and far right BeamTitle support.
@@ -12,7 +13,7 @@ import BeamTitle from './BeamTitle';
 //NOTE:        To get this component without any icons or text, take container and inputtext styles. 
 //             Remove all non TextInput subcomponents of primary view container
 
-function SimpleInput({reference, icon, text, cStyle, tStyle, ...props}) {
+function SimpleInput({reference, icon, text, cStyle, tStyle, showRightButton = false, rightButtonProps, ...props}) {
     return (
         <View style={[styles.container, cStyle]}>
             {icon &&
@@ -28,6 +29,7 @@ function SimpleInput({reference, icon, text, cStyle, tStyle, ...props}) {
                 style={[styles.inputText, tStyle]}
                 {...props}
             />
+            {showRightButton && <><IconButton {...rightButtonProps} /><View style={{ width: 10 }} /></>}
             {text && <BeamTitle size={16}>{text}</BeamTitle>}
         </View>
     );

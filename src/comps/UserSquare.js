@@ -21,7 +21,32 @@ export default function UserSquare({
             }
         }))
     }
-    return (
+    if (user.noImage) return (
+        <TouchableOpacity style={{ flex: 1 }} onPress={navigate}>
+            <View style={[styles.container, {backgroundColor: colors.container}]}>
+                <View style={styles.subContainer}>
+                    <LinearGradient
+                        // Background Linear Gradient
+                        colors={['rgba(0,0,0,0.8)', 'transparent']}
+                        style={{ height: 24, width: "100%", borderTopRightRadius: borderRadius, borderTopLeftRadius: borderRadius }}
+                    >
+                    </LinearGradient>
+                    <LinearGradient
+                        // Background Linear Gradient
+                        colors={['transparent', 'rgba(0,0,0,0.9)']}
+                        style={{ height: 80, width: "100%", borderBottomRightRadius: borderRadius, borderBottomLeftRadius: borderRadius }}
+                    >
+                        <View style={styles.footer}>
+                            <SubTitle style={styles.title} color={colors.text6} size={18}>{user.username}</SubTitle>
+                            <SubTitle style={styles.title} color={colors.text1} size={14}>{user.distance} away</SubTitle>
+                            <SubTitle style={styles.title} color={colors.text1} size={14} numberOfLines={1}>{user.bio}</SubTitle>
+                        </View>
+                    </LinearGradient>
+                </View>
+            </View>
+        </TouchableOpacity>
+    )
+    else return (
         <TouchableOpacity style={{ flex: 1 }} onPress={navigate}>
             <ImageLoader style={styles.container} imageStyle={styles.image} isBackground={true} source={{
                 uri: user.profilePicture.full,

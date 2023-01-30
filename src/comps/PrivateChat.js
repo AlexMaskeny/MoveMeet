@@ -26,20 +26,18 @@ export default function PrivateChat({
     const navigate = () => {
         onPress();
         user.profilePicture.loadFull = "LOADFULLprofilePicture" + user.id + ".jpg";
-        navigation.dispatch(
-            CommonActions.navigate({
-                name: "ChatPage",
-                key: id,
-                params: {
-                    name: title,
-                    created: created,
-                    id: id,
-                    userChatMembersID,
-                    user,
-                    private: true,
-                }
-            })
-        );
+        navigation.navigate("PChatNav", {
+            screen: "ChatPage",
+            key: id,
+            params: {
+                name: title,
+                created: created,
+                id: id,
+                userChatMembersID,
+                user,
+                private: true,
+            }
+        });
     }
     return (<>
         <TouchableOpacity style={[styles.container, glow ? styles.beam : {}]} onPress={navigate}>

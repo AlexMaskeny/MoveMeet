@@ -215,11 +215,11 @@ export default function LoadingPage({navigation}) {
                             const parsed = JSON.parse(result);
                             if (parsed.val) {
                                 logger.log("Unconfirmed User Exists");
-                                //send to signup page;
+                                navigation.navigate("SignupPage3");
                                 return;
                             }
                         }
-                        navigation.navigate("LoginPage");
+                        navigation.navigate("AuthPage");
                     } catch (error) {
                         logger.warn(error);
                     }

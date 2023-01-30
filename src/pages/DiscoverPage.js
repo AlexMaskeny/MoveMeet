@@ -66,6 +66,7 @@ export default function DiscoverPage({ navigation, route }) {
                         for (var i = 0; i < nearbyUsers.length; i++) {
                             var user = nearbyUsers[i];
                             if (user.id == currentUser.current.id) continue;
+                            if (user.profilePicture.loadFull == " " || user.profilePicture.full == " ") user.noImage = true;
                             user.profilePicture.loadFull = await Storage.get(user.profilePicture.loadFull);
                             user.profilePicture.full = await Storage.get(user.profilePicture.full);
                             user.distance = await distance.formula(user.lat, user.long, userLocationConverted.lat, userLocationConverted.long);
@@ -87,6 +88,15 @@ export default function DiscoverPage({ navigation, route }) {
         } finally {
             setReady(true);
             setRefresh(false);
+        }
+    }
+
+    const enableLocation = async () => {
+        const result = await Location.requestForegroundPermissionsAsync();
+        if (result.granted) {
+            setLocEnabled(true);
+            setReady(false);
+            navigation.navigate("LoadingPage");
         }
     }
 
@@ -141,7 +151,7 @@ export default function DiscoverPage({ navigation, route }) {
             }
             <Loading enabled={!ready} />
             <NoUsersAlert visible={noUsers} />
-            <NoLocationAlert visible={!locEnabled} />
+            <NoLocationAlert visible={!locEnabled} enable={enableLocation}/>
         </Screen>
     );
 }

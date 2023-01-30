@@ -24,7 +24,7 @@ function ComplexMessage({ navigation, opposingUserId, userId, children, ppic, us
                 name: "OProfilePage",
                 key: opposingUserId,
                 params: {
-                    opposingUser: { id: opposingUserId }
+                    opposingUser: { id: opposingUserId },
                 }
             }))
         }

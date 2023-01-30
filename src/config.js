@@ -30,7 +30,8 @@ export const debug = true; //changes whether or not error messages print
 export const enhancedDebug = false;
 export const footerHeight = 80;
 export const storage = {
-    UNCONFIRMED: "unconfirmed"
+    UNCONFIRMED: "unconfirmed",
+    UNCONFIRMEDUSER: "unconfirmeduser"
 };
 export const rules = {
     nearYouRadius: 500, // in feet

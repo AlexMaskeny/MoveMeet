@@ -1,5 +1,5 @@
 import React from 'react';
-import { View, StyleSheet, KeyboardAvoidingView, Keyboard, Image, Alert } from 'react-native';
+import { View, StyleSheet, KeyboardAvoidingView, Keyboard, Image, Alert, TouchableOpacity, TouchableWithoutFeedback } from 'react-native';
 import { colors, debug, storage } from '../config';
 import { Auth } from 'aws-amplify';
 
@@ -8,6 +8,9 @@ import SimpleInput from '../comps/SimpleInput';
 import SimpleButton from '../comps/SimpleButton';
 import AsyncStorage from '@react-native-async-storage/async-storage';
 import * as Clipboard from 'expo-clipboard';
+import Beam from '../comps/Beam';
+import SubTitle from '../comps/SubTitle';
+
 
 //current potential problems:
 //1. When clicking off of password text input, something occurs that clears
@@ -17,6 +20,7 @@ import * as Clipboard from 'expo-clipboard';
 export default function LoginPage({navigation}) {
     const [username, setUsername] = React.useState("");
     const [password, setPassword] = React.useState("");
+    const [passwordVisible, setPasswordVisible] = React.useState(false);
     const usernameRef = React.useRef();
     const passwordRef = React.useRef();
     const [submitButtonLoad, setSubmitButtonLoad] = React.useState(false);
@@ -43,10 +47,8 @@ export default function LoginPage({navigation}) {
             }
         } catch (error) {
             if (debug) console.log(error.code);
-            if (error.code == "UserNotConfirmedException") {
-                await AsyncStorage.setItem(storage.UNCONFIRMED, JSON.stringify({ val: true })); 
-                //SEND TO SIGNUPPAGE with route UserNotConfirmedException
-            } else if (error.code == "NotAuthorizedException" || error.code == "UserNotFoundException") {
+            if (error.code == "UserNotConfirmedException") navigation.navigate("SignupPage3");
+            else if (error.code == "NotAuthorizedException" || error.code == "UserNotFoundException") {
                 Alert.alert("Incorrect Username or Password", "The username or password you entered was incorrect.", [
                     { text: "Try Again" },
                 ])
@@ -61,49 +63,67 @@ export default function LoginPage({navigation}) {
     }
     return (
         <Screen>
-            <KeyboardAvoidingView
-                style={styles.page}
-                behavior="padding"
-            >
-                <Image
-                    source={require('../../assets/Logo.png')}
-                    style={styles.logo}
-                    resizeMode="contain"
-                />
-                <View height={6} />
-                <SimpleInput
-                    reference={usernameRef}
-                    placeholder="Username"
-                    autocorrect={false}
-                    icon="account"
-                    autoCapitalize="none"
-                    maxLength={20}
-                    text={username.length + "/" + "4"}
-                    onChangeText={(text) => {
-                        setUsername(text);
-                    }}
-                />
-                <SimpleInput
-                    reference={passwordRef}
-                    placeholder="Password"
-                    maxLength={20}
-                    autoCapitalize="none"
-                    icon="lock"
-                    autocorrect={false}
-                    secureTextEntry={true}
-                    text={password.length + "/" + "8"}
-                    onChangeText={(text) => {
-                        setPassword(text);
-                    }}
-                />
-                <View height={6} />
-                <SimpleButton
-                    title="Login"
-                    onPress={onSubmit}
-                    disabled={password.length < 8 || username.length < 4}
-                    loading={submitButtonLoad}
-                />
-            </KeyboardAvoidingView>
+            <TouchableOpacity activeOpacity={1} onPress={()=>Keyboard.dismiss() }><>
+                <KeyboardAvoidingView
+                    style={styles.page}
+
+                    behavior="padding"
+                >
+                    <Image
+                        source={require('../../assets/Logo.png')}
+                        style={styles.logo}
+                        resizeMode="contain"
+                    />
+                    <View height={6} />
+                    <SimpleInput
+                        reference={usernameRef}
+                        placeholder="Username"
+                        autocorrect={false}
+                        icon="account"
+                        autoCapitalize="none"
+                        textContentType="username"
+                        maxLength={20}
+                        text={username.length + "/" + "4"}
+                        onChangeText={(text) => {
+                            setUsername(text);
+                        }}
+                    />
+                    <SimpleInput
+                        reference={passwordRef}
+                        placeholder="Password"
+                        maxLength={20}
+                        textContentType="password"
+                        autoCapitalize="none"
+                        icon="lock"
+                        showRightButton={true}
+                        rightButtonProps={{
+                            icon: passwordVisible ? "eye-off" : "eye",
+                            size: 24,
+                            onPress: () => setPasswordVisible(!passwordVisible)
+                        }}
+                        autocorrect={false}
+                        secureTextEntry={!passwordVisible}
+                        text={password.length + "/" + "8"}
+                        onChangeText={(text) => {
+                            setPassword(text);
+                        }}
+                    />
+                    <View height={6} />
+                    <SimpleButton
+                        title="Login"
+                        onPress={onSubmit}
+                        disabled={password.length < 8 || username.length < 4}
+                        loading={submitButtonLoad}
+                    />
+                </KeyboardAvoidingView>
+            </></TouchableOpacity>
+            <View style={styles.beamContainer}>
+                <Beam style={styles.beam} />
+                <TouchableOpacity onPress={() => navigation.navigate("AuthPage")}>
+                    <SubTitle size={16} style={{ fontWeight: "400" }} color={colors.text2}>Or Create Account</SubTitle>
+                </TouchableOpacity>
+                <Beam style={styles.beam} />
+            </View>
         </Screen>
     );
 }
@@ -118,7 +138,19 @@ const styles = StyleSheet.create({
         justifyContent: "center"
     },
     logo: {
-        height: 60,
+        height: 80,
         width: "100%"
-    }
+    },
+    beamContainer: {
+        width: "100%",
+        marginTop: -20,
+        paddingHorizontal: 10,
+        flexDirection: 'row',
+        justifyContent: "space-between",
+        alignItems: "center",
+    },
+    beam: {
+        width: "26%",
+        borderRadius: 10
+    },
 })

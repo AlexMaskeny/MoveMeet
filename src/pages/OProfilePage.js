@@ -186,8 +186,8 @@ export default function OProfilePage({ navigation, route }) {
                         userID: currentUser.current.id,
                     }
                 }));
-                navigation.navigate("PChatNav", {
-                    screen: "ChatPage",
+                navigation.dispatch(CommonActions.navigate({
+                    name: "ChatPage",
                     key: newChatID,
                     params: {
                         name: currentUser.current.username,
@@ -197,7 +197,7 @@ export default function OProfilePage({ navigation, route }) {
                         user: cUser.current,
                         private: true
                     }
-                })
+                }));
                 var opposingUserFriends = (await API.graphql(graphqlOperation(getUserFriends, {
                     UserID: currentUser.current.id
                 }))).data.getUser.friends;

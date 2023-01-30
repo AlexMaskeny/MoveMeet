@@ -3,8 +3,10 @@
     "",
     "\\src",
     "\\src\\api",
-    "\\src\\comps"
+    "\\src\\comps",
+    "\\src\\functions",
+    "\\src\\pages"
   ],
-  "SelectedNode": "\\src\\comps\\Chat.js",
+  "SelectedNode": "\\src\\pages\\UProfilePage.js",
   "PreviewInSolutionExplorer": false
 }

@@ -54,6 +54,17 @@ export const updateChat = /* GraphQL */ `
     }
   }
 `;
+
+export const getUserByUsername = /* GraphQL */ ` 
+  query GetUserByUsername($username: String!) {
+     getUserByUsername(username: $username) {
+       items {
+         id       
+       }
+     }
+  }
+`
+
 export const createMessage = /* GraphQL */ `
   mutation CreateMessage(
     $input: CreateMessageInput!
