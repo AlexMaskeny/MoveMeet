@@ -2,14 +2,16 @@ import React from 'react';
 import { View, StyleSheet, KeyboardAvoidingView, Keyboard, Image, Alert, TouchableOpacity, TouchableWithoutFeedback } from 'react-native';
 import { colors, debug, storage } from '../config';
 import { Auth } from 'aws-amplify';
+import AsyncStorage from '@react-native-async-storage/async-storage';
+import * as Clipboard from 'expo-clipboard';
 
 import Screen from '../comps/Screen';
 import SimpleInput from '../comps/SimpleInput';
 import SimpleButton from '../comps/SimpleButton';
-import AsyncStorage from '@react-native-async-storage/async-storage';
-import * as Clipboard from 'expo-clipboard';
 import Beam from '../comps/Beam';
 import SubTitle from '../comps/SubTitle';
+import * as logger from '../functions/logger';
+import BeamTitle from '../comps/BeamTitle';
 
 
 //current potential problems:
@@ -31,6 +33,10 @@ export default function LoginPage({navigation}) {
         setPassword("");
         usernameRef.current.clear()
         passwordRef.current.clear();
+    }
+
+    const forgotPassword = async () => {
+        navigation.navigate("ForgotPasswordPage1");
     }
 
     const onSubmit = async () => {
@@ -83,7 +89,6 @@ export default function LoginPage({navigation}) {
                         autoCapitalize="none"
                         textContentType="username"
                         maxLength={20}
-                        text={username.length + "/" + "4"}
                         onChangeText={(text) => {
                             setUsername(text);
                         }}
@@ -112,9 +117,14 @@ export default function LoginPage({navigation}) {
                     <SimpleButton
                         title="Login"
                         onPress={onSubmit}
-                        disabled={password.length < 8 || username.length < 4}
+                        disabled={password.length < 8 || username.length < 1}
                         loading={submitButtonLoad}
                     />
+                    <View style={styles.footer}>
+                        <TouchableOpacity onPress={forgotPassword}>
+                            <BeamTitle size={18}>Forgot Password?</BeamTitle>
+                        </TouchableOpacity>
+                    </View>
                 </KeyboardAvoidingView>
             </></TouchableOpacity>
             <View style={styles.beamContainer}>
@@ -153,4 +163,10 @@ const styles = StyleSheet.create({
         width: "26%",
         borderRadius: 10
     },
+    footer: {
+        height: 70,
+        alignItems: "flex-end",
+        padding: 14,
+        paddingRight: 20
+    }
 })

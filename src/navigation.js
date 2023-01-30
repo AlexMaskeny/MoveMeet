@@ -20,6 +20,8 @@ import SignupPage1 from './pages/SignupPage1';
 import SignupPage2 from './pages/SignupPage2';
 import SignupPage3 from './pages/SignupPage3';
 import SignupPage4 from './pages/SignupPage4';
+import ForgotPasswordPage1 from './pages/ForgotPasswordPage1';
+import ForgotPasswordPage2 from './pages/ForgotPasswordPage2';
 
 //The navigation screen starts on the loading screen which uses
 //the useEffect hook immediately calling an inner async function
@@ -41,6 +43,8 @@ function navigation() {
             <Primary.Screen name="SignupPage2" component={SignupPage2} />
             <Primary.Screen name="SignupPage3" component={SignupPage3} />
             <Primary.Screen name="SignupPage4" component={SignupPage4} />
+            <Primary.Screen name="ForgotPasswordPage1" component={ForgotPasswordPage1} />
+            <Primary.Screen name="ForgotPasswordPage2" component={ForgotPasswordPage2} />
             <Primary.Screen name="SecondaryNav" component={SecondaryNav} />
         </Primary.Navigator>
     );
