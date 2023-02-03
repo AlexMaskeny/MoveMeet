@@ -121,19 +121,31 @@ export default function ChatPage({ route, navigation }) {
         })).subscribe({
             next: ({ value }) => {
                 if (value.data.onUserTyping.user.id != route.params.user.id && value.data.onUserTyping.status == 4) {
+
                     setMembers(existingData => {
                         const existingMember = existingData.findIndex((el) => el.id == value.data.onUserTyping.user.id);
                         var member = value.data.onUserTyping;
                         getProfilePicture(member);
-                        if (existingMember == -1) existingData = [...existingData, { id: member.user.id, picture: member.picture }];
-                        else clearTimeout(memberStatusTracker.current.get(member.user.id))
-                        memberStatusTracker.current.set(member.user.id, setTimeout(() => {
-                            setMembers(existingMembers => {
-                                memberStatusTracker.current.delete(member.user.id);
-                                return existingMembers.filter(Member => Member.id != member.user.id)
-                            })
-                        }, 4000));
-                        return [...existingData];
+                        if (existingMember == -1) {
+                            existingData = [...existingData, { id: member.user.id, picture: member.picture }];
+                            memberStatusTracker.current.set(member.user.id, setTimeout(() => {
+                                setMembers(existingMembers => {
+                                    memberStatusTracker.current.delete(member.user.id);
+                                    return existingMembers.filter(Member => Member.id != member.user.id)
+                                })
+                            }, 4000));
+                            return [...existingData];
+                        } else {
+                            clearTimeout(memberStatusTracker.current.get(member.user.id))
+                            memberStatusTracker.current.set(member.user.id, setTimeout(() => {
+                                setMembers(existingMembers => {
+                                    memberStatusTracker.current.delete(member.user.id);
+                                    return existingMembers.filter(Member => Member.id != member.user.id)
+                                })
+                            }, 4000));
+                            return existingData;
+                        }
+                        return [];
                     });
                 }
             },
@@ -198,7 +210,7 @@ export default function ChatPage({ route, navigation }) {
                 });
             } catch (error) { }
         }
-    }, [rerender]));
+    }, [rerender, navigation, route]));
     useSubSafe(() => setRerender(!rerender));
     const readMessage = async (message) => {
         if (message.read.includes(route.params.user.id)) return;
@@ -446,7 +458,7 @@ export default function ChatPage({ route, navigation }) {
             return (<>
                 <View style={styles.beginChat}>
                     <BeamTitle size={18}>Begining of Chat</BeamTitle>
-                    <SubTitle size={14}>Say Something in {route.params.name}</SubTitle>
+                    <SubTitle size={14}>Say Something to {route.params.name}</SubTitle>
                     <SubTitle color={colors.text3}>Created on {(new Date(Date.parse(route.params.created))).toLocaleDateString()}</SubTitle>
                 </View>
             </>);

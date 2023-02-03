@@ -26,6 +26,7 @@ export default function SignupPage2({ navigation, route }) {
                 username: route.params.username,
                 password: route.params.password,
                 name: route.params.name,
+                phone_numer: "+1" + number
             }));
             const result = await Auth.signUp({
                 username: route.params.username,
@@ -87,7 +88,7 @@ export default function SignupPage2({ navigation, route }) {
             </TouchableOpacity>
             <View style={styles.beamContainer}>
                 <Beam style={styles.beam} />
-                <TouchableOpacity onPress={() => navigation.navigate("LoginPage")}>
+                <TouchableOpacity onPress={() => navigation.navigate("AuthPage")}>
                     <SubTitle size={16} style={{ fontWeight: "400" }} color={colors.text2}>Or Login</SubTitle>
                 </TouchableOpacity>
                 <Beam style={styles.beam} />

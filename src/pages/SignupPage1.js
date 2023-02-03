@@ -25,7 +25,7 @@ export default function SignupPage1({ navigation }) {
 
     const onSubmit = () => {
         navigation.navigate("SignupPage2", {
-            username: username,
+            username: username.toLowerCase(),
             password: password,
             name: name
         });
@@ -40,7 +40,6 @@ export default function SignupPage1({ navigation }) {
                     <SimpleInput
                         reference={nameRef}
                         placeholder="Name (optional)"
-
                         autocorrect={false}
                         icon="account"
                         autoCapitalize="none"
@@ -56,7 +55,15 @@ export default function SignupPage1({ navigation }) {
                         icon="account"
                         autoCapitalize="none"
                         maxLength={18}
-                        onChangeText={(text) => setUsername(text)}
+                        text={username.length + "/4"}
+                        value={username}
+                        onChangeText={(text) => {
+                            if (
+                                /^[a-zA-Z]+$/.test(text[text.length-1]) || text.length == 0 ||
+                                 /^[0-9]+$/.test(text[text.length - 1]) || text[text.length - 1] == '_' ||
+                                text[text.length - 1] == '.'
+                            ) setUsername(text);
+                        }}
                     />
                     <SimpleInput
                         reference={passwordRef}
@@ -104,7 +111,7 @@ export default function SignupPage1({ navigation }) {
                         title="Next"
                         onPress={onSubmit}
                         outerStyle={{ flexDirection: 'row' }}
-                        disabled={!(username.length > 0 && password.length >= 8 && confirmPassword == password)}
+                        disabled={!(username.length > 3 && password.length >= 8 && confirmPassword == password)}
                     />
                 </View>
             </TouchableOpacity>

@@ -19,6 +19,7 @@ export default function ForgotPasswordPage2({ navigation, route }) {
     const [passwordVisible, setPasswordVisible] = useState(false);
     const [confirmPasswordVisible, setConfirmPasswordVisible] = useState(false);
     const [loading, setLoading] = useState(false);
+    const [allowResend, setAllowResend] = useState(true);
 
     const codeRef = useRef();
 
@@ -40,7 +41,15 @@ export default function ForgotPasswordPage2({ navigation, route }) {
 
     const Resend = async () => {
         try {
-            await Auth.forgotPassword(route.params.username);
+            if (allowResend) {
+                setAllowResend(false);
+                await Auth.forgotPassword(route.params.username);
+                setTimeout(function () {
+                    setAllowResend(true);
+                }, 10000);
+            } else {
+                Alert.alert("Slow down", "You can only send a new code every 10 seconds");
+            }
         } catch (error) {
             logger.warn(error);
 

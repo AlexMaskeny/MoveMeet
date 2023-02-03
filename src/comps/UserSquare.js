@@ -67,7 +67,7 @@ export default function UserSquare({
                         <View style={styles.footer}>
                             <SubTitle style={styles.title} color={colors.text6} size={18}>{user.username}</SubTitle>
                             <SubTitle style={styles.title} color={colors.text1} size={14}>{user.distance} away</SubTitle>
-                            <SubTitle style={styles.title} color={colors.text1} size={14} numberOfLines={1}>{user.bio}</SubTitle>
+                            <SubTitle style={styles.title2} color={colors.text1} size={14} numberOfLines={1}>{user.bio}</SubTitle>
                         </View>
                     </LinearGradient>
                 </View>
@@ -83,8 +83,9 @@ const styles = StyleSheet.create({
         borderRadius: borderRadius,
         flex: 1,
         ...css.beamShadow,
-        borderWidth: 2,
-        borderColor: colors.pBeam,
+        shadowColor: "black",
+        borderWidth: 1,
+        borderColor: colors.text4,
     }, 
     image: {
         borderRadius: borderRadius,
@@ -97,6 +98,13 @@ const styles = StyleSheet.create({
     },
     title: {
         fontWeight: "bold",
+        ...css.beamShadow,
+        shadowColor: "black",
+        shadowRadius: 2,
+        alignSelf: "flex-start"
+    },
+    title2: {
+        fontWeight: "500",
         ...css.beamShadow,
         shadowColor: "black",
         shadowRadius: 2,

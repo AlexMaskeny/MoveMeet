@@ -60,8 +60,6 @@ export default function DiscoverPage({ navigation, route }) {
                     }));
                     if (nearbyUsersResponse) {
                         const nearbyUsers = nearbyUsersResponse.data.listUsersByLocation.items;
-                        if (nearbyUsers.length == 0) setNoUsers(true);
-                        else setNoUsers(false);
                         var userData = [];
                         for (var i = 0; i < nearbyUsers.length; i++) {
                             var user = nearbyUsers[i];
@@ -70,10 +68,13 @@ export default function DiscoverPage({ navigation, route }) {
                             user.profilePicture.loadFull = await Storage.get(user.profilePicture.loadFull);
                             user.profilePicture.full = await Storage.get(user.profilePicture.full);
                             user.distance = await distance.formula(user.lat, user.long, userLocationConverted.lat, userLocationConverted.long);
+                            user.dis = user.distance.substring(0, user.distance.indexOf(' '));
                             userData.push(user);
                         }
+                        if (userData.length == 0) setNoUsers(true)
+                        else setNoUsers(false);
                         userData.sort((a, b) => {
-                            if (a.distance > b.distance) return 1;
+                            if (Number(a.dis) > Number(b.dis)) return 1;
                             else return -1;
                         })
                         setUsers(userData);

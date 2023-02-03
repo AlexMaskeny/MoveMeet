@@ -31,6 +31,7 @@ export default function OProfilePage({ navigation, route }) {
     const [bio, setBio] = useState(""); 
     const [name, setName] = useState("");
     const [profilePicture, setProfilePicture] = useState({});
+    const [background, setBackground] = useState({});
     const [ready, setReady] = useState(false);
     const [loading, setLoading] = useState(false);
     const [refresh, setRefresh] = useState(false);
@@ -73,6 +74,12 @@ export default function OProfilePage({ navigation, route }) {
                 setBio(currentUser.current.bio);
                 const loadFull = await Storage.get(currentUser.current.profilePicture.loadFull);
                 const full = await Storage.get(currentUser.current.profilePicture.full);
+                if (currentUser.current.background.enableColor) setBackground({ isColor: true, color: currentUser.current.background.color });
+                else {
+                    const backLoadFull = await Storage.get(currentUser.current.background.loadFull);
+                    const backFull = await Storage.get(currentUser.current.background.full);
+                    setBackground({ uri: backFull, loadImage: backLoadFull, color: "", isColor: false });
+                }
                 const locPerms = await Location.getForegroundPermissionsAsync();
                 var location;
                 if (locPerms.granted) {
@@ -242,20 +249,27 @@ export default function OProfilePage({ navigation, route }) {
         />
     ), [posts, profilePicture]);
 
-    const ListHeaderComponent = useCallback(()=>(<>
-        <Image
-            style={{ height: 100, width: "100%" }}
-            resizeMode="cover"
-            source={profilePicture}
-        />
-        <LinearGradient
-            colors={['rgba(18, 18, 18,0.4)', colors.background]}
-            style={{ height: 120, width: "100%", marginTop: -120}}
-        />
+    const ListHeaderComponent = useCallback(() => (<>
+        {!background.isColor &&
+            <Image
+                style={{ height: 100, width: "100%" }}
+                resizeMode="cover"
+                source={background}
+            />
+        }
+        {background.isColor &&
+            <View style={{ height: 100, width: "100%", backgroundColor: background.color }} />
+        }
+        {!background.isColor &&
+            <LinearGradient
+                colors={['rgba(18, 18, 18,0.4)', colors.background]}
+                style={{ height: 120, width: "100%", marginTop: -120}}
+            />
+        }
         <View style={styles.beamCircle}>
             <Beam style={styles.beam} />
             <View style={{ justifyContent: "center" }}>
-                <ProfileCircle ppic={profilePicture} style={styles.ppic} innerStyle={styles.innerPpic} />
+                <ProfileCircle ppic={{uri: profilePicture.uri}} style={styles.ppic} innerStyle={styles.innerPpic} />
             </View>         
             <Beam style={styles.beam} />
         </View>
@@ -278,6 +292,7 @@ export default function OProfilePage({ navigation, route }) {
             <SimpleInput
                 autoCorrect={true}
                 editable={false}
+                cStyle={{backgroundColor: colors.background} }
                 multiline={true}
                 maxLength={160}
                 style={styles.textInput}
@@ -351,10 +366,8 @@ const styles = StyleSheet.create({
         marginTop: 40,
         minHeight: 70,
         alignItems: "center",
-        backgroundColor: colors.container,
-        borderRadius: 20,
-        ...css.beamShadow,
-        shadowColor: "rgba(0,0,0,0.5)",
+        justifyContent: "flex-end",
+        backgroundColor: colors.background
     },
     title: {
         fontWeight: "400"

@@ -21,6 +21,7 @@ import Post from '../comps/Post';
 import SimpleInput from '../comps/SimpleInput';
 import CreatePost from '../comps/CreatePost';
 import Settings from '../comps/Settings';
+import BackgroundEditor from '../comps/BackgroundEditor';
 
 
 
@@ -31,16 +32,19 @@ export default function UProfilePage({ navigation }) {
 
     const [posts, setPosts] = useState([]);
     const [username, setUsername] = useState("");
+    const [showBack, setShowBack] = useState(false);
     const [bio, setBio] = useState("");
     const [email, setEmail] = useState("");
     const [name, setName] = useState("");
     const [profilePicture, setProfilePicture] = useState({});
+    const [background, setBackground] = useState({});
     const [ready, setReady] = useState(false);
     const [refresh, setRefresh] = useState(false);
     const [editing, setEditing] = useState(false);
     const [bioEdit, setBioEdit] = useState(false);
     const [rerender, setRerender] = useState(false);
     const [changedImage, setChangedImage] = useState(false);
+    const [changedBackground, setChangedBackground] = useState(false);
     const [showSettings, setShowSettings] = useState(false);
     const [showCreate, setShowCreate] = useState(false);
     const [postsToDelete, setPostsToDelete] = useState([]);
@@ -96,7 +100,7 @@ export default function UProfilePage({ navigation }) {
                 ),
             })
         }
-    }, [navigation, editing, name, bio, profilePicture, postsToDelete])
+    }, [navigation, editing, name, bio, profilePicture, postsToDelete, background])
 
     //DATA FETCHING
     useEffect(() => {
@@ -115,6 +119,12 @@ export default function UProfilePage({ navigation }) {
                     setBio(currentUser.current.bio);
                     const loadFull = await Storage.get(currentUser.current.profilePicture.loadFull);
                     const full = await Storage.get(currentUser.current.profilePicture.full);
+                    if (currentUser.current.background.enableColor) setBackground({ isColor: true, color: currentUser.current.background.color });
+                    else {
+                        const backLoadFull = await Storage.get(currentUser.current.background.loadFull);
+                        const backFull = await Storage.get(currentUser.current.background.full);
+                        setBackground({ uri: backFull, loadImage: backLoadFull, color: "", isColor: false });
+                    }
                     const locPerms = await Location.getForegroundPermissionsAsync();
                     var location;
                     if (locPerms.granted) {
@@ -160,7 +170,7 @@ export default function UProfilePage({ navigation }) {
     }
 
     const saveEdit = () => {
-        if (changedImage || postsToDelete.length > 0 || bio != currentUser.current.bio) {
+        if (changedImage || postsToDelete.length > 0 || bio != currentUser.current.bio || changedBackground) {
             Alert.alert("Are you sure?", "Select confirm to change your profile.", [
                 { text: "Cancel" },
                 {
@@ -172,10 +182,69 @@ export default function UProfilePage({ navigation }) {
                                 const img1 = await response1.blob();
                                 const img2 = await response2.blob();
                                 if (img1 && img2) {
-                                    await Storage.remove(currentUser.current.profilePicture.loadFull);
-                                    await Storage.remove(currentUser.current.profilePicture.full);
-                                    await Storage.put(currentUser.current.profilePicture.full, img1);
-                                    await Storage.put(currentUser.current.profilePicture.loadFull, img2);
+                                    //console.log(currentUser.current.profilePicture.full);
+                                    if (currentUser.current.profilePicture.full != " ") {
+                                        await Storage.remove(currentUser.current.profilePicture.loadFull);
+                                        await Storage.remove(currentUser.current.profilePicture.full);
+                                        await Storage.put(currentUser.current.profilePicture.full, img1);
+                                        await Storage.put(currentUser.current.profilePicture.loadFull, img2);
+                                    } else {
+                                        await API.graphql(graphqlOperation(updateUser, {
+                                            input: {
+                                                id: currentUser.current.id,
+                                                profilePicture: {
+                                                    full: "FULLprofilePicture" + currentUser.current.id + ".jpg",
+                                                    loadFull: "LOADFULLprofilePicture" + currentUser.current.id + ".jpg",
+                                                    region: "us-east-2",
+                                                    bucket: "proxychatf2d762e9bc784204880374b0ca905be4120629-dev"
+                                                }
+                                            }
+                                        }));
+                                        await Storage.put("FULLprofilePicture" + currentUser.current.id + ".jpg", img1);
+                                        await Storage.put("LOADFULLprofilePicture" + currentUser.current.id + ".jpg", img2);
+                                    }
+                                }
+                            }
+                            if (changedBackground) {
+                                if (background.isColor) {
+                                    await API.graphql(graphqlOperation(updateUser, {
+                                        input: {
+                                            id: currentUser.current.id,
+                                            background: {
+                                                full: "FULLbackground" + currentUser.current.id + ".jpg",
+                                                loadFull: "LOADFULLbackground" + currentUser.current.id + ".jpg",
+                                                region: "us-east-2",
+                                                bucket: "proxychatf2d762e9bc784204880374b0ca905be4120629-dev",
+                                                enableColor: true,
+                                                color: background.color
+                                            }
+                                        }
+                                    }))
+                                } else {
+                                    const response1 = await fetch(background.uri);
+                                    const response2 = await fetch(background.loadImage);
+                                    const img1 = await response1.blob();
+                                    const img2 = await response2.blob();
+                                    if (img1 && img2) {
+                                        await Storage.remove(currentUser.current.background.loadFull);
+                                        await Storage.remove(currentUser.current.background.full);
+                                        await Storage.put(currentUser.current.background.full, img1);
+                                        await Storage.put(currentUser.current.background.loadFull, img2);
+                                        await API.graphql(graphqlOperation(updateUser, {
+                                            input: {
+                                                id: currentUser.current.id,
+                                                background: {
+                                                    full: "FULLbackground" + currentUser.current.id + ".jpg",
+                                                    loadFull: "LOADFULLbackground" + currentUser.current.id + ".jpg",
+                                                    region: "us-east-2",
+                                                    bucket: "proxychatf2d762e9bc784204880374b0ca905be4120629-dev",
+                                                    enableColor: false
+                                                }
+                                            }
+                                        }));
+
+                                        
+                                    }
                                 }
                             }
                             if (bio != currentUser.current.bio) {
@@ -234,6 +303,32 @@ export default function UProfilePage({ navigation }) {
             Alert.alert("Error", "Something when wrong when changing your profile picture", [{ text: "Try Again" }]);
         }
     }
+    const changeBackground = () => {
+        try {
+            Alert.alert("Use a photo or use a color", "Pick one of the options below to change your background", [
+                {text: "Open Photos", onPress: () => {
+                    media.openPhotos((uri) => {
+                        setChangedBackground(true);
+                        setBackground({
+                            uri: uri.full,
+                            loadImage: uri.loadFull,
+                            isColor: false
+                        })
+                    });
+                }},
+                {text: "Select Color", onPress: () => {
+                    setShowBack(true);
+                }}
+            ]);
+        } catch (error) {
+            logger.warn(error);
+            Alert.alert("Error", "Something when wrong when changing your profile picture", [{ text: "Try Again" }]);
+        }
+    }
+    const successBack = (color) => {
+        setChangedBackground(true);
+        setBackground({ color: color, isColor: true });
+    }
     const changeBio = async () => {
         await setBioEdit(true);
         bioEditRef.current.focus();
@@ -242,6 +337,9 @@ export default function UProfilePage({ navigation }) {
         Alert.alert("Deleted Post", "This post will now delete when you click done. Click cancel to not delete it.");
         setPostsToDelete(existingItems => {
             return [...existingItems, postID];
+        })
+        setPosts(existingItems => {
+            return existingItems.filter(el => el.id != postID);
         })
     }
 
@@ -256,22 +354,34 @@ export default function UProfilePage({ navigation }) {
         />
     ), [editing, posts, profilePicture]);
 
-    const ListHeaderComponent = useCallback(()=>(<>
-        <Image
-            style={{ height: 100, width: "100%" }}
-            resizeMode="cover"
-            source={profilePicture}
-        />
-        <LinearGradient
-            // Background Linear Gradient
-            colors={['rgba(18, 18, 18,0.4)', colors.background]}
-            style={{ height: 120, width: "100%", marginTop: -120}}
-        />
+    const ListHeaderComponent = useCallback(() => (<>
+        {!background.isColor &&
+            <Image
+                style={{ height: 100, width: "100%" }}
+                resizeMode="cover"
+                source={background}
+            />        
+        }
+        {background.isColor &&
+            <View style={{height: 100, width: "100%", backgroundColor: background.color}} />
+        }
+        {editing &&
+            <View style={{position: 'absolute', alignSelf: "flex-end", padding: 4, zIndex: 4}}>
+                <IconButton icon="square-edit-outline" brand="MaterialCommunityIcons" size={40} color={colors.text1} onPress={changeBackground} />
+            </View>
+        }
+        {!background.isColor &&
+            <LinearGradient
+                // Background Linear Gradient
+                colors={['rgba(18, 18, 18,0.4)', colors.background]}
+                style={{ height: 120, width: "100%", marginTop: -120}}
+            />
+        }
         <View style={styles.beamCircle}>
             <Beam style={styles.beam} />
             {editing &&
                 <TouchableOpacity onPress={changePpic} style={{justifyContent: "center"}}>
-                    <ProfileCircle ppic={profilePicture} style={styles.ppicEditing} innerStyle={styles.innerPpicEditing} />
+                    <ProfileCircle ppic={{ uri: profilePicture.uri }} style={styles.ppicEditing} innerStyle={styles.innerPpicEditing} />
                     <View style={styles.changePpic}>
                         <IconButton icon="square-edit-outline" brand="MaterialCommunityIcons" size={40} color={colors.text1} onPress={changePpic} />
                     </View>
@@ -279,24 +389,25 @@ export default function UProfilePage({ navigation }) {
             }
             {!editing &&
                 <View style={{ justifyContent: "center" }}>
-                    <ProfileCircle ppic={profilePicture} style={styles.ppic} innerStyle={styles.innerPpic} />
+                    <ProfileCircle ppic={{ uri: profilePicture.uri }} style={styles.ppic} innerStyle={styles.innerPpic} />
                 </View>         
             }
             <Beam style={styles.beam} />
         </View>
         <View style={styles.upperBody}>
             <View>
-                <SubTitle style={styles.title2} size={18} color={colors.text1}>@{username}</SubTitle>
-                <SubTitle size={14} color={colors.text4}>0 feet away</SubTitle>
+                <SubTitle style={styles.title2} size={18} color={colors.text1} selectable={true}>@{username}</SubTitle>
+
             </View>
             <View>
-                <SubTitle style={styles.title2} size={18} color={colors.text1}>Message</SubTitle>
+
             </View>
         </View>
         <View style={styles.midBody}>
             <SimpleInput
                 autoCorrect={true}
                 reference={bioEditRef}
+                cStyle={{backgroundColor: colors.background} }
                 editable={editing}
                 multiline={true}
                 maxLength={160}
@@ -317,7 +428,7 @@ export default function UProfilePage({ navigation }) {
             </>}
         </View>
         <View style={{ height: 20 }} />
-    </>), [rerender, editing, ready, bioEdit, profilePicture]);
+    </>), [rerender, editing, ready, bioEdit, profilePicture, background]);
 
     return (
         <Screen innerStyle={styles.page}>
@@ -347,6 +458,7 @@ export default function UProfilePage({ navigation }) {
             }
             <Loading enabled={!ready} />
             <CreatePost visible={showCreate} onClose={closeCreate} currentUser={currentUser.current} />
+            <BackgroundEditor visible={showBack} onClose={() => setShowBack(false)} onSuccess={successBack} />
             <Settings visible={showSettings} onClose={() => setShowSettings(false)} navigation={navigation}/>
         </Screen>
     );
@@ -398,10 +510,8 @@ const styles = StyleSheet.create({
         marginTop: 40,
         minHeight: 70,
         alignItems: "center",
-        backgroundColor: colors.container,
-        borderRadius: 20,
-        ...css.beamShadow,
-        shadowColor: "rgba(0,0,0,0.5)",
+        justifyContent: "flex-end",
+        backgroundColor: colors.background
     },
     title: {
         fontWeight: "400"

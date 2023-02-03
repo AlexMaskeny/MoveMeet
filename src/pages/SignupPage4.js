@@ -26,19 +26,31 @@ export default function SignupPage4({ navigation, route }) {
     const Submit = async () => {
         try {
             setLoading(true);
-            await Location.requestForegroundPermissionsAsync();
-            const result = await Notifications.requestPermissionsAsync();
+            const result1 = await Location.getForegroundPermissionsAsync();
+            if (!result1.granted) await Location.requestForegroundPermissionsAsync();
             var params = {
                 id: route.params.userID,
                 allowNotifications: false,
             }
-            if (result.granted) {
+            const result2 = await Notifications.getPermissionsAsync();
+            if (result2.granted) {
                 const token = await Notifications.getExpoPushTokenAsync();
                 params = {
                     ...params,
                     allowNotifications: true,
                     expoToken: token.data
                 }
+            } else {
+                const result = await Notifications.requestPermissionsAsync();
+                if (result.granted) {
+                    const token = await Notifications.getExpoPushTokenAsync();
+                    params = {
+                        ...params,
+                        allowNotifications: true,
+                        expoToken: token.data
+                    }
+                }
+
             }
             
             if (bio.length > 0) params = { ...params, bio: bio };

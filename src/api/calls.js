@@ -90,7 +90,6 @@ export const createMessage = /* GraphQL */ `
           bucket
           region
           loadFull
-          thumbFull
           full
         }
         content
@@ -127,7 +126,6 @@ export const getMessage = /* GraphQL */ `
         bucket
         region
         loadFull
-        thumbFull
         full
       }
       index
@@ -174,8 +172,9 @@ export const getUserChats = /* GraphQL */ `
                         bucket
                         region
                         loadFull
-                        thumbFull
                         full
+                        color
+                        enableColor
                     }
                     members {
                         items {
@@ -189,7 +188,6 @@ export const getUserChats = /* GraphQL */ `
                                 }
                             }
                             createdAt
-
                         }
                     }
                     createdAt
@@ -230,7 +228,6 @@ export const getChat = /* GraphQL */ `
         bucket
         region
         loadFull
-        thumbFull
         full
       }
       messages {
@@ -396,7 +393,6 @@ export const getUserByCognito = /* GraphQL */ `
         bucket
         region
         loadFull
-        thumbFull
         full
       }
       createdAt
@@ -421,8 +417,15 @@ export const getDetailedUserByCognito = /* GraphQL */ `
             bucket
             region
             loadFull
-            thumbFull
             full
+        }
+        background {
+            bucket
+            region
+            loadFull
+            full
+            enableColor
+            color
         }
         posts {
             items {
@@ -476,7 +479,6 @@ export const listMessagesByTime = /* GraphQL */ `
               region
               loadFull
               full
-              thumbFull
             }
             content
             type
@@ -514,7 +516,6 @@ export const getLatestMessagesByTime = /* GraphQL */ `
               region
               loadFull
               full
-              thumbFull
             }
             content
             type
@@ -561,7 +562,6 @@ export const onReceiveMessage = /* GraphQL */ `
           bucket
           region
           loadFull
-          thumbFull
           full
         }
         content
@@ -728,8 +728,15 @@ export const getDetailedUser = /* GraphQL */ `
             bucket
             region
             loadFull
-            thumbFull
             full
+        }
+        background {
+            bucket
+            region
+            loadFull
+            full
+            enableColor
+            color
         }
         posts {
             items {

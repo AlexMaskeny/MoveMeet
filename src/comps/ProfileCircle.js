@@ -37,11 +37,7 @@ const styles = StyleSheet.create({
         borderRadius: 30,
         overflow: 'hidden',
     },
-    noImage: {
-        width: 50,
-        height: 50,
-        position: "absolute"
-    }
+
     
 });
 

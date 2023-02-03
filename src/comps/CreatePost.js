@@ -30,10 +30,15 @@ export default function CreatePost({ visible, onClose, currentUser }) {
     }
 
     const selectImage = async () => {
-        setLoading1(true);
         id.current = uuid.v4();
-        await media.openPhotos((img) => { setImage(img.full), setSmallImage(img.loadFull) });
-        setLoading1(false);
+        const onSuccess = (uri) => {
+            setImage(uri.full);
+            setSmallImage(uri.loadFull);
+        }
+        Alert.alert("Take a photo or select one", "Pick one of the options below to change your profile picture.", [
+            { text: "Take Picture", onPress:() => media.openCamera(onSuccess) },
+            { text: "Open Photos", onPress: () => media.openPhotos(onSuccess) }
+        ]);
     }
 
     const CreatePost = async () => {
@@ -124,9 +129,8 @@ export default function CreatePost({ visible, onClose, currentUser }) {
                 }
                 <View style={styles.desc}>
                     <SubTitle size={16} style={styles.subtitle}>When you create a post it will</SubTitle>
-                    <SubTitle size={16} style={styles.subtitle}>display on your profile publicly and</SubTitle>
-                    <SubTitle size={16} style={styles.subtitle}>to everyone near you. You can</SubTitle>
-                    <SubTitle size={16} style={styles.subtitle}>delete posts by editing your profile.</SubTitle>
+                    <SubTitle size={16} style={styles.subtitle}>display on your profile publicly.</SubTitle>
+                    <SubTitle size={16} style={styles.subtitle}>Delete posts by editing your profile.</SubTitle>
                 </View>
                 <Beam style={{ marginTop: 20, marginBottom: 10 }} />
 

@@ -1,6 +1,6 @@
 import React, { useCallback, useState, useRef, useEffect } from 'react';
 import { View, StyleSheet, FlatList, RefreshControl } from 'react-native';
-import { API, Auth, graphqlOperation, Storage} from 'aws-amplify';
+import { API, Auth, graphqlOperation, Storage } from 'aws-amplify';
 import { useFocusEffect } from '@react-navigation/native';
 import { useNetInfo } from "@react-native-community/netinfo";
 import * as Location from 'expo-location';
@@ -51,7 +51,7 @@ export default function ChatsPage({ navigation }) {
                 </View>
             )
         })
-    },[navigation])
+    }, [navigation])
 
     useFocusEffect(useCallback(() => {
         if (timeClockSub.current) clearInterval(timeClockSub.current);
@@ -100,9 +100,9 @@ export default function ChatsPage({ navigation }) {
             } catch (error) { }
             try {
                 unsubscribeChats();
-            } catch (error) {  }
+            } catch (error) { }
         }
-    },[rerender]));
+    }, [rerender]));
     useSubSafe(onRefresh);
     const unsubscribeChats = () => {
         for (var i = 0; i < userChatsSub.current.length; i++) {
@@ -124,6 +124,7 @@ export default function ChatsPage({ navigation }) {
                     const userChatsResponse = await API.graphql(graphqlOperation(getUserChats, {
                         id: currentUser.current.id
                     }));
+
                     if (userChatsResponse) {
                         const userChats = userChatsResponse.data.getUser.chats.items;
                         if (userChats.length == 0) setNoChats(true);
@@ -141,7 +142,7 @@ export default function ChatsPage({ navigation }) {
                             chat.last3 = [];
                             chat.glow = false;
                             chat.latest = "New Chat";
-                            
+
                             try {
                                 if ((Date.now() - Date.parse(last3.data.listMessagesByTime.items[0].createdAt)) / 1000 > 60 * 60 * rules.chatDeletionTime) { //if enabled and greater than rules.chatDeletionTime hours old then remove
                                     await API.graphql(graphqlOperation(updateChat, {
@@ -163,7 +164,7 @@ export default function ChatsPage({ navigation }) {
                                     }))
                                     continue;
                                 }
-                            } catch (error) {  }
+                            } catch (error) { }
 
                             if (last3) {
                                 chat.last3 = last3.data.listMessagesByTime.items;
@@ -176,15 +177,26 @@ export default function ChatsPage({ navigation }) {
                                 chat.glow = false;
                                 throw "[CHATSPAGE] onRefresh failed because of an error getting a chat's last3 messages"
                             }
-
-                            chat.background.full = await Storage.get(chat.background.full);
-                            chat.background.loadFull = await Storage.get(chat.background.loadFull);
+                            if (!chat.background.enableColor) {
+                                chat.background.full = await Storage.get(chat.background.full);
+                                chat.background.loadFull = await Storage.get(chat.background.loadFull);
+                                chat.background.isColor = false;
+                            } else {
+                                chat.background.isColor = true;
+                            }
                             chat.createdAt = chat.createdAt.substring(0, 10);
                             chat.numMembers = chat.members.items.length;
                             chat.distance = distance.formula(userLocationConverted.lat, userLocationConverted.long, chat.lat, chat.long);
 
-                            const userChatMembersIDIndex = chat.members.items.findIndex((el) => el.user.id == currentUser.current.id);
+                            const userChatMembersIDIndex = chat.members.items.findIndex((el) => {
+                                if (el.user.id == currentUser.current.id) return true;
+                                return false;
+                            });
                             chat.userChatMembersID = chat.members.items[userChatMembersIDIndex].id;
+                            if (chat.userChatMembersID == -1) {
+                                logger.warn("Userchat member not found in userchat...");
+                                //setRerender(true);
+                            }
                             for (var j = 0; j < chat.numMembers; j++) {
                                 const picture = await Storage.get(chat.members.items[j].user.profilePicture.loadFull);
                                 chat.members.items[j].user.picture = picture;
@@ -232,7 +244,7 @@ export default function ChatsPage({ navigation }) {
         }
     }
     const messageUpdate = async (data) => {
-        const value = data.data.onReceiveMessage; 
+        const value = data.data.onReceiveMessage;
 
         setChats(existingItems => {
             var Chats = [...existingItems];
@@ -251,7 +263,7 @@ export default function ChatsPage({ navigation }) {
         chatData.sort((a, b) => {
             if (a.last3.length == 0 && b.last3.length != 0) {
                 return 1;
-            } else if (a.last3.length != 0 && b.last3.length == 0) { 
+            } else if (a.last3.length != 0 && b.last3.length == 0) {
                 return -1;
             } else if (a.last3.length == 0 && b.last3.length == 0) {
                 return 0;
@@ -313,11 +325,7 @@ export default function ChatsPage({ navigation }) {
             if (ready) {
                 return (
                     <Chat
-                        background={{
-                            uri: item.background.full,
-                            loadImage: item.background.loadFull ? item.background.loadFull : item.background.full,
-                            key: "background" + item.id,
-                        }}
+                        background={item.background}
                         members={item.members.items}
                         latest={item.latest}
                         onPress={() => navigate(item)}

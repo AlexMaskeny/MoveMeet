@@ -1,7 +1,8 @@
 {
   "expo": {
-    "name": "ProxyChat",
-    "slug": "ProxyChat",
+    "jsEngine": "hermes",
+    "name": "Lummp",
+    "slug": "Lummp",
     "version": "0.1.0",
     "orientation": "portrait",
     "icon": "./assets/icon.png",
@@ -9,7 +10,7 @@
     "splash": {
       "image": "./assets/splash.png",
       "resizeMode": "contain",
-      "backgroundColor": "#ffffff"
+      "backgroundColor": "#121212"
     },
     "updates": {
       "fallbackToCacheTimeout": 0
@@ -18,7 +19,7 @@
       "**/*"
     ],
     "ios": {
-      "buildNumber": "1",
+      "buildNumber": "4",
       "bundleIdentifier": "com.alexmaskeny.ProxyChat",
       "supportsTablet": true
     },

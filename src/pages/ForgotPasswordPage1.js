@@ -24,6 +24,8 @@ export default function ForgotPasswordPage1({ navigation, route }) {
             logger.warn(error);
             if (error.code == "LimitExceededException") {
                 Alert.alert("Slow down", "You have tried resetting your password to many times");
+            } else {
+                Alert.alert("Invalid username", "The username you are trying to reset the password of doesn't exist");
             }
 
         } finally {

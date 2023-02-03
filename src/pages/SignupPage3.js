@@ -16,6 +16,7 @@ import * as logger from '../functions/logger';
 export default function SignupPage3({ navigation }) {
     const [code, setCode] = useState("");
     const [loading, setLoading] = useState(false);
+    const [allowResend, setAllowResend] = useState(true);
 
     const codeRef = useRef();
 
@@ -42,6 +43,14 @@ export default function SignupPage3({ navigation }) {
                         loadFull: " ",
                         bucket: " ",
                         region: " ",
+                    },
+                    background: {
+                        full: " ",
+                        loadFull: " ",
+                        bucket: " ",
+                        region: " ",
+                        enableColor: false,
+                        color: " "
                     }
                 }
             }))
@@ -60,7 +69,15 @@ export default function SignupPage3({ navigation }) {
         try {
             const unconfirmedUser = await AsyncStorage.getItem(storage.UNCONFIRMEDUSER);
             const user = JSON.parse(unconfirmedUser);
-            await Auth.resendSignUp(user.username);
+            if (allowResend) {
+                setAllowResend(false);
+                await Auth.resendSignUp(user.username);
+                setTimeout(function () {
+                    setAllowResend(true);
+                }, 10000);
+            } else {
+                Alert.alert("Slow down", "You can only send a new code every 10 seconds");
+            }
         } catch (error) {
             logger.warn(error);
         }
@@ -102,7 +119,7 @@ export default function SignupPage3({ navigation }) {
             <View style={styles.beamContainer}>
                 <Beam style={styles.beam} />
                 <TouchableOpacity onPress={() => navigation.navigate("LoginPage")}>
-                    <SubTitle size={16} style={{ fontWeight: "400" }} color={colors.text2}>Or Login</SubTitle>
+                    <SubTitle size={16} style={{ fontWeight: "400" }} color={colors.text2}>Login / Signup Again</SubTitle>
                 </TouchableOpacity>
                 <Beam style={styles.beam} />
             </View>
@@ -131,7 +148,7 @@ const styles = StyleSheet.create({
         alignItems: "center",
     },
     beam: {
-        width: "33%",
+        width: "25%",
         borderRadius: 10
     },
 

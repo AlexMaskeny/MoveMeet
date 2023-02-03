@@ -3,6 +3,7 @@ import { StyleSheet, Image, ActivityIndicator, View } from 'react-native';
 import { API, Auth, graphqlOperation } from 'aws-amplify';
 import AsyncStorage from '@react-native-async-storage/async-storage';
 import * as Location from 'expo-location';
+import NetInfo from '@react-native-community/netinfo';
 import { useFocusEffect } from '@react-navigation/native';
 import * as Notifications from 'expo-notifications';
 
@@ -44,15 +45,15 @@ export default function LoadingPage({navigation}) {
                         id: currentUser.current.attributes.sub
                     }));
                     const notificationStatus = await Notifications.getPermissionsAsync();
-                    if (notificationStatus.granted && !user.data.getUserByCognito.allowNotifications) {
-                        await API.graphql(graphqlOperation(updateUser, {
-                            input: {
-                                id: user.data.getUserByCognito.id,
-                                allowNotifications: true,
-                            }
-                        }));
-                        user.data.getUserByCognito.allowNotifications = true;
-                    } else if (!notificationStatus.granted && user.data.getUserByCognito.allowNotifications) {
+                    //if (notificationStatus.granted && !user.data.getUserByCognito.allowNotifications) {
+                    //    await API.graphql(graphqlOperation(updateUser, {
+                    //        input: {
+                    //            id: user.data.getUserByCognito.id,
+                    //            allowNotifications: true,
+                    //        }
+                    //    }));
+                    //    user.data.getUserByCognito.allowNotifications = true;
+                    if (!notificationStatus.granted && user.data.getUserByCognito.allowNotifications) {
                         await API.graphql(graphqlOperation(updateUser, {
                             input: {
                                 id: user.data.getUserByCognito.id,
@@ -61,7 +62,7 @@ export default function LoadingPage({navigation}) {
                         }));
                         user.data.getUserByCognito.allowNotifications = false;
                     }
-                    if (user.data.getUserByCognito.allowNotifications) {
+                    if (user.data.getUserByCognito.allowNotifications && notificationStatus.granted) {
                         const result = await Notifications.getPermissionsAsync();
                         if (result.ios.status == Notifications.IosAuthorizationStatus.NOT_DETERMINED) {
                             const result2 = await Notifications.requestPermissionsAsync();
@@ -79,41 +80,51 @@ export default function LoadingPage({navigation}) {
                         const result3 = await Notifications.getPermissionsAsync();
                         if (result3.ios.status == Notifications.IosAuthorizationStatus.AUTHORIZED) {
                             not.current = Notifications.addNotificationResponseReceivedListener(notification => {
+                                var i = 0;
                                 const iF = async () => {
                                     try {
-                                        const chat = await API.graphql(graphqlOperation(getChat, {
-                                            id: notification.notification.request.content.data.chatID
-                                        }));
-                                        const userChatMembersID = chat.data.getChat.members.items[chat.data.getChat.members.items.findIndex((el) => el.user.id == user.data.getUserByCognito.id)].id;
-                                        if (notification.notification.request.content.data.privateChat) {
-                                            navigation.navigate("PChatNav", {
-                                                screen: "ChatPage",
-                                                key: chat.data.getChat.id,
-                                                params: {
-                                                    name: notification.notification.request.content.title,
-                                                    created: chat.data.getChat.createdAt,
-                                                    id: chat.data.getChat.id,
-                                                    userChatMembersID,
-                                                    user: user.data.getUserByCognito,
-                                                    private: true,
-                                                }
-                                            });
+                                        const netInfo = await NetInfo.fetch();
+                                        if (!netInfo.isInternetReachable) {
+                                            i++;
+                                            if (i < 4) setTimeout(iF, 1200);
                                         } else {
-                                            navigation.navigate("TChatNav", {
-                                                screen: "ChatPage",
-                                                key: chat.data.getChat.id,
-                                                params: {
-                                                    name: notification.notification.request.content.title,
-                                                    created: chat.data.getChat.createdAt,
-                                                    id: chat.data.getChat.id,
-                                                    userChatMembersID,
-                                                    user: user.data.getUserByCognito,
+                                            setTimeout(async () => {
+                                                const chat = await API.graphql(graphqlOperation(getChat, {
+                                                    id: notification.notification.request.content.data.chatID
+                                                }));
+                                                const userChatMembersID = chat.data.getChat.members.items[chat.data.getChat.members.items.findIndex((el) => el.user.id == user.data.getUserByCognito.id)].id;
+                                                if (notification.notification.request.content.data.privateChat) {
+                                                    navigation.navigate("PChatNav", {
+                                                        screen: "ChatPage",
+                                                        key: chat.data.getChat.id,
+                                                        params: {
+                                                            name: notification.notification.request.content.title,
+                                                            created: chat.data.getChat.createdAt,
+                                                            id: chat.data.getChat.id,
+                                                            userChatMembersID,
+                                                            user: user.data.getUserByCognito,
+                                                            private: true,
+                                                        }
+                                                    });
+                                                } else {
+                                                    navigation.navigate("TChatNav", {
+                                                        screen: "ChatPage",
+                                                        key: chat.data.getChat.id,
+                                                        params: {
+                                                            name: notification.notification.request.content.title,
+                                                            created: chat.data.getChat.createdAt,
+                                                            id: chat.data.getChat.id,
+                                                            userChatMembersID,
+                                                            user: user.data.getUserByCognito,
+                                                        }
+                                                    });
                                                 }
-                                            });
+                                                await Notifications.dismissAllNotificationsAsync();
+
+                                            }, 400);
                                         }
-                                        await Notifications.dismissAllNotificationsAsync();
                                     } catch (error) {
-                                        logger.warn(error);
+                                        logger.warn(error.errors);
                                     }
                                 }
                                 iF();
@@ -128,19 +139,26 @@ export default function LoadingPage({navigation}) {
                         }
                     }
                     if (perm.granted) {
+                        var i = 0;
                         loc.current = await Location.watchPositionAsync({ accuracy: rules.locationAccuracy, distanceInterval: 0, timeInterval: rules.locationUpdateFrequency }, async (location) => {
                             try {
-                                currentUser.current = await Auth.currentAuthenticatedUser();
-                                if (currentUser.current) {
-                                    const convertedLocs = locConversion.toUser(location.coords.latitude, location.coords.longitude);
-                                    await API.graphql(graphqlOperation(updateUser, {
-                                        input: {
-                                            id: user.data.getUserByCognito.id,
-                                            ...convertedLocs
+                                i++
+                                if (i % 5 == 0) {
+                                    currentUser.current = await Auth.currentAuthenticatedUser();
+                                    if (currentUser.current) {
+                                        const convertedLocs = locConversion.toUser(location.coords.latitude, location.coords.longitude);
+                                        const netInfo = await NetInfo.fetch();
+                                        if (netInfo.isInternetReachable) {
+                                            await API.graphql(graphqlOperation(updateUser, {
+                                                input: {
+                                                    id: user.data.getUserByCognito.id,
+                                                    ...convertedLocs
+                                                }
+                                            }));
                                         }
-                                    }));
 
-                                } else throw NO_USER
+                                    } else throw NO_USER
+                                }
                             } catch (error) {
                                 logger.warn(error);
                                 if (error != NO_USER) {
@@ -152,7 +170,8 @@ export default function LoadingPage({navigation}) {
                         });
                         const updateChatMembership = async () => {
                             try {
-                                if (currentUser.current) {
+                                const netInfo = await NetInfo.fetch();
+                                if (currentUser.current && netInfo.isInternetReachable) {
                                     const location = await Location.getLastKnownPositionAsync();
                                     const convertedLocs2 = locConversion.toChat(location.coords.latitude, location.coords.longitude);
                                     const newChats = await API.graphql(graphqlOperation(listChatsByLocation, {
@@ -201,7 +220,7 @@ export default function LoadingPage({navigation}) {
                                 }
                             }
                         }
-                        updateChatMembership();
+                        await updateChatMembership();
                         lc.current = setInterval(updateChatMembership, rules.locationUpdateFrequency);
                     }
                 } else throw NO_USER;
@@ -228,7 +247,7 @@ export default function LoadingPage({navigation}) {
         }
 
         initialFunction();
-    }));
+    },[]));
 
     return (
         <Screen innerStyle={styles.page}>

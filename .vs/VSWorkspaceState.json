@@ -4,9 +4,9 @@
     "\\src",
     "\\src\\api",
     "\\src\\comps",
-    "\\src\\functions",
+    "\\src\\hooks",
     "\\src\\pages"
   ],
-  "SelectedNode": "\\src\\pages\\UProfilePage.js",
+  "SelectedNode": "\\src\\hooks\\useSubSafe.js",
   "PreviewInSolutionExplorer": false
 }

@@ -90,9 +90,9 @@ function Chat({
             height: getHeight(),
             ...glowStyle()
         }}>
-            {disabled &&
+            {(disabled && !background.isColor) && 
                 <NormalBackground
-                    source={background}
+                    source={{uri: background.full}}
                     isBackground={true}
                     imageStyle={styles.image}
                     style={styles.imageBackground}
@@ -101,16 +101,21 @@ function Chat({
                     <BeamTitle style={styles.title}>{title}</BeamTitle>
                 </NormalBackground>
             }
-            {!disabled &&
+            {(!disabled && !background.isColor) &&
                 <ImageBackground
-                    source={background}
+                    source={{uri: background.full, loadImage: background.loadFull, key: "background"+id}}
                     isBackground={true}
                     imageStyle={styles.image}
                     style={styles.imageBackground}
                     resizeMode="cover"
                 >
-                <BeamTitle style={styles.title}>{title}</BeamTitle>
+                    <BeamTitle style={styles.title}>{title}</BeamTitle>
                 </ImageBackground>
+            }
+            {(background.isColor) &&
+                <View style={[styles.imageBackground, {backgroundColor: background.color}]}>
+                    <BeamTitle style={styles.title}>{title}</BeamTitle>
+                </View>
             }
             <View style={styles.sub1}>
                 <View style={styles.listContain}> 

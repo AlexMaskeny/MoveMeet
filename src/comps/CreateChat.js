@@ -15,6 +15,7 @@ import * as media from '../functions/media';
 import * as logger from '../functions/logger'
 import * as locConversion from '../functions/locConversion';
 import Beam from './Beam';
+import BackgroundEditor from './BackgroundEditor';
 
 
 export default function CreateChat({ visible, onClose, currentUser }) {
@@ -23,11 +24,11 @@ export default function CreateChat({ visible, onClose, currentUser }) {
     const [loading2, setLoading2] = useState("");
     const [numChats, setNumChats] = useState(0);
     const [enabled, setEnabled] = useState(false);
-
+    const [showBack, setShowBack] = useState(false);
     const [cTitle, setcTitle] = useState("");
-    const [cBackground, setCBackground] = useState("");
-    const [cSmallBackground, setCSmallBackground] = useState("");
+    const [cBackground, setCBackground] = useState({isColor: true, full: " ", loadFull: " ", color: colors.background});
     const [members, setMembers] = useState([]);
+    const [ready, setReady] = useState(false);
 
     useEffect(() => {
         const initialFunction = async () => {
@@ -69,10 +70,9 @@ export default function CreateChat({ visible, onClose, currentUser }) {
                     }
                 }
                 setNumChats(count);
-                console.log(count);
                 if (count < rules.maxNumChats) setEnabled(true);
             } catch (error) {
-                logger.log(error);
+                logger.eLog("Possible Unnessary Error: "+error);
             }
         }
         initialFunction();
@@ -83,8 +83,9 @@ export default function CreateChat({ visible, onClose, currentUser }) {
     const close = () => {
         cTitleRef.current.clear();
         setcTitle("");
-        setCBackground("");
+        setCBackground({ isColor: true, full: " ", loadFull: " ", color: colors.background });
         onClose();
+        setReady(false);
     }
 
     const selectImage = async () => {
@@ -97,7 +98,19 @@ export default function CreateChat({ visible, onClose, currentUser }) {
                 picture: currentUser.profilePicture.loadFull,
             }
         }]);
-        await media.openPhotos((image) => { setCBackground(image.full), setCSmallBackground(image.loadFull) });
+        Alert.alert("Use a photo or use a color", "Pick one of the options below to select the background", [
+            {
+                text: "Open Photos", onPress: async () => {
+                    await media.openPhotos((image) => { setCBackground({ ...image, isColor: false, color: "" }) });
+                    setReady(true);
+                }
+            },
+            {
+                text: "Select Color", onPress: () => {
+                    setShowBack(true);
+                }
+            }
+        ]);
         Keyboard.dismiss();
         setLoading(false);
     }
@@ -119,19 +132,22 @@ export default function CreateChat({ visible, onClose, currentUser }) {
             const currentCognitoUser = await Auth.currentAuthenticatedUser();
             const userLocation = await Location.getLastKnownPositionAsync();
             const userLocationConverted = locConversion.toUser(userLocation.coords.latitude, userLocation.coords.longitude);
-            const response = await fetch(cBackground);
-            if (response) {
-                const img = await response.blob();
-                if (img) {
-                    const result1 = await Storage.put("FULLchatBackground" + id.current + ".jpg", img);
+            if (!cBackground.isColor) {
+                const response = await fetch(cBackground.full);
+                if (response) {
+                    const img = await response.blob();
+                    if (img) {
+                        await Storage.put("FULLchatBackground" + id.current + ".jpg", img);
+                    }
                 }
-            }
-            const response2 = await fetch(cSmallBackground);
-            if (response2) {
-                const img = await response2.blob();
-                if (img) {
-                    const result1 = await Storage.put("LOADFULLchatBackground" + id.current + ".jpg", img);
+                const response2 = await fetch(cBackground.loadFull);
+                if (response2) {
+                    const img = await response2.blob();
+                    if (img) {
+                        await Storage.put("LOADFULLchatBackground" + id.current + ".jpg", img);
+                    }
                 }
+
             }
             const result2 = await API.graphql(graphqlOperation(createChat, {
                 input: {
@@ -141,6 +157,8 @@ export default function CreateChat({ visible, onClose, currentUser }) {
                         full: "FULLchatBackground" + id.current + ".jpg",
                         loadFull: "LOADFULLchatBackground" + id.current + ".jpg",
                         region: "us-east-2",
+                        enableColor: cBackground.isColor,
+                        color: cBackground.color
                     },
                     name: cTitle,
                     creator: currentUser.id,
@@ -191,38 +209,44 @@ export default function CreateChat({ visible, onClose, currentUser }) {
                         placeholder="Chat Title"
                         icon="rename-box"
                         maxLength={18}
+                        text={cTitle.length + "/18"}
                         onChangeText={(text)=>setcTitle(text)}
                     />
-                    <SimpleButton outerStyle={styles.button} title="Select Chat Image" onPress={selectImage} loading={loading} disabled={loading} />
+                    <SimpleButton outerStyle={styles.button} title="Select Chat Background" onPress={selectImage} loading={loading} disabled={loading} />
                     <View style={styles.desc}>
                         <SubTitle size={16} style={styles.subtitle}>When you create a chat you cannot</SubTitle>
                         <SubTitle size={16} style={styles.subtitle}>delete it, but it will automatically delete</SubTitle>
-                        <SubTitle size={16} style={styles.subtitle}>after {rules.chatDeletionTime} hours of inactivity. You</SubTitle>
-                        <SubTitle size={16} style={styles.subtitle}>can only have {rules.maxNumChats} active chats at once.</SubTitle>
+                        <SubTitle size={16} style={styles.subtitle}>after {rules.chatDeletionTime} hours of inactivity. You can</SubTitle>
+                        <SubTitle size={16} style={styles.subtitle}>only create {rules.maxNumChats} chats at once.</SubTitle>
                     </View>
                     <Beam style={{ marginTop: 20, marginBottom: 10 }} />
-
-                    {(cBackground.length > 0 && cTitle.length > 0) && <>
-                        <View style={{marginHorizontal: 10}}>
+                        {(cTitle.length > 0 && ready) && <>
+                        <View style={{ marginHorizontal: 10 }}>
                             <Chat
-                            background={{uri: cBackground}}
-                            members={members}
-                            disabled={true}
-                            last3={[]}
-                            latest="New Chat"
-                            id={id.current}
-                            userChatMembersID=""
-                            numMembers={1}
-                            distance="0 Feet"
-                            title={cTitle}
-                            created={Date.now().toString()}
-                            onPress={() => logger.eLog("Generated")}
+                                background={cBackground}
+                                members={members}
+                                disabled={true}
+                                last3={[]}
+                                latest="New Chat"
+                                id={id.current}
+                                userChatMembersID=""
+                                numMembers={1}
+                                distance="0 Feet"
+                                title={cTitle}
+                                created={Date.now().toString()}
+                                onPress={() => logger.eLog("Generated")}
                             />
+                        
                         </View>
                         <SimpleButton title="Create Chat" onPress={CreateChat} loading={loading2} disabled={loading2} />
-                    </>}
+                         </>}
                 </View>
             </TouchableWithoutFeedback>
+            <BackgroundEditor
+                visible={showBack}
+                onClose={() => setShowBack(false)}
+                onSuccess={(color) => { setCBackground({ full: " ", loadFull: " ", isColor: true, color: color }); setReady(true) }}
+            />
         </Modal>
     )
 }
