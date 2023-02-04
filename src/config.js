@@ -1,3 +1,5 @@
+import {Accuracy} from "expo-location";
+
 export const colors = {
     background: "#121212", //A dark grey rgba(18, 18, 18,1)
     container: "#1E1E1E", //A dark grey, but less dark than background
@@ -36,7 +38,7 @@ export const storage = {
 export const rules = {
     nearYouRadius: 500, // in feet
     chatDeletionTime: 48, // in hours
-    locationAccuracy: 6, //1-6
+    locationAccuracy: Accuracy.Highest, //1-6
     locationUpdateFrequency: 10000, // in ms
     maxNumChats: 10,
 };

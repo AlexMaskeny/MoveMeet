@@ -1,16 +1,14 @@
-import AsyncStorage from '@react-native-async-storage/async-storage';
 import { Auth } from 'aws-amplify';
-import React, { useCallback, useRef, useState } from 'react';
+import React, {  useRef, useState } from 'react';
 import { StyleSheet, View, TouchableOpacity, Keyboard, Alert } from 'react-native';
-import Beam from '../comps/Beam';
 import BeamTitle from '../comps/BeamTitle';
 
 import Screen from '../comps/Screen';
 import SimpleButton from '../comps/SimpleButton';
 import SimpleInput from '../comps/SimpleInput';
 import SubTitle from '../comps/SubTitle';
-import { colors, storage } from '../config';
 import * as logger from '../functions/logger';
+import * as perms from '../functions/perms';
 
 export default function ForgotPasswordPage2({ navigation, route }) {
     const [code, setCode] = useState("");
@@ -29,6 +27,8 @@ export default function ForgotPasswordPage2({ navigation, route }) {
             await Auth.forgotPasswordSubmit(route.params.username, code, password);
             Alert.alert("Success", "You successfully changed your password!", [{ text: "Okay" }]);
             await Auth.signIn(route.params.username, password);
+            await perms.getLocation();
+            await perms.getNotifications();
             navigation.navigate("LoadingPage");
         } catch (error) {
             logger.warn(error);

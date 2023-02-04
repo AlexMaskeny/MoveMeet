@@ -16,12 +16,15 @@ import * as logger from '../functions/logger';
 import * as media from '../functions/media';
 import { updateUser } from '../api/calls';
 import IconButton from '../comps/IconButton';
+import BackgroundEditor from '../comps/BackgroundEditor';
 
 export default function SignupPage4({ navigation, route }) {
     const [bio, setBio] = useState("");
     const [profilePicture, setProfilePicture] = useState(false);
     const [image, setImage] = useState({});
+    const [background, setBackground] = useState({isColor: true, color: colors.background})
     const [loading, setLoading] = useState(false);
+    const [showBack, setShowBack] = useState(false);
 
     const Submit = async () => {
         try {
@@ -81,6 +84,39 @@ export default function SignupPage4({ navigation, route }) {
                     }
                 }
             }
+            if (background.isColor) {
+                params = {
+                    ...params,
+                    background: {
+                        full: " ",
+                        loadFull: " ",
+                        enableColor: true,
+                        color: background.color,
+                        bucket: "proxychatf2d762e9bc784204880374b0ca905be4120629-dev",
+                        region: "us-east-2",
+                    }
+                }
+            } else {
+                const response1 = await fetch(background.full);
+                const response2 = await fetch(background.loadFull);
+                const img1 = await response1.blob();
+                const img2 = await response2.blob();
+                if (img1 && img2) {
+                    await Storage.put("FULLbackground" + route.params.userID + ".jpg", img1);
+                    await Storage.put("LOADFULLbackground" + route.params.userID + ".jpg", img2);
+                    params = {
+                        ...params,
+                        background: {
+                            full: "FULLbackground" + route.params.userID + ".jpg",
+                            loadFull: "LOADFULLbackground" + route.params.userID + ".jpg",
+                            enableColor: false,
+                            color: " ",
+                            bucket: "proxychatf2d762e9bc784204880374b0ca905be4120629-dev",
+                            region: "us-east-2",
+                        }
+                    }
+                }
+            }
             await API.graphql(graphqlOperation(updateUser, {
                 input: params
             }));
@@ -91,6 +127,23 @@ export default function SignupPage4({ navigation, route }) {
             navigation.navigate("LoadingPage");
         }
     }
+
+    const changeBackground = async () => {
+        Alert.alert("Use a photo or use a color", "Pick one of the options below to change your background", [
+            { text: "Open Photos", onPress: () => media.openPhotos(onBackImageSuccess) },
+            { text: "Select Color", onPress: () => setShowBack(true)}
+        ])
+    }
+
+    const onBackImageSuccess = (uri) => {
+        setBackground({ isColor: false, color: " ", full: uri.full, loadFull: uri.loadFull });
+    }
+
+    const onColorSuccess = (color) => {
+        setShowBack(false);
+        setBackground({ isColor: true, color: color, full: " ", loadFull: " " });
+    }
+
 
     const selectImage = async () => {
         try {
@@ -107,6 +160,42 @@ export default function SignupPage4({ navigation, route }) {
         }
     }
 
+    const Interior = () => (<>
+        <View style={styles.body}>
+            {!profilePicture &&
+                <TouchableOpacity style={styles.bigImage} onPress={selectImage} disabled={loading} >
+                    {!loading && <>
+                        <IconButton color={colors.text1} icon="camera" brand="MaterialCommunityIcons" size={40} disabled={true} />
+                    </>}
+                    {loading && <ActivityIndicator color={colors.pBeamBright} size="large" />}
+                </TouchableOpacity>
+            }
+            {profilePicture &&
+                <TouchableOpacity style={styles.bigImage} onPress={selectImage} disabled={loading} >
+                    <ImageBackground source={{ uri: image.full }} style={styles.imageBackground} imageStyle={{ borderRadius: 200 }}>
+
+                    </ImageBackground>
+                </TouchableOpacity>
+            }
+            <SimpleInput
+                autoCorrect={true}
+                multiline={true}
+                maxLength={160}
+                cStyle={styles.textInput}
+                tStyle={{ alignSelf: 'flex-start' }}
+                placeholder="Bio"
+                onChangeText={(text) => setBio(text)}
+            />    
+        </View>
+        <SimpleButton
+            disabled={loading}
+            loading={loading}
+            title="Change Background"
+            onPress={changeBackground}
+            outerStyle={{ flexDirection: 'row', marginTop: 12, borderColor: colors.text1, shadowColor: colors.text1, backgroundColor: background.isColor ? "rgba(0,0,0,0.2)" : colors.container}}
+        />
+    </>)
+
     return (
         <Screen>
             <TouchableOpacity activeOpacity={1} onPress={() => Keyboard.dismiss()}>
@@ -114,36 +203,26 @@ export default function SignupPage4({ navigation, route }) {
                     <BeamTitle>Edit your profile now</BeamTitle>
                     <SubTitle size={14}>The final step in signing up for</SubTitle>
                     <SubTitle size={14}>lummp is designing your profile.</SubTitle>
-                    <TouchableOpacity style={{ marginTop: 4 }} onPress={Submit}>
-                        <BeamTitle size={16} style={{fontWeight: "500", marginBottom: 20} }>Skip Step</BeamTitle>
-                    </TouchableOpacity>
-                    {!profilePicture &&
-                        <TouchableOpacity style={styles.bigImage} onPress={selectImage} disabled={loading} >
-                            {!loading && <>
-                                <SubTitle style={styles.title} size={20}>Profile Picture</SubTitle>
-                                <IconButton color={colors.pBeamBright} icon="add-circle" brand="Ionicons" size={70} disabled={true} />
-                            </>}
-                            {loading && <ActivityIndicator color={colors.pBeamBright} size="large" />}
-                        </TouchableOpacity>
+                    <Beam style={{ marginTop: 20 }} />
+                    {background.isColor &&
+                        <View style={{ backgroundColor: background.color, paddingVertical: 10 }}>
+                            <Interior />
+                        </View>
                     }
-                    {profilePicture &&
-                        <TouchableOpacity style={styles.bigImage} onPress={selectImage} disabled={loading} >
-                            <ImageBackground source={{ uri: image.full }} style={styles.imageBackground} imageStyle={{ borderRadius: 200 }}>
-                            
-                            </ImageBackground>
-                        </TouchableOpacity>
+                    {!background.isColor &&
+                        <ImageBackground source={{ uri: background.full }} style={{paddingVertical: 10}}>
+                            <Interior />
+                        </ImageBackground>
                     }
-                    <SimpleInput
-                        autoCorrect={true}
-                        multiline={true}
-                        maxLength={160}
-                        style={styles.textInput}
-                        placeholder="Bio"
-                        onChangeText={(text)=>setBio(text)}
-                    />
-                    <SimpleButton disabled={loading} loading={loading} title="Done" onPress={Submit} outerStyle={{flexDirection: 'row', marginTop: 12} }/>
+                    <Beam style={{ marginBottom: 20 }} />
+                    <View style={styles.body2}>
+                        <TouchableOpacity style={{ marginTop: 4, flex: 1, alignItems: "center" }} onPress={Submit}>
+                            <BeamTitle size={18} style={{ fontWeight: "500" }}>I'm Done</BeamTitle>
+                        </TouchableOpacity>
+                    </View>
                 </View>
             </TouchableOpacity>
+            <BackgroundEditor visible={showBack} onClose={() => setShowBack(false)} onSuccess={onColorSuccess} />
         </Screen>
     );
 }
@@ -163,8 +242,8 @@ const styles = StyleSheet.create({
     bigImage: {
         backgroundColor: colors.container,
         borderRadius: 200,
-        height: 200,
-        width: 200,
+        height: 100,
+        width: 100,
         margin: 10,
         borderWidth: 2,
         borderColor: colors.pBeam,
@@ -173,8 +252,8 @@ const styles = StyleSheet.create({
         justifyContent: 'center',
     },
     bigPlus: {
-        height: 100,
-        width: 100,
+        height: 50,
+        width: 50,
         justifyContent: "center",
         alignItems: "center",
         borderRadius: 100,
@@ -194,9 +273,20 @@ const styles = StyleSheet.create({
     textInput: {
         color: colors.text1,
         fontSize: 18,
-        height: 160,
-        width: "100%",
+        height: 100,
+        width: "64%",
         marginTop: 10,
         padding: 10,
+        ...css.beamShadow,
+        shadowColor: "black",
+        alignContent: "flex-start",
+        justifyContent: 'flex-start'
     },
+    body: {
+        flexDirection: 'row',
+    },
+    body2: {
+        flexDirection: 'row',
+        justifyContent: "space-between"
+    }
 })

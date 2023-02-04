@@ -1,8 +1,7 @@
 import React from 'react';
 import { View, StyleSheet, KeyboardAvoidingView, Keyboard, Image, Alert, TouchableOpacity, TouchableWithoutFeedback } from 'react-native';
-import { colors, debug, storage } from '../config';
+import { colors } from '../config';
 import { Auth } from 'aws-amplify';
-import AsyncStorage from '@react-native-async-storage/async-storage';
 import * as Clipboard from 'expo-clipboard';
 
 import Screen from '../comps/Screen';
@@ -11,6 +10,7 @@ import SimpleButton from '../comps/SimpleButton';
 import Beam from '../comps/Beam';
 import SubTitle from '../comps/SubTitle';
 import * as logger from '../functions/logger';
+import * as perms from '../functions/perms';
 import BeamTitle from '../comps/BeamTitle';
 
 
@@ -47,12 +47,13 @@ export default function LoginPage({navigation}) {
         try {
             const response = await Auth.signIn(user, pass);
             if (response) {
-                if (debug) console.log("Login Successful");
-                // If user terminates after vertication but before setting things up, thats okay we'll tutorial a blank profile.
+                logger.log("Login Successful")
+                await perms.getLocation();
+                await perms.getNotifications();
                 navigation.navigate("LoadingPage") //Actually navigate to loadingpage
             }
         } catch (error) {
-            if (debug) console.log(error.code);
+            logger.log(error);
             if (error.code == "UserNotConfirmedException") navigation.navigate("SignupPage3");
             else if (error.code == "NotAuthorizedException" || error.code == "UserNotFoundException") {
                 Alert.alert("Incorrect Username or Password", "The username or password you entered was incorrect.", [

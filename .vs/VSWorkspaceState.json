@@ -4,9 +4,10 @@
     "\\src",
     "\\src\\api",
     "\\src\\comps",
+    "\\src\\functions",
     "\\src\\hooks",
     "\\src\\pages"
   ],
-  "SelectedNode": "\\src\\hooks\\useSubSafe.js",
+  "SelectedNode": "\\src\\comps\\SimpleInput.js",
   "PreviewInSolutionExplorer": false
 }

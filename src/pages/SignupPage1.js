@@ -12,7 +12,6 @@ import { colors } from '../config';
 
 export default function SignupPage1({ navigation }) {
     const [username, setUsername] = useState("");
-    const [name, setName] = useState("");
     const [confirmPassword, setConfirmPassword] = useState("")
     const [password, setPassword] = useState("");
     const [passwordVisible, setPasswordVisible] = useState(false);
@@ -21,13 +20,12 @@ export default function SignupPage1({ navigation }) {
     const usernameRef = useRef();
     const confirmPasswordRef = useRef();
     const passwordRef = useRef();
-    const nameRef = useRef();
 
     const onSubmit = () => {
         navigation.navigate("SignupPage2", {
             username: username.toLowerCase(),
             password: password,
-            name: name
+            name: username.toLowerCase()
         });
     }
     return (
@@ -37,17 +35,17 @@ export default function SignupPage1({ navigation }) {
                     <BeamTitle>Create an account</BeamTitle>
                     <SubTitle size={14}>Choose a username and make a password</SubTitle>
                     <View style={{ height: 20 }} />
-                    <SimpleInput
-                        reference={nameRef}
-                        placeholder="Name (optional)"
-                        autocorrect={false}
-                        icon="account"
-                        autoCapitalize="none"
-                        maxLength={16}
-                        onChangeText={(text) => {
-                            setName(text);
-                        }}
-                    />
+                    {/*<SimpleInput*/}
+                    {/*    reference={nameRef}*/}
+                    {/*    placeholder="Name (optional)"*/}
+                    {/*    autocorrect={false}*/}
+                    {/*    icon="account"*/}
+                    {/*    autoCapitalize="none"*/}
+                    {/*    maxLength={16}*/}
+                    {/*    onChangeText={(text) => {*/}
+                    {/*        setName(text);*/}
+                    {/*    }}*/}
+                    {/*/>*/}
                     <SimpleInput
                         reference={usernameRef}
                         placeholder="Username"
