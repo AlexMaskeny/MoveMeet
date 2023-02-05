@@ -760,3 +760,22 @@ export const getDetailedUser = /* GraphQL */ `
     }
   }
 `;
+
+export const listUsersByUsername = /* GraphQL */ `
+    query ListUsersByUsername($username: String!) {
+        listUsersByUsername(username: $username) {  
+            items {
+                id
+                username
+                bio
+                name
+                profilePicture {
+                    bucket
+                    region
+                    loadFull
+                    full
+                }
+            }
+        }
+    }
+`

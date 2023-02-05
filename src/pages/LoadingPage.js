@@ -140,10 +140,10 @@ export default function LoadingPage({navigation}) {
                     }
                     if (perm.granted) {
                         var i = 0;
-                        loc.current = await Location.watchPositionAsync({ accuracy: rules.locationAccuracy, distanceInterval: 0, Ac }, async (location) => {
+                        loc.current = await Location.watchPositionAsync({ accuracy: rules.locationAccuracy, distanceInterval: rules.locationDistanceInterval, timeInterval: rules.locationUpdateFrequency }, async (location) => {
                             try {
                                 i++
-                                if (i % 5 == 0) {
+                                if (i % rules.locationDismissalRate == 0) {
                                     currentUser.current = await Auth.currentAuthenticatedUser();
                                     if (currentUser.current) {
                                         const convertedLocs = locConversion.toUser(location.coords.latitude, location.coords.longitude);

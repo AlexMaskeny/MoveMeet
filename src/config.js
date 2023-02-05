@@ -38,7 +38,9 @@ export const storage = {
 export const rules = {
     nearYouRadius: 500, // in feet
     chatDeletionTime: 48, // in hours
-    locationAccuracy: Accuracy.Highest, //1-6
+    locationAccuracy: Accuracy.BestForNavigation, //1-6
+    locationDismissalRate: 3, //x dismalls per 1 success
     locationUpdateFrequency: 10000, // in ms
+    locationDistanceInterval: 0,
     maxNumChats: 10,
 };

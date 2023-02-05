@@ -503,7 +503,11 @@ export default function ChatPage({ route, navigation }) {
                             setShowPreviewImage(true);
                         }}
                         time={item.date}
+                        navigation={navigation}
+                        imgKey={item.id}
                         username={item.user.username}
+                        userId={route.params.user.id}
+                        opposingUserId={item.user.id}
                         source={item.image}
                     />
                 </View>

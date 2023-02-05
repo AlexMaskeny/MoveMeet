@@ -16,6 +16,8 @@ import * as distance from '../functions/distance';
 import NoChatsAlert from '../comps/NoChatsAlert';
 import PrivateChat from '../comps/PrivateChat';
 import SettingsChat from '../comps/SettingsChat';
+import IconButton from '../comps/IconButton';
+import UserSearch from '../comps/UserSearch';
 
 export default function PrivateChatsPage({ navigation }) {
     const userChatsSub = useRef([]);
@@ -29,8 +31,26 @@ export default function PrivateChatsPage({ navigation }) {
     const [chats, setChats] = useState([]);
     const [showSettings, setShowSettings] = useState(false);
     const [settingsChat, setSettingsChat] = useState({});
+    const [showSearch, setShowSearch] = useState(false); //set true on open. On close or navigate set to false
 
     const netInfo = useNetInfo();
+
+    useEffect(() => {
+        navigation.setOptions({
+            headerRight: () => (
+                
+                <View style={{ alignItems: "center", justifyContent: "center", marginRight: 10, flex: 1 }}>
+                    <IconButton
+                        icon="account-search"
+                        brand="MaterialCommunityIcons"
+                        color={colors.text1}
+                        size={32}
+                        onPress={() => setShowSearch(true)}
+                    />
+                </View>   
+            )
+        })
+    });
 
     useFocusEffect(useCallback(() => {
         if (timeClockSub.current) clearInterval(timeClockSub.current);
@@ -225,6 +245,9 @@ export default function PrivateChatsPage({ navigation }) {
         setRefresh(true);
         onRefresh();
     }
+    const closeSearch = () => {
+        setShowSearch(false);
+    }
     const listFooterComponenet = React.useCallback(() => <View height={30} />, []);
     const keyExtractor = React.useCallback((item) => item.id, []);
     const renderItem = React.useCallback(
@@ -276,6 +299,7 @@ export default function PrivateChatsPage({ navigation }) {
         </Screen>
         <NoChatsAlert privateChat={true} visible={noChats} />
         <SettingsChat item={settingsChat} onClose={closeSettings} visible={showSettings} navigate={() => navigate(settingsChat)} currentUser={currentUser.current} navigation={navigation}/>
+        <UserSearch onClose={closeSearch} visible={showSearch} currentUser={currentUser.current} navigation={navigation} />
         <Loading enabled={!ready} />
     </>)
 }

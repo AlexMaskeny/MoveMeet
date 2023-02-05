@@ -38,7 +38,7 @@ export default function UserSquare({
                     >
                         <View style={styles.footer}>
                             <SubTitle style={styles.title} color={colors.text6} size={18}>{user.username}</SubTitle>
-                            <SubTitle style={styles.title} color={colors.text1} size={14}>{user.distance} away</SubTitle>
+                            <SubTitle style={styles.title} color={colors.text1} size={14}>{user.distance}</SubTitle>
                             <SubTitle style={styles.title} color={colors.text1} size={14} numberOfLines={1}>{user.bio}</SubTitle>
                         </View>
                     </LinearGradient>
@@ -66,7 +66,7 @@ export default function UserSquare({
                     >
                         <View style={styles.footer}>
                             <SubTitle style={styles.title} color={colors.text6} size={18}>{user.username}</SubTitle>
-                            <SubTitle style={styles.title} color={colors.text1} size={14}>{user.distance} away</SubTitle>
+                            <SubTitle style={styles.title} color={colors.text1} size={14}>{user.distance}</SubTitle>
                             <SubTitle style={styles.title2} color={colors.text1} size={14} numberOfLines={1}>{user.bio}</SubTitle>
                         </View>
                     </LinearGradient>

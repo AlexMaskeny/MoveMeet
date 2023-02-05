@@ -2,12 +2,9 @@
   "ExpandedNodes": [
     "",
     "\\src",
-    "\\src\\api",
     "\\src\\comps",
-    "\\src\\functions",
-    "\\src\\hooks",
     "\\src\\pages"
   ],
-  "SelectedNode": "\\src\\comps\\SimpleInput.js",
+  "SelectedNode": "\\src\\comps\\ImageInput.js",
   "PreviewInSolutionExplorer": false
 }
