@@ -1,6 +1,6 @@
 import AsyncStorage from '@react-native-async-storage/async-storage';
 import { API, Auth, graphqlOperation, Storage } from 'aws-amplify';
-import React, { useRef, useState } from 'react';
+import React, { useCallback, useRef, useState } from 'react';
 import { StyleSheet, View, TouchableOpacity, Keyboard, Alert, ImageBackground, ActivityIndicator } from 'react-native';
 import * as Notifications from 'expo-notifications';
 import * as Location from 'expo-location';
@@ -11,7 +11,7 @@ import Screen from '../comps/Screen';
 import SimpleButton from '../comps/SimpleButton';
 import SimpleInput from '../comps/SimpleInput';
 import SubTitle from '../comps/SubTitle';
-import { colors, css, storage } from '../config';
+import { colors, css, storage, strings } from '../config';
 import * as logger from '../functions/logger'; 
 import * as media from '../functions/media';
 import { updateUser } from '../api/calls';
@@ -160,59 +160,88 @@ export default function SignupPage4({ navigation, route }) {
         }
     }
 
-    const Interior = () => (<>
-        <View style={styles.body}>
-            {!profilePicture &&
-                <TouchableOpacity style={styles.bigImage} onPress={selectImage} disabled={loading} >
-                    {!loading && <>
-                        <IconButton color={colors.text1} icon="camera" brand="MaterialCommunityIcons" size={40} disabled={true} />
-                    </>}
-                    {loading && <ActivityIndicator color={colors.pBeamBright} size="large" />}
-                </TouchableOpacity>
-            }
-            {profilePicture &&
-                <TouchableOpacity style={styles.bigImage} onPress={selectImage} disabled={loading} >
-                    <ImageBackground source={{ uri: image.full }} style={styles.imageBackground} imageStyle={{ borderRadius: 200 }}>
-
-                    </ImageBackground>
-                </TouchableOpacity>
-            }
-            <SimpleInput
-                autoCorrect={true}
-                multiline={true}
-                maxLength={160}
-                cStyle={styles.textInput}
-                tStyle={{ alignSelf: 'flex-start' }}
-                placeholder="Bio"
-
-                onChangeText={(text) => setBio(text)}
-            />    
-        </View>
-        <SimpleButton
-            disabled={loading}
-            loading={loading}
-            title="Change Background"
-            onPress={changeBackground}
-            outerStyle={{ flexDirection: 'row', marginTop: 12, borderColor: colors.text1, shadowColor: colors.text1, backgroundColor: background.isColor ? "rgba(0,0,0,0.2)" : colors.container}}
-        />
-    </>)
-
     return (
         <Screen>
             <TouchableOpacity activeOpacity={1} onPress={() => Keyboard.dismiss()}>
                 <View style={styles.page}>
                     <BeamTitle>Edit your profile now</BeamTitle>
                     <SubTitle size={14}>The final step in signing up for</SubTitle>
-                    <SubTitle size={14}>lummp is designing your profile.</SubTitle>
+                    <SubTitle size={14}>{strings.APPNAME} is designing your profile.</SubTitle>
                     <Beam style={{ marginTop: 20 }} />
                     {background.isColor &&
                         <View style={{ backgroundColor: background.color, paddingVertical: 10 }}>
-                            <Interior />
+                            <View style={styles.body}>
+                                {!profilePicture &&
+                                    <TouchableOpacity style={styles.bigImage} onPress={selectImage} disabled={loading} >
+                                        {!loading && <>
+                                            <IconButton color={colors.text1} icon="camera" brand="MaterialCommunityIcons" size={40} disabled={true} />
+                                        </>}
+                                        {loading && <ActivityIndicator color={colors.pBeamBright} size="large" />}
+                                    </TouchableOpacity>
+                                }
+                                {profilePicture &&
+                                    <TouchableOpacity style={styles.bigImage} onPress={selectImage} disabled={loading} >
+                                        <ImageBackground source={{ uri: image.full }} style={styles.imageBackground} imageStyle={{ borderRadius: 200 }}>
+
+                                        </ImageBackground>
+                                    </TouchableOpacity>
+                                }
+                                <SimpleInput
+                                    autoCorrect={true}
+                                    multiline={true}
+                                    maxLength={160}
+                                    cStyle={styles.textInput}
+                                    tStyle={{ alignSelf: 'flex-start' }}
+                                    placeholder="Bio"
+
+                                    onChangeText={(text) => setBio(text)}
+                                />
+                            </View>
+                            <SimpleButton
+                                disabled={loading}
+                                loading={loading}
+                                title="Change Background"
+                                onPress={changeBackground}
+                                outerStyle={{ flexDirection: 'row', marginTop: 12, borderColor: colors.text1, shadowColor: colors.text1, backgroundColor: background.isColor ? "rgba(0,0,0,0.2)" : colors.container }}
+                            />
                         </View>
                     }
                     {!background.isColor &&
                         <ImageBackground source={{ uri: background.full }} style={{paddingVertical: 10}}>
-                            <Interior />
+                            <View style={styles.body}>
+                                {!profilePicture &&
+                                    <TouchableOpacity style={styles.bigImage} onPress={selectImage} disabled={loading} >
+                                        {!loading && <>
+                                            <IconButton color={colors.text1} icon="camera" brand="MaterialCommunityIcons" size={40} disabled={true} />
+                                        </>}
+                                        {loading && <ActivityIndicator color={colors.pBeamBright} size="large" />}
+                                    </TouchableOpacity>
+                                }
+                                {profilePicture &&
+                                    <TouchableOpacity style={styles.bigImage} onPress={selectImage} disabled={loading} >
+                                        <ImageBackground source={{ uri: image.full }} style={styles.imageBackground} imageStyle={{ borderRadius: 200 }}>
+
+                                        </ImageBackground>
+                                    </TouchableOpacity>
+                                }
+                                <SimpleInput
+                                    autoCorrect={true}
+                                    multiline={true}
+                                    maxLength={160}
+                                    cStyle={styles.textInput}
+                                    tStyle={{ alignSelf: 'flex-start' }}
+                                    placeholder="Bio"
+
+                                    onChangeText={(text) => setBio(text)}
+                                />
+                            </View>
+                            <SimpleButton
+                                disabled={loading}
+                                loading={loading}
+                                title="Change Background"
+                                onPress={changeBackground}
+                                outerStyle={{ flexDirection: 'row', marginTop: 12, borderColor: colors.text1, shadowColor: colors.text1, backgroundColor: background.isColor ? "rgba(0,0,0,0.2)" : colors.container }}
+                            />
                         </ImageBackground>
                     }
                     <Beam style={{ marginBottom: 20 }} />

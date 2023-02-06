@@ -1,5 +1,5 @@
 import React, { useCallback, useRef, useEffect, useState } from 'react';
-import { StyleSheet, Image, ActivityIndicator, View } from 'react-native';
+import { StyleSheet, Image, ActivityIndicator, View, Platform } from 'react-native';
 import { API, Auth, graphqlOperation } from 'aws-amplify';
 import AsyncStorage from '@react-native-async-storage/async-storage';
 import * as Location from 'expo-location';
@@ -71,7 +71,10 @@ export default function LoadingPage({navigation}) {
                     }
                     if (user.data.getUserByCognito.allowNotifications && notificationStatus.granted) {
                         const result = await Notifications.getPermissionsAsync();
-                        if (result.ios.status == Notifications.IosAuthorizationStatus.NOT_DETERMINED) {
+                        if (Platform.OS == "android" ?
+                            (result.status == "undetermined") :
+                            (result.ios.status == Notifications.IosAuthorizationStatus.NOT_DETERMINED)
+                        ) {
                             const result2 = await Notifications.requestPermissionsAsync();
                             if (result2.granted) {
                                 const key = await Notifications.getExpoPushTokenAsync();
@@ -85,7 +88,10 @@ export default function LoadingPage({navigation}) {
                             }
                         }
                         const result3 = await Notifications.getPermissionsAsync();
-                        if (result3.ios.status == Notifications.IosAuthorizationStatus.AUTHORIZED) {
+                        if (Platform.OS == "android" ?
+                            (result3.status == "granted") :
+                            (result3.ios.status == Notifications.IosAuthorizationStatus.AUTHORIZED)
+                        ) {
                             not.current = Notifications.addNotificationResponseReceivedListener(notification => {
                                 var i = 0;
                                 const iF = async () => {

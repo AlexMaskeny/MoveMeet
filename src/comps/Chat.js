@@ -247,7 +247,9 @@ const styles = StyleSheet.create({
         marginTop: -30,
     },
     title: {
-        shadowRadius: 3,
+        textShadowColor: "black",
+        textShadowRadius: 1,
+        shadowRadius: 2,
         color: colors.pBeamBright,
         shadowColor: "black"
 

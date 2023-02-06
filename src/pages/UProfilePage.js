@@ -3,6 +3,7 @@ import { Keyboard, StyleSheet, TouchableOpacity, View, Image, FlatList, RefreshC
 import { API, Auth, graphqlOperation, Storage } from 'aws-amplify';
 import { LinearGradient } from 'expo-linear-gradient';
 import * as Location from 'expo-location';
+import { Ionicons } from '@expo/vector-icons';
 
 import Screen from '../comps/Screen';
 import Loading from '../comps/Loading';
@@ -354,6 +355,16 @@ export default function UProfilePage({ navigation }) {
         />
     ), [editing, posts, profilePicture]);
 
+    const ListEmptyComponent = useCallback(() => (<>
+        <View style={styles.empty}>
+            <Beam />
+            <View style={{ height: 20 }} />
+            <View style={{ alignItems: "center", height: "100%", justifyContent: "center", }}>
+                <SubTitle style={styles.title2} size={16}>This user has no posts.</SubTitle>
+            </View>
+        </View>
+    </>), []);
+
     const ListHeaderComponent = useCallback(() => (<>
         {!background.isColor &&
             <Image
@@ -442,6 +453,7 @@ export default function UProfilePage({ navigation }) {
                     keyExtractor={keyExtractor}
                     maxToRenderPerBatch={4}
                     windowSize={4}
+                    ListEmptyComponent={ListEmptyComponent}
                     refreshControl={
                         <RefreshControl
                             refreshing={refresh}
@@ -507,7 +519,7 @@ const styles = StyleSheet.create({
     midBody: {
         padding: 10,
         margin: 10,
-        marginTop: 40,
+        marginTop: 20,
         minHeight: 70,
         alignItems: "center",
         justifyContent: "flex-end",
@@ -527,4 +539,7 @@ const styles = StyleSheet.create({
     posts: {
         flex: 1,
     },
+    empty: {
+        height: "100%"
+    }
 })

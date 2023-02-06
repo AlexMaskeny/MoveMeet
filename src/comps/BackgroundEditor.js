@@ -9,15 +9,18 @@ import SubTitle from './SubTitle';
 export default function BackgroundEditor({ visible, onClose, onSuccess }) {
 
     const COLORS = [
-        { id: 0, color: "#1EB56A" },
-        { id: 1, color: "#3399ff" },
-        { id: 2, color: "#ff00ff" },
-        { id: 3, color: "#6600cc" },
-        { id: 4, color: colors.background},
-        { id: 5, color: "#009900" },
-        { id: 6, color: "#ff0000" },
-        { id: 7, color: "#00ccff" },
-        { id: 8, color: colors.text1 },
+        { id: 0, color: "#B30000" },
+        { id: 1, color: "#800000" },
+        { id: 2, color: "#a0db8e" },
+        { id: 3, color: "#065535" },
+        { id: 4, color: "#ffc0cb" },
+        { id: 5, color: "#ff1493" },
+        { id: 6, color: "#b0e0e6" },
+        { id: 7, color: "#000080" },
+        { id: 9, color: "#C7C7FF" },
+        { id: 8, color: "#660066" },
+        { id: 11, color: "#ffffff" },
+        { id: 10, color: "#000000" },
     ]
 
 
