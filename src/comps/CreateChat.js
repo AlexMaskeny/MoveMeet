@@ -20,8 +20,8 @@ import BackgroundEditor from './BackgroundEditor';
 
 export default function CreateChat({ visible, onClose, currentUser }) {
     const cTitleRef = useRef();
-    const [loading, setLoading] = useState("");
-    const [loading2, setLoading2] = useState("");
+    const [loading, setLoading] = useState(false);
+    const [loading2, setLoading2] = useState(false);
     const [numChats, setNumChats] = useState(0);
     const [enabled, setEnabled] = useState(false);
     const [showBack, setShowBack] = useState(false);

@@ -230,6 +230,7 @@ const styles = StyleSheet.create({
         alignItems: "center",
         justifyContent: "center",
         borderTopEndRadius: 18,
+        overflow: 'hidden',
         borderTopStartRadius: 18,
     },
     image: {

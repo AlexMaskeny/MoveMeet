@@ -112,7 +112,7 @@ export default function SignupPage3({ navigation }) {
                         title="Confirm"
                         outerStyle={{ flexDirection: "row" }}
                         onPress={onNext}
-                        disabled={code.length < 6}
+                        disabled={code.length < 6 || loading}
                         loading={loading}
                     />
                 </View>
@@ -134,7 +134,7 @@ const styles = StyleSheet.create({
         width: "100%"
     },
     page: {
-        paddingTop: 20,
+        paddingTop: Platform.OS == "android" ? 50 : 20,
         width: "100%",
         height: "100%",
         alignItems: "center",

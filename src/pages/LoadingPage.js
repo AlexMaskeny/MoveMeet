@@ -191,21 +191,32 @@ export default function LoadingPage({navigation}) {
                                         ...convertedLocs2,
                                         radius: rules.nearYouRadius,
                                     }));
+                                    var cdata = [];
+                                    var bdata = [];
                                     const oldChats = await API.graphql(graphqlOperation(getChatMembersByIds, {
                                         userID: user.data.getUserByCognito.id
                                     }));
                                     for (var i = 0; i < oldChats.data.getChatMembersByIds.items.length; i++) {
-                                        if (newChats.data.listChatsByLocation.items.findIndex(el => {
-                                            if (el.id == oldChats.data.getChatMembersByIds.items[i].chatID) return true;
-                                            else return false;
-                                        }) == -1) {
-                                            if (!oldChats.data.getChatMembersByIds.items[i].chat.private) {
-                                                await API.graphql(graphqlOperation(deleteChatMembers, {
-                                                    input: {
-                                                        id: oldChats.data.getChatMembersByIds.items[i].id
-                                                    }
-                                                }))
+                                        if (bdata.indexOf(el => el.chatID == oldChats.data.getChatMembersByIds.items[i].chatID) == -1) {
+                                            bdata.push(oldChats.data.getChatMembersByIds.items[i]);
+                                            if (newChats.data.listChatsByLocation.items.findIndex(el => {
+                                                if (el.id == oldChats.data.getChatMembersByIds.items[i].chatID) return true;
+                                                else return false;
+                                            }) == -1) {
+                                                if (!oldChats.data.getChatMembersByIds.items[i].chat.private) {
+                                                    await API.graphql(graphqlOperation(deleteChatMembers, {
+                                                        input: {
+                                                            id: oldChats.data.getChatMembersByIds.items[i].id
+                                                        }
+                                                    }))
+                                                }
                                             }
+                                        } else {
+                                            await API.graphql(graphqlOperation(deleteChatMembers, {
+                                                input: {
+                                                    id: oldChats.data.getChatMembersByIds.items[i].id
+                                                }
+                                            }))
                                         }
                                     }
                                     for (var i = 0; i < newChats.data.listChatsByLocation.items.length; i++) {
@@ -213,13 +224,19 @@ export default function LoadingPage({navigation}) {
                                             if (el.chatID == newChats.data.listChatsByLocation.items[i].id) return true;
                                             else return false;
                                         }) == -1) {
-                                            if (!newChats.data.listChatsByLocation.items[i].private) {
-                                                await API.graphql(graphqlOperation(createChatMembers, {
-                                                    input: {
-                                                        userID: user.data.getUserByCognito.id,
-                                                        chatID: newChats.data.listChatsByLocation.items[i].id
-                                                    }
-                                                }))
+                                            if (cdata.findIndex(el => {
+                                                if (el.id == newChats.data.listChatsByLocation.items[i].id) return true;
+                                                else return false;
+                                            }) == -1) {
+                                                cdata.push(newChats.data.listChatsByLocation.items[i]);
+                                                if (!newChats.data.listChatsByLocation.items[i].private) {
+                                                    await API.graphql(graphqlOperation(createChatMembers, {
+                                                        input: {
+                                                            userID: user.data.getUserByCognito.id,
+                                                            chatID: newChats.data.listChatsByLocation.items[i].id
+                                                        }
+                                                    }))
+                                                }
                                             }
                                         }
                                     }

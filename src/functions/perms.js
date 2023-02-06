@@ -25,7 +25,7 @@ const getNotifications = async () => {
         if (!result1.granted) {
             result2 = await Notifications.requestPermissionsAsync();
         }
-        if ((result1.granted || result2.granted) && !user.data.getUserByCognito.allowNotifications) {
+        if ((result1.granted || result2.granted || result1.ios.status == Notifications.IosAuthorizationStatus.AUTHORIZED) && !user.data.getUserByCognito.allowNotifications) {
             const token = await Notifications.getExpoPushTokenAsync();
             await API.graphql(graphqlOperation(updateUser, {
                 input: {

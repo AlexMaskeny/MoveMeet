@@ -16,8 +16,8 @@ import Beam from './Beam';
 
 
 export default function CreatePost({ visible, onClose, currentUser }) {
-    const [loading1, setLoading1] = useState("");
-    const [loading2, setLoading2] = useState("");
+    const [loading1, setLoading1] = useState(false);
+    const [loading2, setLoading2] = useState(false);
 
     const [image, setImage] = useState("");
     const [smallImage, setSmallImage] = useState("");

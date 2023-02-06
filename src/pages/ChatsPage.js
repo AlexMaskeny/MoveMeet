@@ -217,7 +217,7 @@ export default function ChatsPage({ navigation }) {
                                 chat.members.items[j].user.picture = picture;
 
                             }
-                            chatData.push(chat);
+                            if(chatData.findIndex((el)=>el.id==chat.id) == -1) chatData.push(chat);
                             userChatsSub.current.push(API.graphql(graphqlOperation(onReceiveMessage, {
                                 chatMessagesId: chat.id,
                             })).subscribe({

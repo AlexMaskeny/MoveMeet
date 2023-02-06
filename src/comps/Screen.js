@@ -27,7 +27,7 @@ const styles = StyleSheet.create({
         alignItems: "center",
         alignSelf: "center",
         backgroundColor: colors.background,
-        paddingTop: Platform.OS == "android" ? 30 : 0
+
     },
     inner: {
         flex: 1,

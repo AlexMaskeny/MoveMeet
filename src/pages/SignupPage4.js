@@ -193,7 +193,7 @@ export default function SignupPage4({ navigation, route }) {
                                     cStyle={styles.textInput}
                                     tStyle={{ alignSelf: 'flex-start' }}
                                     placeholder="Bio"
-
+                                    value={bio}
                                     onChangeText={(text) => setBio(text)}
                                 />
                             </View>
@@ -231,7 +231,7 @@ export default function SignupPage4({ navigation, route }) {
                                     cStyle={styles.textInput}
                                     tStyle={{ alignSelf: 'flex-start' }}
                                     placeholder="Bio"
-
+                                    value={bio}
                                     onChangeText={(text) => setBio(text)}
                                 />
                             </View>
@@ -263,7 +263,7 @@ const styles = StyleSheet.create({
         width: "100%"
     },
     page: {
-        paddingTop: 20,
+        paddingTop: Platform.OS == "android" ? 50 : 20,
         width: "100%",
         height: "100%",
         alignItems: "center",

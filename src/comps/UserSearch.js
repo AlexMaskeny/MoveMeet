@@ -56,7 +56,7 @@ export default function UserSearch({ visible, onClose, navigation, currentUser }
                 </View>
             </View>    
         )
-    }, []); 
+    }, [foundUsers]); 
     const keyExtractor = useCallback(item => item.id, []);
     const ListEmptyComponent = useCallback(() => {
         if (!loading) return (

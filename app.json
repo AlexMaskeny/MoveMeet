@@ -2,8 +2,8 @@
   "expo": {
     "jsEngine": "hermes",
     "name": "MoveMeet",
-    "slug": "MoveMeet",
-    "version": "0.1.0",
+    "slug": "ProxyChat",
+    "version": "1.0.0",
     "orientation": "portrait",
     "icon": "./assets/icon.png",
     "userInterfaceStyle": "dark",
@@ -19,14 +19,14 @@
       "**/*"
     ],
     "ios": {
-      "buildNumber": "4",
+      "buildNumber": "2",
       "bundleIdentifier": "com.alexmaskeny.ProxyChat",
       "supportsTablet": true
     },
     "android": {
       "adaptiveIcon": {
-        "foregroundImage": "./assets/adaptive-icon.png",
-        "backgroundColor": "#FFFFFF"
+        "foregroundImage": "./assets/icon.png",
+        "backgroundColor": "#121212"
       }
     },
     "web": {

@@ -156,6 +156,7 @@ export default function DiscoverPage({ navigation, route }) {
                     keyboardShouldPersistTaps="always"
                     keyboardDismissMode="on-drag"
                     keyExtractor={keyExtractor}
+                    ListFooterComponent={() => (<View style={{height: 20} } />) }
                     maxToRenderPerBatch={6}
                     windowSize={6}
                     refreshControl={

@@ -249,6 +249,16 @@ export default function OProfilePage({ navigation, route }) {
         />
     ), [posts, profilePicture]);
 
+    const ListEmptyComponent = useCallback(() => (<>
+        <View style={styles.empty}>
+            <Beam />
+            <View style={{ height: 20 }} />
+            <View style={{ alignItems: "center", height: "100%", justifyContent: "center", }}>
+                <SubTitle style={styles.title2} size={16}>This user has no posts.</SubTitle>
+            </View>
+        </View>
+    </>), []);
+
     const ListHeaderComponent = useCallback(() => (<>
         {!background.isColor &&
             <Image
@@ -275,7 +285,7 @@ export default function OProfilePage({ navigation, route }) {
         </View>
         <View style={styles.upperBody}>
             <View>
-                <SubTitle style={styles.title2} size={16} color={colors.text1}>@{username}</SubTitle>
+                <SubTitle style={styles.title2} size={Platform.OS == "android" ? 18 : 16} color={colors.text1}>@{username}</SubTitle>
             </View>
             {loading &&
                 <View>
@@ -314,6 +324,7 @@ export default function OProfilePage({ navigation, route }) {
                     keyboardDismissMode="on-drag"
                     keyExtractor={keyExtractor}
                     maxToRenderPerBatch={4}
+                    ListEmptyComponent={ListEmptyComponent}
                     windowSize={4}
                     refreshControl={
                         <RefreshControl

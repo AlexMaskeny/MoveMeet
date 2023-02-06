@@ -1,5 +1,5 @@
 import React, { useCallback, useRef, useState, useEffect } from 'react';
-import { StyleSheet, ActivityIndicator, FlatList, View, KeyboardAvoidingView, Keyboard } from 'react-native'
+import { StyleSheet, ActivityIndicator, FlatList, View, KeyboardAvoidingView, Keyboard, Platform } from 'react-native'
 import { useHeaderHeight } from '@react-navigation/elements';
 import { useNetInfo } from '@react-native-community/netinfo';
 import uuid from "react-native-uuid";
@@ -556,7 +556,7 @@ export default function ChatPage({ route, navigation }) {
     ),[])
     return (<>
         <Screen innerStyle={styles.page}>
-            <KeyboardAvoidingView style={{ flex: 1, justifyContent: "flex-end" }} behavior="padding" keyboardVerticalOffset={headerHeight + 4}>
+            <KeyboardAvoidingView style={{ flex: 1, justifyContent: "flex-end" }} behavior={Platform.OS=="android" ? "height" : "padding"} keyboardVerticalOffset={headerHeight + 4}>
                 <View style={styles.chats}>
                     <FlatList
                         data={data}

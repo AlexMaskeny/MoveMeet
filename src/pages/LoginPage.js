@@ -1,5 +1,5 @@
 import React from 'react';
-import { View, StyleSheet, KeyboardAvoidingView, Keyboard, Image, Alert, TouchableOpacity, TouchableWithoutFeedback } from 'react-native';
+import { View, StyleSheet, KeyboardAvoidingView, Keyboard, Image, Alert, TouchableOpacity, TouchableWithoutFeedback, Platform } from 'react-native';
 import { colors } from '../config';
 import { Auth } from 'aws-amplify';
 import * as Clipboard from 'expo-clipboard';
@@ -26,7 +26,6 @@ export default function LoginPage({navigation}) {
     const usernameRef = React.useRef();
     const passwordRef = React.useRef();
     const [submitButtonLoad, setSubmitButtonLoad] = React.useState(false);
-
     const clear = () => {
         Keyboard.dismiss();
         setUsername("");
@@ -73,9 +72,9 @@ export default function LoginPage({navigation}) {
             <TouchableOpacity activeOpacity={1} onPress={()=>Keyboard.dismiss() }><>
                 <KeyboardAvoidingView
                     style={styles.page}
-
-                    behavior="padding"
+                    behavior={Platform.OS == "android" ? "height" : "padding"}
                 >
+
                     <Image
                         source={require('../../assets/Logo.png')}
                         style={styles.logo}
@@ -146,7 +145,7 @@ const styles = StyleSheet.create({
     page: {
         width: "100%",
         height: "100%",
-        justifyContent: "center"
+        justifyContent: "center",
     },
     logo: {
         height: 80,
