@@ -51,7 +51,8 @@ export default function SignupPage3({ navigation }) {
                         region: " ",
                         enableColor: false,
                         color: " "
-                    }
+                    },
+                    broadcasts: []
                 }
             }))
             navigation.navigate("SignupPage4", { cognitoUser: user, userID: result.data.createUser.id });
@@ -141,7 +142,7 @@ const styles = StyleSheet.create({
     },
     beamContainer: {
         width: "100%",
-        marginTop: -20,
+        marginTop: -30,
         paddingHorizontal: 10,
         flexDirection: 'row',
         justifyContent: "space-between",

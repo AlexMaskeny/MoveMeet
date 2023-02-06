@@ -18,6 +18,8 @@ import PrivateChat from '../comps/PrivateChat';
 import SettingsChat from '../comps/SettingsChat';
 import IconButton from '../comps/IconButton';
 import UserSearch from '../comps/UserSearch';
+import HelpPrivateChatsPage from '../comps/HelpPrivateChatsPage';
+import BugReport from '../comps/BugReport';
 
 export default function PrivateChatsPage({ navigation }) {
     const userChatsSub = useRef([]);
@@ -32,6 +34,8 @@ export default function PrivateChatsPage({ navigation }) {
     const [showSettings, setShowSettings] = useState(false);
     const [settingsChat, setSettingsChat] = useState({});
     const [showSearch, setShowSearch] = useState(false); //set true on open. On close or navigate set to false
+    const [showHelp, setShowHelp] = useState(false);
+    const [showBug, setShowBug] = useState(false);
 
     const netInfo = useNetInfo();
 
@@ -48,6 +52,17 @@ export default function PrivateChatsPage({ navigation }) {
                         onPress={() => setShowSearch(true)}
                     />
                 </View>   
+            ),
+            headerLeft: () => (
+                <View style={{ alignItems: "center", justifyContent: "center", marginLeft: 10, flex: 1 }}>
+                    <IconButton
+                        icon="help-circle"
+                        brand="Ionicons"
+                        color={colors.text1}
+                        size={32}
+                        onPress={() => setShowHelp(true)}
+                    />
+                </View> 
             )
         })
     });
@@ -300,6 +315,8 @@ export default function PrivateChatsPage({ navigation }) {
         <NoChatsAlert privateChat={true} visible={noChats} />
         <SettingsChat item={settingsChat} onClose={closeSettings} visible={showSettings} navigate={() => navigate(settingsChat)} currentUser={currentUser.current} navigation={navigation}/>
         <UserSearch onClose={closeSearch} visible={showSearch} currentUser={currentUser.current} navigation={navigation} />
+        <HelpPrivateChatsPage visible={showHelp} onClose={() => setShowHelp(false)} onSearch={() => setShowSearch(true)} openBug={()=>setShowBug(true) } />
+        <BugReport visible={showBug} onClose={() => setShowBug(false)} currentUser={currentUser.current} />
         <Loading enabled={!ready} />
     </>)
 }

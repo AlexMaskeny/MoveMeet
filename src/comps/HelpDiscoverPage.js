@@ -1,0 +1,83 @@
+import React, { useCallback } from 'react';
+import { StyleSheet, Modal, View, TouchableOpacity, FlatList, Dimensions } from 'react-native';
+import { colors, css, rules } from '../config';
+import IconButton from './IconButton';
+import SimpleButton from './SimpleButton';
+import SubTitle from './SubTitle';
+
+export default function HelpDiscoverPage({ visible, onClose, openBug }) {
+    const bugReport = () => {
+        onClose();
+        openBug();
+    }
+    return (
+        <Modal visible={visible} animationType="slide" transparent={true}>
+            <TouchableOpacity style={styles.page} onPress={() => onClose()} activeOpacity={1}>
+                <TouchableOpacity style={styles.container} activeOpacity={1}>
+                    <View style={styles.header}>
+                        <IconButton color={colors.background} icon="ios-close-circle" brand="Ionicons" size={32} />
+                        <SubTitle color={colors.pBeamBright} style={styles.title} size={18}>What is the discover page?</SubTitle>
+                        <IconButton color={colors.text1} icon="ios-close-circle" brand="Ionicons" size={32} onPress={onClose} />
+                    </View>
+                    <View style={styles.content}>
+                        <SubTitle color={colors.pBeamBright} style={styles.title} size={16}>A place to meet people</SubTitle>
+                        <SubTitle style={styles.subtitle} size={16}>The discover page will you show people</SubTitle>
+                        <SubTitle style={styles.subtitle} size={16}>that are near you, with the closet</SubTitle>
+                        <SubTitle style={styles.subtitle} size={16}>shown first. You can then message them!</SubTitle>
+                    </View>
+                    <TouchableOpacity style={{ marginTop: 10 }} onPress={bugReport}>
+                        <SubTitle style={styles.title} color={colors.text1} size={16}>Report Bug</SubTitle>
+                    </TouchableOpacity>
+                </TouchableOpacity>
+            </TouchableOpacity>
+        </Modal>
+    )
+}
+
+const styles = StyleSheet.create({
+    page: {
+        flex: 1,
+        alignItems: "center",
+        justifyContent: "flex-end",
+    },
+    header: {
+        width: "100%",
+        justifyContent: "space-between",
+        alignItems: "center",
+        flexDirection: "row",
+        paddingHorizontal: 14,
+        paddingTop: 14,
+        paddingBottom: 10,
+    },
+    title: {
+        fontWeight: "bold",
+        alignSelf: "center",
+    },
+    desc: {
+        marginTop: 6,
+        alignItems: "center",
+        justifyContent: "center"
+    },
+    subtitle: {
+        fontWeight: "400"
+    },
+    container: {
+        backgroundColor: colors.background,
+        width: "100%",
+        height: Dimensions.get('window').height * 0.4,
+        borderColor: colors.pBeamBright,
+        borderTopWidth: 2,
+        ...css.beamShadow
+    },
+    content: {
+        justifyContent: "flex-start",
+        alignItems: "center",
+        backgroundColor: colors.container,
+        margin: 8,
+        borderRadius: 20,
+        padding: 20,
+        ...css.beamShadow,
+        shadowColor: "rgba(0,0,0,0.7)"
+    },
+
+})

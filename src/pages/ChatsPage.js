@@ -19,6 +19,8 @@ import NoLocationAlert from '../comps/NoLocationAlert';
 import NoChatsAlert from '../comps/NoChatsAlert';
 import CreateChat from '../comps/CreateChat';
 import IconButton from '../comps/IconButton';
+import HelpChatsPage from '../comps/HelpChatsPage';
+import BugReport from '../comps/BugReport';
 
 export default function ChatsPage({ navigation }) {
     const memberStatusSub = useRef();
@@ -33,6 +35,8 @@ export default function ChatsPage({ navigation }) {
     const [rerender, setRerender] = useState(false);
     const [chats, setChats] = useState([]);
     const [showCreate, setShowCreate] = useState(false);
+    const [showHelp, setShowHelp] = useState(false);
+    const [showBug, setShowBug] = useState(false);
 
     const netInfo = useNetInfo();
 
@@ -47,6 +51,17 @@ export default function ChatsPage({ navigation }) {
                         color={colors.text1}
                         size={32}
                         onPress={() => setShowCreate(true)}
+                    />
+                </View>
+            ),
+            headerLeft: () => (
+                <View style={{ alignItems: "center", justifyContent: "center", marginLeft: 10, flex: 1 }}>
+                    <IconButton
+                        icon="help-circle"
+                        brand="Ionicons"
+                        color={colors.text1}
+                        size={32}
+                        onPress={() => setShowHelp(true)}
                     />
                 </View>
             )
@@ -372,6 +387,8 @@ export default function ChatsPage({ navigation }) {
             <NoChatsAlert visible={noChats} />
             <NoLocationAlert visible={!locEnabled} enable={enableLocation} />
             <CreateChat visible={showCreate} onClose={() => setShowCreate(false)} currentUser={currentUser.current} />
+            <HelpChatsPage visible={showHelp} onClose={() => setShowHelp(false)} onCreateChat={() => setShowCreate(true)} openBug={()=>setShowBug(true)}/>
+            <BugReport visible={showBug} onClose={() => setShowBug(false)} currentUser={currentUser.current}/>
             <Loading enabled={!ready} />
         </>
     );

@@ -75,8 +75,52 @@ const openCamera = async (onSuccess) => {
         logger.warn(error);
     }
 }
+const openMultiplePhotos = async (onSuccess) => {
+    try {
+        const perms = await ImagePicker.getMediaLibraryPermissionsAsync();
+        if (!perms.granted) {
+            Alert.alert("No Permsision", "We don't have access to your photos.", [
+                {
+                    text: "Give Access", onPress: async () => {
+                        try {
+                            const result = await ImagePicker.requestMediaLibraryPermissionsAsync();
+                            if (result.granted) openMultiplePhotos(onSuccess);
+                            else return;
+                        } catch (error) {
+                            logger.warn(error);
+                        }
+                    }
+                },
+                { text: "Cancel", }
+            ]);
+        } else {
+            const result = await ImagePicker.launchImageLibraryAsync({allowsMultipleSelection: true, selectionLimit: 3});
+            if (result) {
+                if (result.canceled) return
+                else {
+                    var returnVal = [];
+                    for (var i = 0; i < result.assets.length; i++) {
+                        if (i < 3) {
+                            const full = await manipulateAsync(result.assets[i].uri, [{ resize: { width: 1080 } }]);
+                            returnVal.push({
+                                id: i,
+                                full: full.uri
+                            })
+
+                        }
+                        //returnVal[i].loadFull = await manipulateAsync(result.assets[0].uri, [{ resize: { width: 80 } }]);
+                    }
+                    onSuccess(returnVal);
+                }
+            } else Alert.alert("Try Again", "Something went wrong when opening your photos. Try Again.");
+        }
+    } catch (error) {
+        logger.warn(error);
+    }
+}
 
 export {
     openCamera,
-    openPhotos
+    openPhotos,
+    openMultiplePhotos
 }

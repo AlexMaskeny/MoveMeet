@@ -2,7 +2,7 @@ import React from 'react';
 import { View, StyleSheet } from 'react-native';
 import { MaterialIcons } from '@expo/vector-icons';
 
-import { colors, css } from '../config';
+import { colors, css, strings } from '../config';
 import BeamTitle from './BeamTitle';
 import SubTitle from './SubTitle';
 import SimpleButton from './SimpleButton';
@@ -23,7 +23,7 @@ export default function NoLocationAlert({
                     <BeamTitle size={24}>Page Disabled</BeamTitle>
                     <SubTitle size={16}>You are seeing this because</SubTitle>
                     <SubTitle size={16}>you cannot use this page</SubTitle>
-                    <SubTitle size={16}>without allowing ProxyChat to</SubTitle>
+                    <SubTitle size={16}>without allowing {strings.APPNAME} to</SubTitle>
                     <SubTitle size={16}>use your Location.</SubTitle>
                     <View height={20} />
                     <MaterialIcons name="location-city" size={140} color={colors.text3} />

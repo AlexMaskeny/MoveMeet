@@ -1,5 +1,5 @@
 import React, { useState, useRef, useCallback, useEffect } from 'react';
-import { StyleSheet, FlatList, RefreshControl} from 'react-native';
+import { StyleSheet, FlatList, RefreshControl, View} from 'react-native';
 import { API, graphqlOperation, Storage, Auth } from 'aws-amplify';
 import * as Location from 'expo-location';
 import { useNetInfo } from "@react-native-community/netinfo";
@@ -14,6 +14,9 @@ import * as locConversion from '../functions/locConversion';
 import UserSquare from '../comps/UserSquare';
 import NoUsersAlert from '../comps/NoUsersAlert';
 import NoLocationAlert from '../comps/NoLocationAlert';
+import IconButton from '../comps/IconButton';
+import HelpDiscoverPage from '../comps/HelpDiscoverPage';
+import BugReport from '../comps/BugReport';
 
 export default function DiscoverPage({ navigation, route }) {
     const currentUser = useRef();
@@ -24,8 +27,26 @@ export default function DiscoverPage({ navigation, route }) {
     const [ready, setReady] = useState(false);
     const [refresh, setRefresh] = useState(false);
     const [rerender, setRerender] = useState(false);
+    const [showHelp, setShowHelp] = useState(false);
+    const [showBug, setShowBug] = useState(false);
 
     const netInfo = useNetInfo();
+    
+    useEffect(() => {
+        navigation.setOptions({
+            headerLeft: () => (
+                <View style={{ alignItems: "center", justifyContent: "center", marginLeft: 10, flex: 1 }}>
+                    <IconButton
+                        icon="help-circle"
+                        brand="Ionicons"
+                        color={colors.text1}
+                        size={32}
+                        onPress={() => setShowHelp(true)}
+                    />
+                </View>
+            )
+        })
+    }, [navigation]);
 
     //DATA FETCHING
     useEffect(() => {
@@ -152,7 +173,9 @@ export default function DiscoverPage({ navigation, route }) {
             }
             <Loading enabled={!ready} />
             <NoUsersAlert visible={noUsers} />
-            <NoLocationAlert visible={!locEnabled} enable={enableLocation}/>
+            <NoLocationAlert visible={!locEnabled} enable={enableLocation} />
+            <HelpDiscoverPage visible={showHelp} onClose={() => setShowHelp(false)} openBug={()=>setShowBug(true)} />
+            <BugReport visible={showBug} onClose={() => setShowBug(false)} currentUser={currentUser.current} />
         </Screen>
     );
 }

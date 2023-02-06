@@ -1,4 +1,4 @@
-import React, { useCallback, useRef, useEffect } from 'react';
+import React, { useCallback, useRef, useEffect, useState } from 'react';
 import { StyleSheet, Image, ActivityIndicator, View } from 'react-native';
 import { API, Auth, graphqlOperation } from 'aws-amplify';
 import AsyncStorage from '@react-native-async-storage/async-storage';
@@ -8,11 +8,12 @@ import { useFocusEffect } from '@react-navigation/native';
 import * as Notifications from 'expo-notifications';
 
 
-import { createChatMembers, deleteChatMembers, getChat, getChatMembersByIds, getUserByCognito, listChatsByLocation, updateUser } from '../api/calls';
+import { createChatMembers, deleteChatMembers, getChat, getChatMembersByIds, getUserBroadcasts, getUserByCognito, listBroadcasts, listChatsByLocation, updateUser } from '../api/calls';
 import * as logger from '../functions/logger';
 import * as locConversion from '../functions/locConversion';
 import Screen from '../comps/Screen';
-import { storage, colors, rules } from '../config';
+import { storage, colors, rules, version } from '../config';
+import Broadcast from '../comps/Broadcast';
 
 const NO_USER = "The user is not authenticated";
 
@@ -21,7 +22,13 @@ export default function LoadingPage({navigation}) {
     const not = useRef();
     const lc = useRef();
     const currentUser = useRef();
+    const [showBroadcast, setShowBroadcast] = useState(false);
+    const [broadcastData, setBroadcastData] = useState({});
 
+    const closeBroadcast = () => {
+        setShowBroadcast(false);
+        navigation.navigate("SecondaryNav");
+    }
 
     const unsubscribe = () => {
         currentUser.current = null;
@@ -223,8 +230,31 @@ export default function LoadingPage({navigation}) {
                         await updateChatMembership();
                         lc.current = setInterval(updateChatMembership, rules.locationUpdateFrequency);
                     }
+                    const broadcasts = (await API.graphql(graphqlOperation(listBroadcasts))).data.listBroadcasts.items;
+                    const userBroadcasts = (await API.graphql(graphqlOperation(getUserBroadcasts, { id: user.data.getUserByCognito.id }))).data.getUser.broadcasts;
+                    var shouldShowBroadcast = false;
+                    var broadcast;
+                    for (var i = 0; i < broadcasts.length; i++) {
+                        if (broadcasts[i].excemptVersions.indexOf(version) != -1) continue;
+                        if (userBroadcasts.indexOf(broadcasts[i].id) != -1) continue;
+                        if (shouldShowBroadcast) {
+                            if (broadcasts[i].createdAt > broadcast.createdAt) broadcast = broadcasts[i];
+                        } else {
+                            shouldShowBroadcast = true;
+                            broadcast = broadcasts[i];
+                        }
+                    }
+                    if (shouldShowBroadcast) {
+                        setBroadcastData(broadcast);
+                        setShowBroadcast(true);
+                        await API.graphql(graphqlOperation(updateUser, {
+                            input: {
+                                id: user.data.getUserByCognito.id,
+                                broadcasts: [...userBroadcasts, broadcast.id]
+                            }
+                        }));
+                    } else navigation.navigate("SecondaryNav");
                 } else throw NO_USER;
-                navigation.navigate("SecondaryNav");
             } catch (error) {
                 logger.log(error);
                 if (error == NO_USER) {
@@ -258,6 +288,7 @@ export default function LoadingPage({navigation}) {
             />
             <View height={20}/>
             <ActivityIndicator size='large' color={colors.pBeam} />
+            <Broadcast visible={showBroadcast} broadcast={broadcastData} onClose={closeBroadcast} />
         </Screen>
     );
 }

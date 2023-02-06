@@ -111,7 +111,7 @@ const styles = StyleSheet.create({
     },
     beamContainer: {
         width: "100%",
-        marginTop: -20,
+        marginTop: -30,
         paddingHorizontal: 10,
         flexDirection: 'row',
         justifyContent: "space-between",

@@ -184,6 +184,7 @@ export default function SignupPage4({ navigation, route }) {
                 cStyle={styles.textInput}
                 tStyle={{ alignSelf: 'flex-start' }}
                 placeholder="Bio"
+
                 onChangeText={(text) => setBio(text)}
             />    
         </View>
@@ -278,7 +279,7 @@ const styles = StyleSheet.create({
         marginTop: 10,
         padding: 10,
         ...css.beamShadow,
-        shadowColor: "black",
+        shadowColor: "rgba(0,0,0,0.5)",
         alignContent: "flex-start",
         justifyContent: 'flex-start'
     },

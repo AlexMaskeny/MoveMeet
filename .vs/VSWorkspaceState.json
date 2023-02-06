@@ -1,10 +1,13 @@
 {
   "ExpandedNodes": [
     "",
+    "\\assets",
     "\\src",
+    "\\src\\api",
     "\\src\\comps",
+    "\\src\\functions",
     "\\src\\pages"
   ],
-  "SelectedNode": "\\src\\comps\\ImageInput.js",
+  "SelectedNode": "\\src\\comps\\BugReport.js",
   "PreviewInSolutionExplorer": false
 }

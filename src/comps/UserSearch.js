@@ -3,7 +3,7 @@ import { StyleSheet, Modal, View, TouchableOpacity, FlatList, Dimensions, Activi
 import { API, graphqlOperation, Storage } from 'aws-amplify';
 
 import * as logger from '../functions/logger';
-import { colors, css } from '../config';
+import { colors, css, strings } from '../config';
 import BeamTitle from './BeamTitle';
 import IconButton from './IconButton';
 import SimpleInput from './SimpleInput';
@@ -68,7 +68,7 @@ export default function UserSearch({ visible, onClose, navigation, currentUser }
                     <SubTitle size={16}>"{sentText}". Can't find any users?</SubTitle>
                 </>}
                 {search.length < 4 && <>
-                    <SubTitle size={16}>All Lummp usernames are at least four</SubTitle>
+                    <SubTitle size={16}>All {strings.APPNAME} usernames are at least four</SubTitle>
                     <SubTitle size={16}>characters long. Can't find any users?</SubTitle>
                 </>}
                 <View style={styles.suggestion}>

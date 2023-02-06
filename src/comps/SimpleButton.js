@@ -1,5 +1,5 @@
 import React from 'react';
-import { StyleSheet, Text, TouchableOpacity, ActivityIndicator, View } from 'react-native';
+import { StyleSheet, Text, TouchableOpacity, ActivityIndicator, View, Platform } from 'react-native';
 
 import { colors, css } from '../config';
 
@@ -17,7 +17,7 @@ function SimpleButton({
     loading = false,
 }) {
     return (
-        <TouchableOpacity style={[{ ...styles.bContainer, borderWidth: disabled ? 0 : 3, borderColor: disabled ? colors.pBeamDisabled : colors.pBeam }, outerStyle]} onPress={onPress} disabled={disabled}>
+        <TouchableOpacity style={[{ ...styles.bContainer, borderWidth: disabled ? ( Platform.OS=="android" ? 2 : 0) : 3, borderColor: disabled ? colors.pBeamDisabled : colors.pBeam }, outerStyle]} onPress={onPress} disabled={disabled}>
             <View style={[styles.innerContainer, innerStyle]}>
                 {!loading &&
                     <Text style={styles.text}>{title}</Text>
@@ -38,7 +38,7 @@ const styles = StyleSheet.create({
         padding: 15,
         marginHorizontal: 10,
         marginVertical: 4,
-        elevation: 10,
+        elevation: 4,
         borderColor: colors.pBeam,
         borderWidth: 3,
         borderRadius: 30,

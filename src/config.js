@@ -16,7 +16,8 @@ export const colors = {
     text5: "rgba(255,255,255,0.80)",
     text6: "rgba(255,255,255,0.90)",
     error: "#FF4D4D",
-    errorTransparent: "rgba(255,77,77,0.05)"
+    errorTransparent: "rgba(255,77,77,0.05)",
+    overlayBackground: "rgba(0,0,0,0.5)"
 }
 
 export const css = {
@@ -31,6 +32,10 @@ export const css = {
 export const debug = true; //changes whether or not error messages print
 export const enhancedDebug = false;
 export const footerHeight = 80;
+export const version = "0.1.0";
+export const strings = {
+    APPNAME: "MoveMeet"
+}
 export const storage = {
     UNCONFIRMED: "unconfirmed",
     UNCONFIRMEDUSER: "unconfirmeduser"

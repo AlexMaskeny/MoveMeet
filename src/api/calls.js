@@ -778,4 +778,38 @@ export const listUsersByUsername = /* GraphQL */ `
             }
         }
     }
+`;
+
+export const createBug = /* GraphQL */ `
+    mutation createBug ($input: CreateBugInput!) {
+        createBug(input: $input) {
+            id
+        }
+    }
+`;
+
+export const listBroadcasts = /* GraphQL */ `
+    query ListBroadcasts($limit: Int) {
+        listBroadcasts(limit: $limit) {
+            items {
+                id
+                button1link
+                button1text
+                button2link
+                button2text
+                content
+                excemptVersions
+                title
+        
+            }
+        }
+    }
 `
+
+export const getUserBroadcasts = /* GraphQL */ `
+  query GetDetailedUser($id: ID!) {
+    getUser(id: $id) {
+        broadcasts
+    }
+  }
+`;

@@ -1,5 +1,5 @@
 import React from 'react';
-import { SafeAreaView, StyleSheet, View} from 'react-native';
+import { Platform, SafeAreaView, StyleSheet, View} from 'react-native';
 import { colors } from '../config';
 
 //DESCRIPTION: A screen comp which sets the background color
@@ -27,6 +27,7 @@ const styles = StyleSheet.create({
         alignItems: "center",
         alignSelf: "center",
         backgroundColor: colors.background,
+        paddingTop: Platform.OS == "android" ? 30 : 0
     },
     inner: {
         flex: 1,
