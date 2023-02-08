@@ -108,7 +108,6 @@ export default function LoginPage({navigation}) {
                         }}
                         autocorrect={false}
                         secureTextEntry={!passwordVisible}
-                        text={password.length + "/" + "8"}
                         onChangeText={(text) => {
                             setPassword(text);
                         }}

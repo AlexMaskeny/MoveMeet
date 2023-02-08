@@ -34,6 +34,8 @@ export default function SignupPage1({ navigation }) {
                 <View style={styles.page}>
                     <BeamTitle>Create an account</BeamTitle>
                     <SubTitle size={14}>Choose a username and make a password</SubTitle>
+                    <SubTitle size={14}>Username must be at least 4 characters</SubTitle>
+                    <SubTitle size={14}>Password must be at least 8 characters</SubTitle>
                     <View style={{ height: 20 }} />
                     {/*<SimpleInput*/}
                     {/*    reference={nameRef}*/}
@@ -53,7 +55,6 @@ export default function SignupPage1({ navigation }) {
                         icon="account"
                         autoCapitalize="none"
                         maxLength={18}
-                        text={username.length + "/4"}
                         value={username}
                         onChangeText={(text) => {
                             if (
@@ -69,7 +70,6 @@ export default function SignupPage1({ navigation }) {
                         autocorrect={false}
                         icon="lock"
                         autoCapitalize="none"
-                        text={password.length + "/" + "8"}
                         showRightButton={true}
                         rightButtonProps={{
                             icon: passwordVisible ? "eye-off" : "eye",
@@ -95,7 +95,6 @@ export default function SignupPage1({ navigation }) {
                                 onPress: () => setConfirmPasswordVisible(!confirmPasswordVisible)
                             }}
                             autoCapitalize="none"
-                            text={confirmPassword.length + "/" + "8"}
                             maxLength={20}
                             secureTextEntry={!confirmPasswordVisible}
                             onChangeText={(text) => {

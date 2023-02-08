@@ -1,5 +1,5 @@
 import React, { useState, useRef, useCallback, useEffect } from 'react';
-import { Keyboard, StyleSheet, TouchableOpacity, View, Image, FlatList, RefreshControl, Alert} from 'react-native';
+import { Keyboard, StyleSheet, TouchableOpacity, View, Image, FlatList, RefreshControl, Alert } from 'react-native';
 import { API, Auth, graphqlOperation, Storage } from 'aws-amplify';
 import { LinearGradient } from 'expo-linear-gradient';
 import * as Location from 'expo-location';
@@ -146,7 +146,7 @@ export default function UProfilePage({ navigation }) {
                             currentUser.current.posts.items[i].distance
                         }
                     }
-                    
+
                     setPosts(currentUser.current.posts.items.sort((a, b) => {
                         if (Date.parse(a.createdAt) > Date.parse(b.createdAt)) {
                             return -1;
@@ -244,7 +244,7 @@ export default function UProfilePage({ navigation }) {
                                             }
                                         }));
 
-                                        
+
                                     }
                                 }
                             }
@@ -307,19 +307,23 @@ export default function UProfilePage({ navigation }) {
     const changeBackground = () => {
         try {
             Alert.alert("Use a photo or use a color", "Pick one of the options below to change your background", [
-                {text: "Open Photos", onPress: () => {
-                    media.openPhotos((uri) => {
-                        setChangedBackground(true);
-                        setBackground({
-                            uri: uri.full,
-                            loadImage: uri.loadFull,
-                            isColor: false
-                        })
-                    });
-                }},
-                {text: "Select Color", onPress: () => {
-                    setShowBack(true);
-                }}
+                {
+                    text: "Open Photos", onPress: () => {
+                        media.openPhotos((uri) => {
+                            setChangedBackground(true);
+                            setBackground({
+                                uri: uri.full,
+                                loadImage: uri.loadFull,
+                                isColor: false
+                            })
+                        });
+                    }
+                },
+                {
+                    text: "Select Color", onPress: () => {
+                        setShowBack(true);
+                    }
+                }
             ]);
         } catch (error) {
             logger.warn(error);
@@ -351,7 +355,7 @@ export default function UProfilePage({ navigation }) {
             profilePicture={profilePicture}
             post={item}
             edit={editing}
-            onDelete={()=>removePost(item.id)}
+            onDelete={() => removePost(item.id)}
         />
     ), [editing, posts, profilePicture]);
 
@@ -366,19 +370,19 @@ export default function UProfilePage({ navigation }) {
     </>), []);
 
     const ListHeaderComponent = useCallback(() => (<>
-        <Beam style={{marginTop: -6} } />
+        <Beam style={{ marginTop: -6 }} />
         {!background.isColor &&
             <Image
                 style={{ height: 100, width: "100%" }}
                 resizeMode="cover"
                 source={background}
-            />        
+            />
         }
         {background.isColor &&
-            <View style={{height: 100, width: "100%", backgroundColor: background.color}} />
+            <View style={{ height: 100, width: "100%", backgroundColor: background.color }} />
         }
         {editing &&
-            <View style={{position: 'absolute', alignSelf: "flex-end", padding: 4, zIndex: 4}}>
+            <View style={{ position: 'absolute', alignSelf: "flex-end", padding: 4, zIndex: 4 }}>
                 <IconButton icon="square-edit-outline" brand="MaterialCommunityIcons" size={40} color={colors.text1} onPress={changeBackground} />
             </View>
         }
@@ -386,30 +390,30 @@ export default function UProfilePage({ navigation }) {
             <LinearGradient
                 // Background Linear Gradient
                 colors={['rgba(18, 18, 18,0.4)', colors.background]}
-                style={{ height: 120, width: "100%", marginTop: -120}}
+                style={{ height: 120, width: "100%", marginTop: -120 }}
             />
         }
         <View style={styles.beamCircle}>
             <Beam style={styles.beam} />
             {editing &&
-                <TouchableOpacity onPress={changePpic} style={{justifyContent: "center"}}>
+                <TouchableOpacity onPress={changePpic} style={{ justifyContent: "center" }}>
                     <ProfileCircle ppic={{ uri: profilePicture.uri }} style={styles.ppicEditing} innerStyle={styles.innerPpicEditing} />
                     <View style={styles.changePpic}>
                         <IconButton icon="square-edit-outline" brand="MaterialCommunityIcons" size={40} color={colors.text1} onPress={changePpic} />
                     </View>
-                </TouchableOpacity>                    
+                </TouchableOpacity>
             }
             {!editing &&
                 <View style={{ justifyContent: "center" }}>
                     <ProfileCircle ppic={{ uri: profilePicture.uri }} style={styles.ppic} innerStyle={styles.innerPpic} />
-                </View>         
+                </View>
             }
             <Beam style={styles.beam} />
         </View>
         <View style={styles.body}>
             <View style={styles.upperBody}>
                 <View>
-                    <SubTitle style={styles.title2} size={18} color={colors.text1} selectable={true}>@{username}</SubTitle>
+                    <SubTitle style={styles.title2} size={18} color={colors.background} selectable={true}>@{username}</SubTitle>
 
                 </View>
             </View>
@@ -417,7 +421,7 @@ export default function UProfilePage({ navigation }) {
                 <SimpleInput
                     autoCorrect={true}
                     reference={bioEditRef}
-                    cStyle={{backgroundColor: colors.background} }
+                    cStyle={{ backgroundColor: colors.background }}
                     editable={editing}
                     multiline={true}
                     maxLength={160}
@@ -443,7 +447,7 @@ export default function UProfilePage({ navigation }) {
 
     return (
         <Screen innerStyle={styles.page}>
-            {ready &&         
+            {ready &&
                 <FlatList
                     data={posts}
                     style={styles.posts}
@@ -471,7 +475,7 @@ export default function UProfilePage({ navigation }) {
             <Loading enabled={!ready} />
             <CreatePost visible={showCreate} onClose={closeCreate} currentUser={currentUser.current} />
             <BackgroundEditor visible={showBack} onClose={() => setShowBack(false)} onSuccess={successBack} />
-            <Settings visible={showSettings} onClose={() => setShowSettings(false)} navigation={navigation}/>
+            <Settings visible={showSettings} onClose={() => setShowSettings(false)} navigation={navigation} />
         </Screen>
     );
 }
@@ -510,7 +514,7 @@ const styles = StyleSheet.create({
     changePpic: {
         position: "absolute",
         alignSelf: "center",
-    }, 
+    },
     upperBody: {
         marginTop: -50,
         padding: 10,

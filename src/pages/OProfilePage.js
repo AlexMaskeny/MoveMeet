@@ -287,7 +287,7 @@ export default function OProfilePage({ navigation, route }) {
             </View>
             <View style={styles.upperBody}>
                 <View>
-                    <SubTitle style={styles.title2} size={Platform.OS == "android" ? 18 : 16} color={colors.text1}>@{username}</SubTitle>
+                    <SubTitle style={styles.title2} size={Platform.OS == "android" ? 18 : 16} color={colors.background}>@{username}</SubTitle>
                 </View>
                 {loading &&
                     <View>
