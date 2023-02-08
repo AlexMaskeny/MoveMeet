@@ -77,7 +77,7 @@ const styles = StyleSheet.create({
         width: "100%"
     },
     page: {
-        paddingTop: 20,
+        paddingTop: Platform.OS == "android" ? 50 : 20,
         width: "100%",
         height: "100%",
         alignItems: "center",

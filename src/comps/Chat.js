@@ -1,5 +1,5 @@
 import React, { useEffect } from 'react';
-import { View, StyleSheet, FlatList, ImageBackground as NormalBackground } from 'react-native';
+import { View, StyleSheet, FlatList, ImageBackground as NormalBackground, TouchableOpacity } from 'react-native';
 import { CommonActions } from '@react-navigation/native';
 
 import { colors, css } from '../config';
@@ -34,38 +34,6 @@ function Chat({
     onPress,
     ...props
 }) {
-    const keyExtractor = React.useCallback((item) => item.user.id, [])
-    const renderItem = React.useCallback(({ item }) => (
-        <View style={styles.ppContain}>
-            <PCircleAndTitle username={item.user.username} ppic={{
-                uri: item.user.picture,
-                loadImage: item.user.picture,
-            }} />
-        </View>
-    ), [])
-    const onEndReached = React.useCallback(() => {
-        
-    }, [])
-    const getChatsHeight = () => {
-        if (last3.length == 3) return 156
-        if (last3.length == 2) return 104
-        if (last3.length == 1) return 104
-        if (last3.length == 0) return 60
-    }
-    const getHeight = () => {
-        return 340 - (156 - getChatsHeight());
-    }
-    const glowStyle = () => {
-        if (glow) {
-            return ({
-                ...css.beamShadow,
-                borderWidth: 2,
-                borderColor: colors.pBeam
-            })
-        } else {
-            return ({})
-        }
-    }
     const navigate = () => {
         if (disabled) return;
         onPress(); 
@@ -84,6 +52,51 @@ function Chat({
             })
         );
     }
+    const onClickMember = (memberID) => {
+        navigation.dispatch(CommonActions.navigate({
+            name: "OProfilePage",
+            key: memberID,
+            params: {
+                opposingUser: { id: memberID },
+            }
+        }))
+    }
+
+    const onEndReached = React.useCallback(() => {
+        
+    }, [])
+
+    const getChatsHeight = () => {
+        if (last3.length == 3) return 156
+        if (last3.length == 2) return 104
+        if (last3.length == 1) return 104
+        if (last3.length == 0) return 60
+    }
+    const getHeight = () => {
+        return 340 - (156 - getChatsHeight());
+    }
+
+    const glowStyle = () => {
+        if (glow) {
+            return ({
+                ...css.beamShadow,
+                borderWidth: 2,
+                borderColor: colors.pBeam
+            })
+        } else {
+            return ({})
+        }
+    }
+
+    const keyExtractor = React.useCallback((item) => item.user.id, [])
+    const renderItem = React.useCallback(({ item }) => (
+        <TouchableOpacity style={styles.ppContain} onPress={()=>onClickMember(item.user.id)}>
+            <PCircleAndTitle username={item.user.username} ppic={{
+                uri: item.user.picture,
+                loadImage: item.user.picture,
+            }} />
+        </TouchableOpacity>
+    ), [])
     return (
         <View style={{
             ...styles.container,

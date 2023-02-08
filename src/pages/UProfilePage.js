@@ -77,7 +77,7 @@ export default function UProfilePage({ navigation }) {
                         />
                         <View style={{ width: 6 }} />
                         <IconButton
-                            icon="settings"
+                            icon="settings-sharp"
                             brand="Ionicons"
                             color={colors.text1}
                             size={30}
@@ -366,6 +366,7 @@ export default function UProfilePage({ navigation }) {
     </>), []);
 
     const ListHeaderComponent = useCallback(() => (<>
+        <Beam style={{marginTop: -6} } />
         {!background.isColor &&
             <Image
                 style={{ height: 100, width: "100%" }}
@@ -405,40 +406,39 @@ export default function UProfilePage({ navigation }) {
             }
             <Beam style={styles.beam} />
         </View>
-        <View style={styles.upperBody}>
-            <View>
-                <SubTitle style={styles.title2} size={18} color={colors.text1} selectable={true}>@{username}</SubTitle>
+        <View style={styles.body}>
+            <View style={styles.upperBody}>
+                <View>
+                    <SubTitle style={styles.title2} size={18} color={colors.text1} selectable={true}>@{username}</SubTitle>
 
+                </View>
             </View>
-            <View>
-
+            <View style={styles.midBody}>
+                <SimpleInput
+                    autoCorrect={true}
+                    reference={bioEditRef}
+                    cStyle={{backgroundColor: colors.background} }
+                    editable={editing}
+                    multiline={true}
+                    maxLength={160}
+                    style={styles.textInput}
+                    defaultValue={bio}
+                    onChangeText={setBio}
+                />
+                {editing && <>
+                    <View style={{ height: 10 }} />
+                    {!bioEdit &&
+                        <IconButton icon="square-edit-outline" brand="MaterialCommunityIcons" size={30} color={colors.pBeamBright} onPress={changeBio} />
+                    }
+                    {bioEdit &&
+                        <TouchableOpacity onPress={() => { Keyboard.dismiss(); setBioEdit(false) }}>
+                            <SubTitle style={styles.title2} size={18} color={colors.pBeamBright}>Done</SubTitle>
+                        </TouchableOpacity>
+                    }
+                </>}
             </View>
+            <View style={{ height: 20 }} />
         </View>
-        <View style={styles.midBody}>
-            <SimpleInput
-                autoCorrect={true}
-                reference={bioEditRef}
-                cStyle={{backgroundColor: colors.background} }
-                editable={editing}
-                multiline={true}
-                maxLength={160}
-                style={styles.textInput}
-                defaultValue={bio}
-                onChangeText={setBio}
-            />
-            {editing && <>
-                <View style={{ height: 10 }} />
-                {!bioEdit &&
-                    <IconButton icon="square-edit-outline" brand="MaterialCommunityIcons" size={30} color={colors.pBeamBright} onPress={changeBio} />
-                }
-                {bioEdit &&
-                    <TouchableOpacity onPress={() => { Keyboard.dismiss(); setBioEdit(false) }}>
-                        <SubTitle style={styles.title2} size={18} color={colors.pBeamBright}>Done</SubTitle>
-                    </TouchableOpacity>
-                }
-            </>}
-        </View>
-        <View style={{ height: 20 }} />
     </>), [rerender, editing, ready, bioEdit, profilePicture, background]);
 
     return (
@@ -484,6 +484,7 @@ const styles = StyleSheet.create({
         flexDirection: 'row',
         alignItems: "center",
         marginTop: -50,
+        zIndex: 5,
     },
     beam: {
         flex: 1,
@@ -514,12 +515,14 @@ const styles = StyleSheet.create({
         marginTop: -50,
         padding: 10,
         flexDirection: "row",
-        justifyContent: "space-between"
+        justifyContent: "space-between",
+        backgroundColor: colors.background
+
     },
     midBody: {
         padding: 10,
-        margin: 10,
-        marginTop: 20,
+        paddingTop: 20,
+        margin: 0,
         minHeight: 70,
         alignItems: "center",
         justifyContent: "flex-end",
@@ -541,5 +544,8 @@ const styles = StyleSheet.create({
     },
     empty: {
         height: "100%"
+    },
+    body: {
+        backgroundColor: colors.background
     }
 })

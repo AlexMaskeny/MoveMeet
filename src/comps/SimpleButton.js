@@ -33,7 +33,8 @@ function SimpleButton({
 const styles = StyleSheet.create({
     bContainer: {
         justifyContent: "center",
-        backgroundColor: colors.background,
+        //backgroundColor: colors.background,
+        backgroundColor: colors.dark,
         alignItems: "center",
         padding: 15,
         marginHorizontal: 10,

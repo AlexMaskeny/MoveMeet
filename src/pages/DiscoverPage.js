@@ -1,5 +1,5 @@
 import React, { useState, useRef, useCallback, useEffect } from 'react';
-import { StyleSheet, FlatList, RefreshControl, View} from 'react-native';
+import { StyleSheet, FlatList, RefreshControl, View, ActivityIndicator} from 'react-native';
 import { API, graphqlOperation, Storage, Auth } from 'aws-amplify';
 import * as Location from 'expo-location';
 import { useNetInfo } from "@react-native-community/netinfo";
@@ -7,7 +7,6 @@ import { useNetInfo } from "@react-native-community/netinfo";
 import { colors, css, rules } from '../config';
 import {listUsersByLocation, getUserByCognito} from '../api/calls';
 import Screen from '../comps/Screen';
-import Loading from '../comps/Loading';
 import * as logger from '../functions/logger';
 import * as distance from '../functions/distance';
 import * as locConversion from '../functions/locConversion';
@@ -85,6 +84,7 @@ export default function DiscoverPage({ navigation, route }) {
                         for (var i = 0; i < nearbyUsers.length; i++) {
                             var user = nearbyUsers[i];
                             if (user.id == currentUser.current.id) continue;
+                            if (distance.raw(user.lat, user.long, userLocationConverted.lat, userLocationConverted.long) > 1000) continue;
                             if (user.profilePicture.loadFull == " " || user.profilePicture.full == " ") user.noImage = true;
                             user.profilePicture.loadFull = await Storage.get(user.profilePicture.loadFull);
                             user.profilePicture.full = await Storage.get(user.profilePicture.full);
@@ -98,6 +98,7 @@ export default function DiscoverPage({ navigation, route }) {
                             if (Number(a.dis) > Number(b.dis)) return 1;
                             else return -1;
                         })
+
                         setUsers(userData);
                     } else throw "[DISCOVERPAGE] onRefresh failed because there was an error getting nearby users";
                 } else {
@@ -123,56 +124,42 @@ export default function DiscoverPage({ navigation, route }) {
     }
 
     const ListHeaderComponent = useCallback(() => {
-        //return (<>
-        //    <View style={styles.headerContainer}>
-        //        <TouchableOpacity style={search ? styles.headerDisabled : styles.headerEnabled} onPress={()=>setSearch(false)}>
-        //            <SubTitle style={styles.headerTextEnabled} size={16} color={colors.text1}>Near You</SubTitle>
-        //        </TouchableOpacity>    
-        //        <TouchableOpacity style={search ? styles.headerEnabled : styles.headerDisabled} onPress={() => setSearch(true)}>
-        //            <SubTitle style={styles.headerTextDisabled} size={16} color={colors.text1 }>Search</SubTitle>
-        //        </TouchableOpacity>   
-        //    </View>
-        //    <DarkBeam style={{backgroundColor: colors.container, marginBottom: 10, borderRadius: 5} } />
-        //    {search && 
-        //        <View style={styles.searchContainer}>
-        //            <SimpleInput placeholder="Search" icon="account-search" />
-        //        </View>
-        //    }
-        //</>)
-    }, []);
+        if (!ready) return <ActivityIndicator color={colors.pBeam} size="large" style={{ marginTop: 10 }} />
+        
+    }, [ready]);
     const keyExtractor = useCallback((item) => item.id, []);
     const renderItem = useCallback(({ item }) => {
-        return <UserSquare user={item} navigation={navigation} />
-    }, [users]);
+        if (ready) {
+            return <UserSquare user={item} navigation={navigation} />
+        } else return <></>
+    }, [users, ready]);
     return (
         <Screen innerStyle={styles.page}>
-            {ready &&         
-                <FlatList
-                    data={users}
-                    numColumns={2}
-                    ListHeaderComponent={ListHeaderComponent}
-                    style={styles.users}
-                    showsVerticalScrollIndicator={true}
-                    keyboardShouldPersistTaps="always"
-                    keyboardDismissMode="on-drag"
-                    keyExtractor={keyExtractor}
-                    ListFooterComponent={() => (<View style={{height: 20} } />) }
-                    maxToRenderPerBatch={6}
-                    windowSize={6}
-                    refreshControl={
-                        <RefreshControl
-                            refreshing={refresh}
-                            onRefresh={() => {
-                                setRefresh(true);
-                                setRerender(!rerender);
-                            }}
-                            tintColor={colors.pBeam}
-                        />
-                    }
-                    renderItem={renderItem}
-                />
-            }
-            <Loading enabled={!ready} />
+            <FlatList
+                data={users}
+                numColumns={2}
+                ListHeaderComponent={ListHeaderComponent}
+                style={styles.users}
+                showsVerticalScrollIndicator={true}
+                keyboardShouldPersistTaps="always"
+                keyboardDismissMode="on-drag"
+                keyExtractor={keyExtractor}
+                ListFooterComponent={() => (<View style={{height: 20} } />) }
+                maxToRenderPerBatch={6}
+                windowSize={6}
+                refreshControl={
+                    <RefreshControl
+                        refreshing={refresh}
+                        onRefresh={() => {
+                            setRefresh(true);
+                            setRerender(!rerender);
+                        }}
+                        tintColor={colors.pBeam}
+                    />
+                }
+                renderItem={renderItem}
+            /> 
+
             <NoUsersAlert visible={noUsers} />
             <NoLocationAlert visible={!locEnabled} enable={enableLocation} />
             <HelpDiscoverPage visible={showHelp} onClose={() => setShowHelp(false)} openBug={()=>setShowBug(true)} />

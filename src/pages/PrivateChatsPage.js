@@ -1,11 +1,10 @@
 import React, { useCallback, useEffect, useRef, useState } from 'react';
-import { View, StyleSheet, FlatList, RefreshControl } from 'react-native';
+import { View, StyleSheet, FlatList, RefreshControl, ActivityIndicator } from 'react-native';
 import { API, Auth, graphqlOperation, Storage } from 'aws-amplify';
 import { useFocusEffect } from '@react-navigation/native';
 import { useNetInfo } from "@react-native-community/netinfo";
 
 import Screen from '../comps/Screen';
-import Loading from '../comps/Loading';
 import { colors } from '../config';
 import { getUserByCognito, listMessagesByTime, updateMessage, onReceiveMessage, getUserFriends, getChat, updateUser } from '../api/calls';
 import useSubSafe from '../hooks/useSubSafe';
@@ -263,7 +262,11 @@ export default function PrivateChatsPage({ navigation }) {
     const closeSearch = () => {
         setShowSearch(false);
     }
-    const listFooterComponenet = React.useCallback(() => <View height={30} />, []);
+ 
+    const listFooterComponenet = React.useCallback(() => {
+        if (ready) return <View style={{ height: 30 }} />
+        else return <ActivityIndicator color={colors.pBeam} size="large" style={{ marginTop: 10 }} />
+    }, [ready]);
     const keyExtractor = React.useCallback((item) => item.id, []);
     const renderItem = React.useCallback(
         ({ item }) => {
@@ -317,7 +320,6 @@ export default function PrivateChatsPage({ navigation }) {
         <UserSearch onClose={closeSearch} visible={showSearch} currentUser={currentUser.current} navigation={navigation} />
         <HelpPrivateChatsPage visible={showHelp} onClose={() => setShowHelp(false)} onSearch={() => setShowSearch(true)} openBug={()=>setShowBug(true) } />
         <BugReport visible={showBug} onClose={() => setShowBug(false)} currentUser={currentUser.current} />
-        <Loading enabled={!ready} />
     </>)
 }
 

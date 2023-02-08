@@ -56,7 +56,7 @@ export default function AuthPage({ navigation }) {
 
 const styles = StyleSheet.create({
     logo: {
-        height: 80,
+        height: 60,
         width: "100%"
     },
     page: {

@@ -1,5 +1,5 @@
 import React, { useRef, useState } from 'react';
-import { StyleSheet, View, TouchableOpacity, Keyboard } from 'react-native';
+import { StyleSheet, View, TouchableOpacity, Keyboard, Linking } from 'react-native';
 import Beam from '../comps/Beam';
 import BeamTitle from '../comps/BeamTitle';
 
@@ -111,6 +111,18 @@ export default function SignupPage1({ navigation }) {
                         outerStyle={{ flexDirection: 'row' }}
                         disabled={!(username.length > 3 && password.length >= 8 && confirmPassword == password)}
                     />
+                    <View style={styles.tos}>
+                        <SubTitle size={14} style={{ alignContent: "center" }}>By clicking next you agree to our</SubTitle>
+                        <View style={{ flexDirection: 'row' }}>
+                            <TouchableOpacity onPress={()=>Linking.openURL("https://movemeet.com/terms")}>
+                                <SubTitle size={14} style={{ alignContent: "center" }} color={colors.pBeam}>Terms & Conditons</SubTitle>
+                            </TouchableOpacity>
+                            <SubTitle size={14} style={{ alignContent: "center" }}> and </SubTitle>
+                            <TouchableOpacity onPress={() => Linking.openURL("https://movemeet.com/privacy-policy")}>
+                                <SubTitle size={14} style={{ alignContent: "center" }} color={colors.pBeam}>Privacy Policy</SubTitle>
+                            </TouchableOpacity>
+                        </View>
+                    </View>
                 </View>
             </TouchableOpacity>
             <View style={styles.beamContainer}>
@@ -148,5 +160,11 @@ const styles = StyleSheet.create({
         width: "33%",
         borderRadius: 10
     },
+    tos: {
+        marginVertical: 10,
+        alignItems: "center",
+        justifyContent: "center",
+        alignContent: "center"
+    }
 
 })

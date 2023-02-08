@@ -148,7 +148,7 @@ const styles = StyleSheet.create({
         justifyContent: "center",
     },
     logo: {
-        height: 80,
+        height: 60,
         width: "100%"
     },
     beamContainer: {

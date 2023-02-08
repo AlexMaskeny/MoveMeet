@@ -1,5 +1,5 @@
 import React from 'react';
-import { View, StyleSheet, Text, TouchableOpacity } from 'react-native';
+import { View, StyleSheet, Text, TouchableHighlight } from 'react-native';
 import { LinearGradient } from 'expo-linear-gradient';
 import { CommonActions } from '@react-navigation/native';
 
@@ -22,7 +22,7 @@ export default function UserSquare({
         }))
     }
     if (user.noImage) return (
-        <TouchableOpacity style={{ flex: 1 }} onPress={navigate}>
+        <TouchableHighlight style={styles.touchable} onPress={navigate} underlayColor={colors.dark} activeOpacity={0.5}>
             <View style={[styles.container, {backgroundColor: colors.container}]}>
                 <View style={styles.subContainer}>
                     <LinearGradient
@@ -44,10 +44,10 @@ export default function UserSquare({
                     </LinearGradient>
                 </View>
             </View>
-        </TouchableOpacity>
+        </TouchableHighlight>
     )
     else return (
-        <TouchableOpacity style={{ flex: 1 }} onPress={navigate}>
+        <TouchableHighlight style={styles.touchable} onPress={navigate} underlayColor={colors.dark} activeOpacity={0.5}>
             <ImageLoader style={styles.container} imageStyle={styles.image} isBackground={true} source={{
                 uri: user.profilePicture.full,
                 loadImage: user.profilePicture.loadFull
@@ -72,7 +72,7 @@ export default function UserSquare({
                     </LinearGradient>
                 </View>
             </ImageLoader>
-        </TouchableOpacity>
+        </TouchableHighlight>
     );
 }
 
@@ -87,6 +87,10 @@ const styles = StyleSheet.create({
         borderWidth: 1,
         borderColor: colors.text4,
     }, 
+    touchable: {
+        flex: 1,
+        borderRadius: borderRadius
+    },
     image: {
         borderRadius: borderRadius,
         borderWidth: 2,

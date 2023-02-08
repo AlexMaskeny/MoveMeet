@@ -1,12 +1,11 @@
 import React, { useCallback, useState, useRef, useEffect } from 'react';
-import { View, StyleSheet, FlatList, RefreshControl } from 'react-native';
+import { View, StyleSheet, FlatList, RefreshControl, ActivityIndicator } from 'react-native';
 import { API, Auth, graphqlOperation, Storage } from 'aws-amplify';
 import { useFocusEffect } from '@react-navigation/native';
 import { useNetInfo } from "@react-native-community/netinfo";
 import * as Location from 'expo-location';
 
 import Screen from '../comps/Screen';
-import Loading from '../comps/Loading';
 import Chat from '../comps/Chat';
 import { getUserByCognito, getUserChats, listMessagesByTime, updateMessage, onMemberStatusChange, onReceiveMessage, updateChat } from '../api/calls';
 import { colors, rules } from '../config';
@@ -21,6 +20,7 @@ import CreateChat from '../comps/CreateChat';
 import IconButton from '../comps/IconButton';
 import HelpChatsPage from '../comps/HelpChatsPage';
 import BugReport from '../comps/BugReport';
+import CheckingForUsers from '../comps/CheckingForUsers';
 
 export default function ChatsPage({ navigation }) {
     const memberStatusSub = useRef();
@@ -37,7 +37,7 @@ export default function ChatsPage({ navigation }) {
     const [showCreate, setShowCreate] = useState(false);
     const [showHelp, setShowHelp] = useState(false);
     const [showBug, setShowBug] = useState(false);
-
+    const [checkingForUsers, setCheckingForUsers] = useState(false);
     const netInfo = useNetInfo();
 
     //SIMPLY TO MAKE THE HEADERBUTTON WORK
@@ -149,6 +149,11 @@ export default function ChatsPage({ navigation }) {
                             var chat = userChats[i].chat;
                             if (chat.private) continue;
                             if (!chat.enabled) continue;
+                            if (distance.raw(userLocationConverted.lat, userLocationConverted.long, chat.lat, chat.long) > 1000) {
+                                setCheckingForUsers(true);
+                                throw "Far Away Chat";
+                            } 
+                            chat.distance = distance.formula(userLocationConverted.lat, userLocationConverted.long, chat.lat, chat.long);
 
                             const last3 = await API.graphql(graphqlOperation(listMessagesByTime, {
                                 chatMessagesId: chat.id,
@@ -201,7 +206,6 @@ export default function ChatsPage({ navigation }) {
                             }
                             chat.createdAt = chat.createdAt.substring(0, 10);
                             chat.numMembers = chat.members.items.length;
-                            chat.distance = distance.formula(userLocationConverted.lat, userLocationConverted.long, chat.lat, chat.long);
 
                             const userChatMembersIDIndex = chat.members.items.findIndex((el) => {
                                 if (el.user.id == currentUser.current.id) return true;
@@ -234,6 +238,7 @@ export default function ChatsPage({ navigation }) {
                             }));
                         }
                         if (chatData.length == 0) setNoChats(true);
+                        setCheckingForUsers(false);
                         sortChats(chatData);
                         setChats(chatData);
                     } else throw "[CHATSPAGE] onRefresh failed because of an error getting userChats."
@@ -333,11 +338,14 @@ export default function ChatsPage({ navigation }) {
     }
 
     //UI COMPONENTS
-    const listFooterComponenet = React.useCallback(() => <View height={30} />, []);
+    const listFooterComponenet = React.useCallback(() => {
+        if (ready) return <View style={{ height: 30 }} />
+        else return <ActivityIndicator color={colors.pBeam} size="large" style={{marginTop: 10} } />
+    }, [ready]);
     const keyExtractor = React.useCallback((item) => item.id, [])
     const renderItem = React.useCallback(
         ({ item }) => {
-            if (ready) {
+            if (ready && !checkingForUsers) {
                 return (
                     <Chat
                         background={item.background}
@@ -359,7 +367,7 @@ export default function ChatsPage({ navigation }) {
             } else {
                 return (<></>);
             }
-        }, [chats, ready]
+        }, [chats, ready, checkingForUsers]
     )
     return (
         <>
@@ -384,12 +392,13 @@ export default function ChatsPage({ navigation }) {
                     renderItem={renderItem}
                 />
             </Screen>
+            <CheckingForUsers visible={checkingForUsers} />
             <NoChatsAlert visible={noChats} />
             <NoLocationAlert visible={!locEnabled} enable={enableLocation} />
             <CreateChat visible={showCreate} onClose={() => setShowCreate(false)} currentUser={currentUser.current} />
             <HelpChatsPage visible={showHelp} onClose={() => setShowHelp(false)} onCreateChat={() => setShowCreate(true)} openBug={()=>setShowBug(true)}/>
             <BugReport visible={showBug} onClose={() => setShowBug(false)} currentUser={currentUser.current}/>
-            <Loading enabled={!ready} />
+
         </>
     );
 }

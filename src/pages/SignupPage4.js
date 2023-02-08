@@ -240,7 +240,7 @@ export default function SignupPage4({ navigation, route }) {
                                 loading={loading}
                                 title="Change Background"
                                 onPress={changeBackground}
-                                outerStyle={{ flexDirection: 'row', marginTop: 12, borderColor: colors.text1, shadowColor: colors.text1, backgroundColor: background.isColor ? "rgba(0,0,0,0.2)" : colors.container }}
+                                outerStyle={{ flexDirection: 'row', marginTop: 12, borderColor: colors.text1, shadowColor: colors.text1, backgroundColor: colors.background }}
                             />
                         </ImageBackground>
                     }

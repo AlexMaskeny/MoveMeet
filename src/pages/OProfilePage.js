@@ -1,5 +1,5 @@
 import React, { useState, useRef, useCallback, useEffect } from 'react';
-import { StyleSheet, View, Image, FlatList, RefreshControl, Alert, ActivityIndicator} from 'react-native';
+import { StyleSheet, View, Image, FlatList, RefreshControl, Alert, ActivityIndicator, TouchableOpacity} from 'react-native';
 import { API, graphqlOperation, Storage, Auth } from 'aws-amplify';
 import { LinearGradient } from 'expo-linear-gradient';
 import * as Location from 'expo-location';
@@ -260,57 +260,60 @@ export default function OProfilePage({ navigation, route }) {
     </>), []);
 
     const ListHeaderComponent = useCallback(() => (<>
-        {!background.isColor &&
-            <Image
-                style={{ height: 100, width: "100%" }}
-                resizeMode="cover"
-                source={background}
-            />
-        }
-        {background.isColor &&
-            <View style={{ height: 100, width: "100%", backgroundColor: background.color }} />
-        }
-        {!background.isColor &&
-            <LinearGradient
-                colors={['rgba(18, 18, 18,0.4)', colors.background]}
-                style={{ height: 120, width: "100%", marginTop: -120}}
-            />
-        }
-        <View style={styles.beamCircle}>
-            <Beam style={styles.beam} />
-            <View style={{ justifyContent: "center" }}>
-                <ProfileCircle ppic={{uri: profilePicture.uri}} style={styles.ppic} innerStyle={styles.innerPpic} />
-            </View>         
-            <Beam style={styles.beam} />
-        </View>
-        <View style={styles.upperBody}>
-            <View>
-                <SubTitle style={styles.title2} size={Platform.OS == "android" ? 18 : 16} color={colors.text1}>@{username}</SubTitle>
+        <View style={styles.body}>
+            <Beam style={{ marginTop: -6 }} />
+            {!background.isColor &&
+                <Image
+                    style={{ height: 100, width: "100%" }}
+                    resizeMode="cover"
+                    source={background}
+                />
+            }
+            {background.isColor &&
+                <View style={{ height: 100, width: "100%", backgroundColor: background.color }} />
+            }
+            {!background.isColor &&
+                <LinearGradient
+                    colors={['rgba(18, 18, 18,0.4)', colors.background]}
+                    style={{ height: 120, width: "100%", marginTop: -120}}
+                />
+            }
+            <View style={styles.beamCircle}>
+                <Beam style={styles.beam} />
+                <View style={{ justifyContent: "center" }}>
+                    <ProfileCircle ppic={{uri: profilePicture.uri}} style={styles.ppic} innerStyle={styles.innerPpic} />
+                </View>         
+                <Beam style={styles.beam} />
             </View>
-            {loading &&
+            <View style={styles.upperBody}>
                 <View>
-                    <ActivityIndicator color={colors.text1} size="small" />
+                    <SubTitle style={styles.title2} size={Platform.OS == "android" ? 18 : 16} color={colors.text1}>@{username}</SubTitle>
                 </View>
-            }
-            {!loading &&
-                <View>
-                    <SubTitle style={styles.title2} size={18} color={colors.text1} onPress={message}>Message</SubTitle>
-                </View>
-            }
+                {loading &&
+                    <View>
+                        <ActivityIndicator color={colors.text1} size="small" />
+                    </View>
+                }
+                {!loading &&
+                    <TouchableOpacity onPress={message} style={{zIndex: 8}}>
+                        <SubTitle style={styles.title2} size={18} color={colors.text1}>Message</SubTitle>
+                    </TouchableOpacity>
+                }
+            </View>
+            <View style={styles.midBody}>
+                <SimpleInput
+                    autoCorrect={true}
+                    editable={false}
+                    cStyle={{backgroundColor: colors.background} }
+                    multiline={true}
+                    maxLength={160}
+                    style={styles.textInput}
+                    defaultValue={bio}
+                    onChangeText={setBio}
+                />
+            </View>
+            <View style={{ height: 20 }} />
         </View>
-        <View style={styles.midBody}>
-            <SimpleInput
-                autoCorrect={true}
-                editable={false}
-                cStyle={{backgroundColor: colors.background} }
-                multiline={true}
-                maxLength={160}
-                style={styles.textInput}
-                defaultValue={bio}
-                onChangeText={setBio}
-            />
-        </View>
-        <View style={{ height: 20 }} />
     </>), [rerender, ready, profilePicture, loading]);
 
     return (
@@ -353,6 +356,7 @@ const styles = StyleSheet.create({
         flexDirection: 'row',
         alignItems: "center",
         marginTop: -50,
+
     },
     beam: {
         flex: 1,
@@ -368,17 +372,20 @@ const styles = StyleSheet.create({
     upperBody: {
         marginTop: -50,
         padding: 10,
+
         flexDirection: "row",
-        justifyContent: "space-between"
+        justifyContent: "space-between",
+
+
     },
     midBody: {
         padding: 10,
-        margin: 10,
-        marginTop: 40,
+        paddingTop: 20,
+        margin: 0,
         minHeight: 70,
         alignItems: "center",
         justifyContent: "flex-end",
-        backgroundColor: colors.background
+
     },
     title: {
         fontWeight: "400"
@@ -394,4 +401,8 @@ const styles = StyleSheet.create({
     posts: {
         flex: 1,
     },
+    body: {
+        backgroundColor: colors.background
+
+    }
 })

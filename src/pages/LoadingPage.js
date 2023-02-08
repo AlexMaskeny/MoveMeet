@@ -22,6 +22,7 @@ export default function LoadingPage({navigation}) {
     const not = useRef();
     const lc = useRef();
     const currentUser = useRef();
+    const locUpdateHandler = useRef();
     const [showBroadcast, setShowBroadcast] = useState(false);
     const [broadcastData, setBroadcastData] = useState({});
 
@@ -152,26 +153,26 @@ export default function LoadingPage({navigation}) {
                         }
                     }
                     if (perm.granted) {
-                        var i = 0;
+                        //var i = 0;
                         loc.current = await Location.watchPositionAsync({ accuracy: rules.locationAccuracy, distanceInterval: rules.locationDistanceInterval, timeInterval: rules.locationUpdateFrequency }, async (location) => {
                             try {
-                                i++
-                                if (i % rules.locationDismissalRate == 0) {
-                                    currentUser.current = await Auth.currentAuthenticatedUser();
-                                    if (currentUser.current) {
-                                        const convertedLocs = locConversion.toUser(location.coords.latitude, location.coords.longitude);
-                                        const netInfo = await NetInfo.fetch();
-                                        if (netInfo.isInternetReachable) {
-                                            await API.graphql(graphqlOperation(updateUser, {
-                                                input: {
-                                                    id: user.data.getUserByCognito.id,
-                                                    ...convertedLocs
-                                                }
-                                            }));
-                                        }
+                                //i++
+                                //if (i % rules.locationDismissalRate == 0) {
+                                currentUser.current = await Auth.currentAuthenticatedUser();
+                                if (currentUser.current) {
+                                    const convertedLocs = locConversion.toUser(location.coords.latitude, location.coords.longitude);
+                                    const netInfo = await NetInfo.fetch();
+                                    if (netInfo.isInternetReachable) {
+                                        await API.graphql(graphqlOperation(updateUser, {
+                                            input: {
+                                                id: user.data.getUserByCognito.id,
+                                                ...convertedLocs
+                                            }
+                                        }));
+                                    }
 
-                                    } else throw NO_USER
-                                }
+                                } else throw NO_USER
+                                //}
                             } catch (error) {
                                 logger.warn(error);
                                 if (error != NO_USER) {
@@ -185,6 +186,8 @@ export default function LoadingPage({navigation}) {
                             try {
                                 const netInfo = await NetInfo.fetch();
                                 if (currentUser.current && netInfo.isInternetReachable) {
+                                    if (Date.now() - locUpdateHandler.current < 10000) return;
+                                    locUpdateHandler.current = Date.now();
                                     const location = await Location.getLastKnownPositionAsync();
                                     const convertedLocs2 = locConversion.toChat(location.coords.latitude, location.coords.longitude);
                                     const newChats = await API.graphql(graphqlOperation(listChatsByLocation, {
