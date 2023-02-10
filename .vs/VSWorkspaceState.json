@@ -3,11 +3,8 @@
     "",
     "\\assets",
     "\\src",
-    "\\src\\api",
-    "\\src\\comps",
-    "\\src\\functions",
-    "\\src\\pages"
+    "\\src\\comps"
   ],
-  "SelectedNode": "\\src\\comps\\BugReport.js",
+  "SelectedNode": "\\src\\config.js",
   "PreviewInSolutionExplorer": false
 }

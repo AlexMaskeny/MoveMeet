@@ -19,7 +19,7 @@
       "**/*"
     ],
     "ios": {
-      "buildNumber": "5",
+      "buildNumber": "7",
       "bundleIdentifier": "com.alexmaskeny.ProxyChat",
       "supportsTablet": true
     },
@@ -28,7 +28,8 @@
         "foregroundImage": "./assets/icon.png",
         "backgroundColor": "#0D0D0D"
       },
-      "package": "com.alexmaskeny.ProxyChat"
+      "package": "com.alexmaskeny.ProxyChat",
+      "versionCode": 2
     },
     "web": {
       "favicon": "./assets/favicon.png"

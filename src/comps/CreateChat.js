@@ -23,7 +23,7 @@ export default function CreateChat({ visible, onClose, currentUser }) {
     const [loading, setLoading] = useState(false);
     const [loading2, setLoading2] = useState(false);
     const [numChats, setNumChats] = useState(0);
-    const [enabled, setEnabled] = useState(false);
+    const [enabled, setEnabled] = useState(true);
     const [showBack, setShowBack] = useState(false);
     const [cTitle, setcTitle] = useState("");
     const [cBackground, setCBackground] = useState({isColor: true, full: " ", loadFull: " ", color: colors.background});
@@ -71,6 +71,7 @@ export default function CreateChat({ visible, onClose, currentUser }) {
                 }
                 setNumChats(count);
                 if (count < rules.maxNumChats) setEnabled(true);
+                else setEnabled(false);
             } catch (error) {
                 logger.eLog("Possible Unnessary Error: "+error);
             }
