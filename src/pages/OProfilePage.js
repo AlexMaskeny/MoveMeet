@@ -7,7 +7,7 @@ import { CommonActions } from '@react-navigation/native';
 
 import Screen from '../comps/Screen';
 import Loading from '../comps/Loading';
-import { colors, css } from '../config';
+import { colors } from '../config';
 import * as logger from '../functions/logger';
 import * as timeLogic from '../functions/timeLogic';
 import * as distance from '../functions/distance';

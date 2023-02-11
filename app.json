@@ -19,9 +19,14 @@
       "**/*"
     ],
     "ios": {
-      "buildNumber": "7",
+      "buildNumber": "8",
       "bundleIdentifier": "com.alexmaskeny.ProxyChat",
-      "supportsTablet": true
+      "supportsTablet": false,
+      "infoPlist": {
+        "NSCameraUsageDescription": "MoveMeet uses the Camera to allow users to text / post images",
+        "NSLocationWhenInUseUsageDescription": "MoveMeet lets users message other users near them when they are on the app.",
+        "NSPhotoLibraryUsageDescription": "MoveMeet uses the Image Library to let users text / post images"
+      }
     },
     "android": {
       "adaptiveIcon": {
@@ -29,7 +34,7 @@
         "backgroundColor": "#0D0D0D"
       },
       "package": "com.alexmaskeny.ProxyChat",
-      "versionCode": 2
+      "versionCode": 3
     },
     "web": {
       "favicon": "./assets/favicon.png"

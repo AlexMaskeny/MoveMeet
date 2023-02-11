@@ -16,6 +16,7 @@ import { storage, colors, rules, version } from '../config';
 import Broadcast from '../comps/Broadcast';
 
 const NO_USER = "The user is not authenticated";
+const NO_PERMS = "No Perms";
 
 export default function LoadingPage({navigation}) {
     const loc = useRef();
@@ -188,6 +189,8 @@ export default function LoadingPage({navigation}) {
                                 if (currentUser.current && netInfo.isInternetReachable) {
                                     if (Date.now() - locUpdateHandler.current < 10000) return;
                                     locUpdateHandler.current = Date.now();
+                                    const allow = await Location.getForegroundPermissionsAsync();
+                                    if (!allow.granted) throw NO_PERMS;
                                     const location = await Location.getLastKnownPositionAsync();
                                     const convertedLocs2 = locConversion.toChat(location.coords.latitude, location.coords.longitude);
                                     const newChats = await API.graphql(graphqlOperation(listChatsByLocation, {
@@ -246,7 +249,7 @@ export default function LoadingPage({navigation}) {
                                 }
                             } catch (error) {
                                 logger.warn(error);
-                                if (error != NO_USER) {
+                                if (error != NO_USER && error != NO_PERMS) {
                                     logger.warn(error);
                                 } else {
                                     unsubscribe();

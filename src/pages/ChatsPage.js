@@ -1,26 +1,29 @@
 import React, { useCallback, useState, useRef, useEffect } from 'react';
-import { View, StyleSheet, FlatList, RefreshControl, ActivityIndicator } from 'react-native';
+import { View, StyleSheet, FlatList, RefreshControl, ActivityIndicator, Alert } from 'react-native';
 import { API, Auth, graphqlOperation, Storage } from 'aws-amplify';
 import { useFocusEffect } from '@react-navigation/native';
 import { useNetInfo } from "@react-native-community/netinfo";
 import * as Location from 'expo-location';
+import { MaterialIcons } from '@expo/vector-icons';
 
 import Screen from '../comps/Screen';
 import Chat from '../comps/Chat';
 import { getUserByCognito, getUserChats, listMessagesByTime, updateMessage, onMemberStatusChange, onReceiveMessage, updateChat } from '../api/calls';
-import { colors, rules } from '../config';
+import { colors, rules, css, strings } from '../config';
 import useSubSafe from '../hooks/useSubSafe';
 import * as logger from '../functions/logger';
 import * as locConversion from '../functions/locConversion';
 import * as timeLogic from '../functions/timeLogic';
 import * as distance from '../functions/distance';
 import NoLocationAlert from '../comps/NoLocationAlert';
-import NoChatsAlert from '../comps/NoChatsAlert';
+import BeamTitle from '../comps/BeamTitle';
+import SubTitle from '../comps/SubTitle';
 import CreateChat from '../comps/CreateChat';
 import IconButton from '../comps/IconButton';
 import HelpChatsPage from '../comps/HelpChatsPage';
 import BugReport from '../comps/BugReport';
 import CheckingForUsers from '../comps/CheckingForUsers';
+import NoChatsAlert from '../comps/NoChatsAlert';
 
 export default function ChatsPage({ navigation }) {
     const memberStatusSub = useRef();
@@ -31,7 +34,6 @@ export default function ChatsPage({ navigation }) {
     const [refresh, setRefresh] = useState(false);
     const [ready, setReady] = useState(false);
     const [locEnabled, setLocEnabled] = useState(true);
-    const [noChats, setNoChats] = useState(false);
     const [rerender, setRerender] = useState(false);
     const [chats, setChats] = useState([]);
     const [showCreate, setShowCreate] = useState(false);
@@ -142,8 +144,6 @@ export default function ChatsPage({ navigation }) {
 
                     if (userChatsResponse) {
                         const userChats = userChatsResponse.data.getUser.chats.items;
-                        if (userChats.length == 0) setNoChats(true);
-                        else setNoChats(false);
                         var chatData = [];
                         for (var i = 0; i < userChats.length; i++) {
                             var chat = userChats[i].chat;
@@ -237,13 +237,13 @@ export default function ChatsPage({ navigation }) {
                                 }
                             }));
                         }
-                        if (chatData.length == 0) setNoChats(true);
                         setCheckingForUsers(false);
                         sortChats(chatData);
                         setChats(chatData);
                     } else throw "[CHATSPAGE] onRefresh failed because of an error getting userChats."
                 } else {
                     setLocEnabled(false);
+                    setChats([])
                     throw "[CHATSPAGE] onRefresh failed because location is disabled.";
                 }
             } else {
@@ -329,23 +329,24 @@ export default function ChatsPage({ navigation }) {
         logger.eLog("ChatsPage TimeClock activated.");
     }
     const enableLocation = async () => {
-        const result = await Location.requestForegroundPermissionsAsync();
-        if (result.granted) {
-            setLocEnabled(true);
-            setReady(false);
-            navigation.navigate("LoadingPage");
-        }
+        setLocEnabled(true);
+        setReady(false);
+        navigation.navigate("LoadingPage");
     }
 
     //UI COMPONENTS
-    const listFooterComponenet = React.useCallback(() => {
-        if (ready) return <View style={{ height: 30 }} />
+    const ListEmptyComponent = React.useCallback(() => {
+        if (ready && locEnabled) return <NoChatsAlert />;
+        else if (ready && !locEnabled) return <NoLocationAlert enable={enableLocation} /> 
+    },[chats,ready])
+    const ListFooterComponent = React.useCallback(() => {
+        if (ready) return <View style={{ height: 30 }} />;
         else return <ActivityIndicator color={colors.pBeam} size="large" style={{marginTop: 10} } />
     }, [ready]);
     const keyExtractor = React.useCallback((item) => item.id, [])
     const renderItem = React.useCallback(
         ({ item }) => {
-            if (ready && !checkingForUsers) {
+            if (ready && !checkingForUsers && locEnabled) {
                 return (
                     <Chat
                         background={item.background}
@@ -367,7 +368,7 @@ export default function ChatsPage({ navigation }) {
             } else {
                 return (<></>);
             }
-        }, [chats, ready, checkingForUsers]
+        }, [chats, ready, checkingForUsers, locEnabled]
     )
     return (
         <>
@@ -388,13 +389,12 @@ export default function ChatsPage({ navigation }) {
                             tintColor={colors.pBeam}
                         />
                     }
-                    ListFooterComponent={listFooterComponenet}
+                    ListFooterComponent={ListFooterComponent}
+                    ListEmptyComponent={ListEmptyComponent}
                     renderItem={renderItem}
                 />
             </Screen>
             <CheckingForUsers visible={checkingForUsers} />
-            <NoChatsAlert visible={noChats} />
-            <NoLocationAlert visible={!locEnabled} enable={enableLocation} />
             <CreateChat visible={showCreate} onClose={() => setShowCreate(false)} currentUser={currentUser.current} />
             <HelpChatsPage visible={showHelp} onClose={() => setShowHelp(false)} onCreateChat={() => setShowCreate(true)} openBug={()=>setShowBug(true)}/>
             <BugReport visible={showBug} onClose={() => setShowBug(false)} currentUser={currentUser.current}/>

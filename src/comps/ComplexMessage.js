@@ -1,4 +1,4 @@
-import React from 'react';
+import React, { useState } from 'react';
 import { StyleSheet, Text, View, TouchableWithoutFeedback, Dimensions } from 'react-native';
 import * as Haptics from 'expo-haptics';
 import { CommonActions } from '@react-navigation/native';
@@ -16,8 +16,11 @@ import { colors, css } from '../config';
 import ProfileCircle from './ProfileCircle';
 import SubTitle from './SubTitle';
 import DarkBeam from './DarkBeam';
+import ContentReport from './ContentReport';
 
 function ComplexMessage({ navigation, opposingUserId, userId, children, ppic, username, message, style, time, ...props }) {
+    const [showContentReport, setShowContentReport] = useState(false);
+
     const onView = async () => {
         if (opposingUserId != userId) {
             navigation.dispatch(CommonActions.navigate({
@@ -31,6 +34,9 @@ function ComplexMessage({ navigation, opposingUserId, userId, children, ppic, us
     }
     const onCopy = async () => {
         await Clipboard.setStringAsync(message);
+    }
+    const onReport = async () => {
+        setShowContentReport(true);
     }
 
     const Message = () => (
@@ -54,7 +60,7 @@ function ComplexMessage({ navigation, opposingUserId, userId, children, ppic, us
         </View>
     );
 
-    return (
+    return (<>
         <Menu onOpen={() => Haptics.impactAsync(Haptics.ImpactFeedbackStyle.Heavy) }>
             <MenuTrigger customStyles={{ TriggerTouchableComponent: TouchableWithoutFeedback }} triggerOnLongPress={true}>
                 <Message />
@@ -78,10 +84,19 @@ function ComplexMessage({ navigation, opposingUserId, userId, children, ppic, us
                         <View style={{ width: 10 }} />
                         <SubTitle style={styles.title} size={18}>Copy Message</SubTitle>
                     </MenuOption>
+                    {opposingUserId != userId && <>
+                    <DarkBeam style={styles.seperator} />
+                    <MenuOption style={styles.optionContainer} onSelect={onReport}>
+                        <MaterialIcons name="report" size={26} color={colors.pBeamBright} />
+                        <View style={{ width: 10 }} />
+                        <SubTitle style={styles.title} size={18}>Report Content</SubTitle>
+                    </MenuOption>
+                    </>}
                 </View>
             </MenuOptions>
         </Menu> 
-    );
+        <ContentReport visible={showContentReport} onClose={() => setShowContentReport(false)} currentUserId={userId} opposingUserId={opposingUserId} />
+    </>);
 }
 
 const styles = StyleSheet.create({

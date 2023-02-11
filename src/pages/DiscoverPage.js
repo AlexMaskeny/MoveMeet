@@ -19,12 +19,13 @@ import BugReport from '../comps/BugReport';
 
 export default function DiscoverPage({ navigation, route }) {
     const currentUser = useRef();
+    const remainingUsers = useRef([]);
 
     const [users, setUsers] = useState([]);
     const [locEnabled, setLocEnabled] = useState(true);
-    const [noUsers, setNoUsers] = useState(false);
     const [ready, setReady] = useState(false);
     const [refresh, setRefresh] = useState(false);
+    const [bottomRefresh, setBottomRefresh] = useState(false);
     const [rerender, setRerender] = useState(false);
     const [showHelp, setShowHelp] = useState(false);
     const [showBug, setShowBug] = useState(false);
@@ -65,6 +66,28 @@ export default function DiscoverPage({ navigation, route }) {
         initialFunction();
     }, [rerender]);
 
+    const fillData = async () => {
+        if (remainingUsers.current.length > 0) {
+            const userLocation = await Location.getLastKnownPositionAsync();
+            const userLocationConverted = locConversion.toChat(userLocation.coords.latitude, userLocation.coords.longitude);
+            setBottomRefresh(true);
+            var userData = [];
+            for (var i = 0; i < Math.min(rules.pagination.DiscoverPage, remainingUsers.current.length); i++) {
+                var user = remainingUsers.current[i];
+                if (user.profilePicture.loadFull == " " || user.profilePicture.full == " ") user.noImage = true;
+                user.profilePicture.loadFull = await Storage.get(user.profilePicture.loadFull);
+                user.profilePicture.full = await Storage.get(user.profilePicture.full);
+                user.distance = await distance.formula(user.lat, user.long, userLocationConverted.lat, userLocationConverted.long);
+                userData.push(user);
+            }
+            setUsers(existingData => {
+                return [...existingData, ...userData];
+            });
+            remainingUsers.current = remainingUsers.current.slice(rules.pagination.DiscoverPage);
+            setBottomRefresh(false);
+        }
+    }
+
     const onRefresh = async () => {
         try {
             logger.eLog("Loading users near current user...");
@@ -84,25 +107,20 @@ export default function DiscoverPage({ navigation, route }) {
                         for (var i = 0; i < nearbyUsers.length; i++) {
                             var user = nearbyUsers[i];
                             if (user.id == currentUser.current.id) continue;
-                            if (distance.raw(user.lat, user.long, userLocationConverted.lat, userLocationConverted.long) > 1000) continue;
-                            if (user.profilePicture.loadFull == " " || user.profilePicture.full == " ") user.noImage = true;
-                            user.profilePicture.loadFull = await Storage.get(user.profilePicture.loadFull);
-                            user.profilePicture.full = await Storage.get(user.profilePicture.full);
-                            user.distance = await distance.formula(user.lat, user.long, userLocationConverted.lat, userLocationConverted.long);
-                            user.dis = user.distance.substring(0, user.distance.indexOf(' '));
+                            user.dis = distance.raw(user.lat, user.long, userLocationConverted.lat, userLocationConverted.long);
+                            if (user.dis > 1000) continue;
                             userData.push(user);
                         }
-                        if (userData.length == 0) setNoUsers(true)
-                        else setNoUsers(false);
                         userData.sort((a, b) => {
                             if (Number(a.dis) > Number(b.dis)) return 1;
                             else return -1;
                         })
-
-                        setUsers(userData);
+                        remainingUsers.current = userData;
+                        fillData();
                     } else throw "[DISCOVERPAGE] onRefresh failed because there was an error getting nearby users";
                 } else {
                     setLocEnabled(false);
+                    setUsers([]);
                     throw "[DISCOVERPAGE] onRefresh failed because location is disabled.";
                 }
             } else throw "[DISCOVERPAGE] onRefresh failed because there is no connection.";
@@ -115,14 +133,14 @@ export default function DiscoverPage({ navigation, route }) {
     }
 
     const enableLocation = async () => {
-        const result = await Location.requestForegroundPermissionsAsync();
-        if (result.granted) {
-            setLocEnabled(true);
-            setReady(false);
-            navigation.navigate("LoadingPage");
-        }
+        setLocEnabled(true);
+        setReady(false);
+        navigation.navigate("LoadingPage");
     }
-
+    const ListEmptyComponent = React.useCallback(() => {
+        if (ready && locEnabled) return <NoUsersAlert />;
+        else if (ready && !locEnabled) return <NoLocationAlert enable={enableLocation} />
+    }, [users, ready])
     const ListHeaderComponent = useCallback(() => {
         if (!ready) return <ActivityIndicator color={colors.pBeam} size="large" style={{ marginTop: 10 }} />
         
@@ -144,8 +162,10 @@ export default function DiscoverPage({ navigation, route }) {
                 keyboardShouldPersistTaps="always"
                 keyboardDismissMode="on-drag"
                 keyExtractor={keyExtractor}
-                ListFooterComponent={() => (<View style={{height: 20} } />) }
+                ListFooterComponent={() => (<View style={{ height: 20 }} />)}
+                ListEmptyComponent={ListEmptyComponent}
                 maxToRenderPerBatch={6}
+                onEndReached={fillData}
                 windowSize={6}
                 refreshControl={
                     <RefreshControl
@@ -159,9 +179,6 @@ export default function DiscoverPage({ navigation, route }) {
                 }
                 renderItem={renderItem}
             /> 
-
-            <NoUsersAlert visible={noUsers} />
-            <NoLocationAlert visible={!locEnabled} enable={enableLocation} />
             <HelpDiscoverPage visible={showHelp} onClose={() => setShowHelp(false)} openBug={()=>setShowBug(true)} />
             <BugReport visible={showBug} onClose={() => setShowBug(false)} currentUser={currentUser.current} />
         </Screen>

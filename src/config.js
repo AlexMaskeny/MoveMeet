@@ -30,8 +30,8 @@ export const css = {
     }
 }
 
-export const debug = false; //changes whether or not error messages print
-export const enhancedDebug = false;
+export const debug = true; //changes whether or not error messages print
+export const enhancedDebug = true;
 export const footerHeight = 80;
 export const version = "1.0.0";
 export const strings = {
@@ -49,4 +49,7 @@ export const rules = {
     locationUpdateFrequency: 1000, // in ms
     locationDistanceInterval: 0,
     maxNumChats: 10,
+    pagination: {
+        DiscoverPage: 14 //Max number of users per load
+    }
 };

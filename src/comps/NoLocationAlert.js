@@ -1,40 +1,43 @@
 import React from 'react';
-import { View, StyleSheet } from 'react-native';
+import { View, StyleSheet, Alert } from 'react-native';
 import { MaterialIcons } from '@expo/vector-icons';
+import * as Location from 'expo-location';
 
 import { colors, css, strings } from '../config';
 import BeamTitle from './BeamTitle';
 import SubTitle from './SubTitle';
 import SimpleButton from './SimpleButton';
-import Screen from './Screen';
 
 
 export default function NoLocationAlert({
     style,
     enable,
-    feature = false,
-    visible = false,
     ...otherProps
 }) {
-    if (visible) {
-        return (
-            <Screen innerStyle={styles.innerStyle} style={styles.noLocation}>
-                <View style={styles.noLocationAlert}>
-                    <BeamTitle size={24}>Page Disabled</BeamTitle>
-                    <SubTitle size={16}>You are seeing this because</SubTitle>
-                    <SubTitle size={16}>you cannot use this page</SubTitle>
-                    <SubTitle size={16}>without allowing {strings.APPNAME} to</SubTitle>
-                    <SubTitle size={16}>use your Location.</SubTitle>
-                    <View height={20} />
-                    <MaterialIcons name="location-city" size={140} color={colors.text3} />
-                    <View height={20} />
-                    <View style={styles.buttons}>
-                        <SimpleButton title="Enable" onPress={enable} outerStyle={styles.button} />
-                    </View>
-                </View>
-            </Screen>
-        );
+    const enableLocation = async () => {
+        const result = await Location.getForegroundPermissionsAsync();
+        if (result.canAskAgain) {
+            const result = await Location.requestForegroundPermissionsAsync();
+            if (result.granted) enable();
+        } else {
+            Alert.alert("Go to your settings", "In order to enable " + strings.APPNAME + " to access your location, you need to enable it in your settings");
+        }
     }
+    return (
+        <View style={styles.noLocationAlert}>
+            <BeamTitle size={24}>Page Disabled</BeamTitle>
+            <SubTitle size={16}>You are seeing this because</SubTitle>
+            <SubTitle size={16}>you cannot use this page</SubTitle>
+            <SubTitle size={16}>without allowing {strings.APPNAME} to</SubTitle>
+            <SubTitle size={16}>use your Location.</SubTitle>
+            <View height={20} />
+            <MaterialIcons name="location-city" size={140} color={colors.text3} />
+            <View height={20} />
+            <View style={styles.buttons}>
+                <SimpleButton title="Enable" onPress={enableLocation} outerStyle={styles.button} />
+            </View>
+        </View>
+    );
 }
 
 const styles = StyleSheet.create({
@@ -50,6 +53,7 @@ const styles = StyleSheet.create({
         height: 400,
         width: 300,
         alignItems: "center",
+        alignSelf: "center",
         borderRadius: 14,
         borderColor: colors.pBeam,
         borderWidth: 2,
@@ -57,6 +61,7 @@ const styles = StyleSheet.create({
         ...css.beamShadow,
         shadowColor: colors.background,
         padding: 14,
+        marginTop: 20,
         marginBottom: 100
     },
     buttons: {

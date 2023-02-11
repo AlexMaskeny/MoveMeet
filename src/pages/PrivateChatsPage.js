@@ -9,9 +9,7 @@ import { colors } from '../config';
 import { getUserByCognito, listMessagesByTime, updateMessage, onReceiveMessage, getUserFriends, getChat, updateUser } from '../api/calls';
 import useSubSafe from '../hooks/useSubSafe';
 import * as logger from '../functions/logger';
-import * as locConversion from '../functions/locConversion';
 import * as timeLogic from '../functions/timeLogic';
-import * as distance from '../functions/distance';
 import NoChatsAlert from '../comps/NoChatsAlert';
 import PrivateChat from '../comps/PrivateChat';
 import SettingsChat from '../comps/SettingsChat';
@@ -27,7 +25,6 @@ export default function PrivateChatsPage({ navigation }) {
 
     const [refresh, setRefresh] = useState(false);
     const [ready, setReady] = useState(false);
-    const [noChats, setNoChats] = useState(false);
     const [rerender, setRerender] = useState(false);
     const [chats, setChats] = useState([]);
     const [showSettings, setShowSettings] = useState(false);
@@ -112,8 +109,6 @@ export default function PrivateChatsPage({ navigation }) {
                 }));
                 if (userFriendsResponse) {
                     var userFriends = userFriendsResponse.data.getUser.friends;
-                    if (userFriends.length == 0) setNoChats(true);
-                    else setNoChats(false);
                     var chatData = [];
                     for (var i = 0; i < userFriends.length; i++) {
                         if (userFriends[i].status == "666") continue;
@@ -170,7 +165,6 @@ export default function PrivateChatsPage({ navigation }) {
                             }
                         }));
                     }
-                    if (chatData.length == 0) setNoChats(true);
                     sortChats(chatData);
                     setChats(chatData);
                 } else throw "[PRIVATECHATSPAGE] onRefresh failed because of an error getting userChats."
@@ -262,7 +256,9 @@ export default function PrivateChatsPage({ navigation }) {
     const closeSearch = () => {
         setShowSearch(false);
     }
- 
+    const ListEmptyComponent = React.useCallback(() => {
+        if (ready) return <NoChatsAlert isPrivate={true} />
+    }, [ready]);
     const listFooterComponenet = React.useCallback(() => {
         if (ready) return <View style={{ height: 30 }} />
         else return <ActivityIndicator color={colors.pBeam} size="large" style={{ marginTop: 10 }} />
@@ -301,6 +297,7 @@ export default function PrivateChatsPage({ navigation }) {
                 keyExtractor={keyExtractor}
                 maxToRenderPerBatch={6}
                 windowSize={8}
+                ListEmptyComponent={ListEmptyComponent}
                 refreshControl={
                     <RefreshControl
                         refreshing={refresh}
@@ -315,7 +312,6 @@ export default function PrivateChatsPage({ navigation }) {
                 renderItem={renderItem}
             />
         </Screen>
-        <NoChatsAlert privateChat={true} visible={noChats} />
         <SettingsChat item={settingsChat} onClose={closeSettings} visible={showSettings} navigate={() => navigate(settingsChat)} currentUser={currentUser.current} navigation={navigation}/>
         <UserSearch onClose={closeSearch} visible={showSearch} currentUser={currentUser.current} navigation={navigation} />
         <HelpPrivateChatsPage visible={showHelp} onClose={() => setShowHelp(false)} onSearch={() => setShowSearch(true)} openBug={()=>setShowBug(true) } />

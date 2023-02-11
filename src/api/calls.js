@@ -788,6 +788,14 @@ export const createBug = /* GraphQL */ `
     }
 `;
 
+export const createReport = /* GraphQL */ `
+    mutation createReport ($input: CreateReportInput!) {
+        createReport(input: $input) {
+            id
+        }
+    }
+`;
+
 export const listBroadcasts = /* GraphQL */ `
     query ListBroadcasts($limit: Int) {
         listBroadcasts(limit: $limit) {

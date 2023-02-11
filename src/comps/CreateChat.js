@@ -70,7 +70,7 @@ export default function CreateChat({ visible, onClose, currentUser }) {
                     }
                 }
                 setNumChats(count);
-                if (count < rules.maxNumChats) setEnabled(true);
+                if (count <= rules.maxNumChats) setEnabled(true);
                 else setEnabled(false);
             } catch (error) {
                 logger.eLog("Possible Unnessary Error: "+error);
@@ -128,7 +128,7 @@ export default function CreateChat({ visible, onClose, currentUser }) {
                 Alert.alert("Location Needed", "You need to let ProxyChat use your location to use this.", [
                     { text: "Okay" }
                 ]);
-                return;
+                throw "Location Needed";
             }
             const currentCognitoUser = await Auth.currentAuthenticatedUser();
             const userLocation = await Location.getLastKnownPositionAsync();
@@ -183,12 +183,12 @@ export default function CreateChat({ visible, onClose, currentUser }) {
             if (result2 && result3) {
                 setTimeout(function () {
                     Alert.alert("Success", "Chat Successfully Created.", [
-                        { text: "Okay", onPress: ()=>close() },
+                        { text: "Okay", onPress: () => close() },
                     ])
                     setLoading2(false);
                 }, 1000);
             } else {
-                throw ""
+                throw "API Error"
             }
         } catch (error) {
             logger.warn(error);
