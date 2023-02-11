@@ -473,7 +473,7 @@ export default function UProfilePage({ navigation }) {
                 />
             }
             <Loading enabled={!ready} />
-            <CreatePost visible={showCreate} onClose={closeCreate} currentUser={currentUser.current} />
+            <CreatePost visible={showCreate} onClose={closeCreate} currentUser={currentUser.current} navigation={navigation}/>
             <BackgroundEditor visible={showBack} onClose={() => setShowBack(false)} onSuccess={successBack} />
             <Settings visible={showSettings} onClose={() => setShowSettings(false)} navigation={navigation} />
         </Screen>

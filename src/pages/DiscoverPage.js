@@ -66,7 +66,7 @@ export default function DiscoverPage({ navigation, route }) {
         initialFunction();
     }, [rerender]);
 
-    const fillData = async () => {
+    const fillData = async (reset = false) => {
         if (remainingUsers.current.length > 0) {
             const userLocation = await Location.getLastKnownPositionAsync();
             const userLocationConverted = locConversion.toChat(userLocation.coords.latitude, userLocation.coords.longitude);
@@ -81,7 +81,8 @@ export default function DiscoverPage({ navigation, route }) {
                 userData.push(user);
             }
             setUsers(existingData => {
-                return [...existingData, ...userData];
+                if (reset) return [...userData];
+                else return [...existingData, ...userData]
             });
             remainingUsers.current = remainingUsers.current.slice(rules.pagination.DiscoverPage);
             setBottomRefresh(false);
@@ -116,7 +117,7 @@ export default function DiscoverPage({ navigation, route }) {
                             else return -1;
                         })
                         remainingUsers.current = userData;
-                        fillData();
+                        fillData(true);
                     } else throw "[DISCOVERPAGE] onRefresh failed because there was an error getting nearby users";
                 } else {
                     setLocEnabled(false);

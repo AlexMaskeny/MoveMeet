@@ -271,7 +271,7 @@ export default function ChatsPage({ navigation }) {
             const index = Chats.findIndex(el => el.id == value.chatMessagesId);
             if (Chats[index].last3) {
                 Chats[index].last3.unshift(value);
-                Chats[index].last3.splice(-1);
+                if (Chats[index].last3.length > 3) Chats[index].last3.splice(-1);
                 Chats[index].latest = "Now";
                 if (value.user.id != currentUser.current.id) Chats[index].glow = true;
             }
@@ -395,7 +395,7 @@ export default function ChatsPage({ navigation }) {
                 />
             </Screen>
             <CheckingForUsers visible={checkingForUsers} />
-            <CreateChat visible={showCreate} onClose={() => setShowCreate(false)} currentUser={currentUser.current} />
+            <CreateChat visible={showCreate} onClose={() => setShowCreate(false)} currentUser={currentUser.current} navigation={navigation}/>
             <HelpChatsPage visible={showHelp} onClose={() => setShowHelp(false)} onCreateChat={() => setShowCreate(true)} openBug={()=>setShowBug(true)}/>
             <BugReport visible={showBug} onClose={() => setShowBug(false)} currentUser={currentUser.current}/>
 

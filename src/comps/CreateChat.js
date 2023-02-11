@@ -4,7 +4,7 @@ import uuid from "react-native-uuid";
 import { API, Auth, graphqlOperation, Storage } from 'aws-amplify';
 import * as Location from 'expo-location';
 
-import { colors, rules } from '../config';
+import { colors, rules, strings } from '../config';
 import { createChat, createChatMembers, getUserChats, listMessagesByTime, updateChat } from '../api/calls';
 import IconButton from './IconButton';
 import SimpleButton from './SimpleButton';
@@ -18,7 +18,7 @@ import Beam from './Beam';
 import BackgroundEditor from './BackgroundEditor';
 
 
-export default function CreateChat({ visible, onClose, currentUser }) {
+export default function CreateChat({ visible, onClose, currentUser, navigation }) {
     const cTitleRef = useRef();
     const [loading, setLoading] = useState(false);
     const [loading2, setLoading2] = useState(false);
@@ -116,6 +116,19 @@ export default function CreateChat({ visible, onClose, currentUser }) {
         setLoading(false);
     }
 
+    const enableLocation = async () => {
+        const result = await Location.getForegroundPermissionsAsync();
+        if (result.canAskAgain) {
+            const result = await Location.requestForegroundPermissionsAsync();
+            if (result.granted) {
+                navigation.navigate("LoadingPage");
+                onClose();
+            }
+        } else {
+            Alert.alert("Go to your settings", "In order to enable " + strings.APPNAME + " to access your location, you need to enable it in your settings");
+        }
+    }
+
     const CreateChat = async () => {
         try {
             if (!enabled) {
@@ -125,8 +138,9 @@ export default function CreateChat({ visible, onClose, currentUser }) {
             setLoading2(true);
             const location = await Location.getForegroundPermissionsAsync();
             if (!location.granted) {
-                Alert.alert("Location Needed", "You need to let ProxyChat use your location to use this.", [
-                    { text: "Okay" }
+                Alert.alert("Location Needed", "You need to let " + strings.APPNAME + " use your location to create chats. You will have to recreate your chat after giving us access.", [
+                    { text: "Cancel" },
+                    { text: "Give Access", onPress: enableLocation },
                 ]);
                 throw "Location Needed";
             }
