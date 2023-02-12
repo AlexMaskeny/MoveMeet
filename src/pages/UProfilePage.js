@@ -23,6 +23,7 @@ import SimpleInput from '../comps/SimpleInput';
 import CreatePost from '../comps/CreatePost';
 import Settings from '../comps/Settings';
 import BackgroundEditor from '../comps/BackgroundEditor';
+import { calls, instances, mmAPI } from '../api/mmAPI';
 
 
 
@@ -112,10 +113,13 @@ export default function UProfilePage({ navigation }) {
                 if (cognitoUser) {
                     setUsername(cognitoUser.username);
                     setEmail(cognitoUser.attributes.email);
-                    const user = await API.graphql(graphqlOperation(getDetailedUserByCognito, {
-                        id: cognitoUser.attributes.sub
-                    }));
-                    currentUser.current = user.data.getUserByCognito;
+                    currentUser.current = await mmAPI.query({
+                        call: calls.GET_USER_BY_COGNITO,
+                        instance: instances.FULL,
+                        input: {
+                            id: cognitoUser.attributes.sub
+                        }
+                    });
                     setName(currentUser.current.name);
                     setBio(currentUser.current.bio);
                     const loadFull = await Storage.get(currentUser.current.profilePicture.loadFull);
@@ -178,37 +182,30 @@ export default function UProfilePage({ navigation }) {
                     text: "Confirm", onPress: async () => {
                         try {
                             if (changedImage) {
-                                const response1 = await fetch(profilePicture.uri);
-                                const response2 = await fetch(profilePicture.loadImage);
-                                const img1 = await response1.blob();
-                                const img2 = await response2.blob();
-                                if (img1 && img2) {
-                                    //console.log(currentUser.current.profilePicture.full);
-                                    if (currentUser.current.profilePicture.full != " ") {
-                                        await Storage.remove(currentUser.current.profilePicture.loadFull);
-                                        await Storage.remove(currentUser.current.profilePicture.full);
-                                        await Storage.put(currentUser.current.profilePicture.full, img1);
-                                        await Storage.put(currentUser.current.profilePicture.loadFull, img2);
-                                    } else {
-                                        await API.graphql(graphqlOperation(updateUser, {
-                                            input: {
-                                                id: currentUser.current.id,
-                                                profilePicture: {
-                                                    full: "FULLprofilePicture" + currentUser.current.id + ".jpg",
-                                                    loadFull: "LOADFULLprofilePicture" + currentUser.current.id + ".jpg",
-                                                    region: "us-east-2",
-                                                    bucket: "proxychatf2d762e9bc784204880374b0ca905be4120629-dev"
-                                                }
+                                await Storage.remove("FULLprofilePicture" + currentUser.current.id + ".jpg");
+                                await Storage.remove("LOADFULLprofilePicture" + currentUser.current.id + ".jpg");
+                                await mmAPI.store("FULLprofilePicture" + currentUser.current.id + ".jpg", profilePicture.uri);
+                                await mmAPI.store("LOADFULLprofilePicture" + currentUser.current.id + ".jpg", profilePicture.loadImage);
+                                if (currentUser.current.profilePicture.full == " ") {
+                                    await mmAPI.mutate({
+                                        call: calls.UPDATE_USER,
+                                        input: {
+                                            id: currentUser.current.id,
+                                            profilePicture: {
+                                                full: "FULLprofilePicture" + currentUser.current.id + ".jpg",
+                                                loadFull: "LOADFULLprofilePicture" + currentUser.current.id + ".jpg",
+                                                region: "us-east-2",
+                                                bucket: "proxychatf2d762e9bc784204880374b0ca905be4120629-dev"
                                             }
-                                        }));
-                                        await Storage.put("FULLprofilePicture" + currentUser.current.id + ".jpg", img1);
-                                        await Storage.put("LOADFULLprofilePicture" + currentUser.current.id + ".jpg", img2);
-                                    }
+                                        }
+                                    });
                                 }
+                                
                             }
                             if (changedBackground) {
                                 if (background.isColor) {
-                                    await API.graphql(graphqlOperation(updateUser, {
+                                    await mmAPI.mutate({
+                                        call: calls.UPDATE_USER,
                                         input: {
                                             id: currentUser.current.id,
                                             background: {
@@ -220,7 +217,7 @@ export default function UProfilePage({ navigation }) {
                                                 color: background.color
                                             }
                                         }
-                                    }))
+                                    });
                                 } else {
                                     const response1 = await fetch(background.uri);
                                     const response2 = await fetch(background.loadImage);

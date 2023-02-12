@@ -1,7 +1,6 @@
 import React, { useCallback, useState } from 'react';
 import { StyleSheet, Modal, View, TouchableOpacity, FlatList, Dimensions, KeyboardAvoidingView, Keyboard, Image, Alert} from 'react-native';
 import uuid from "react-native-uuid";
-import { API, graphqlOperation, Storage } from 'aws-amplify';
 
 import { colors, css, strings } from '../config';
 import IconButton from './IconButton';
@@ -11,7 +10,7 @@ import SimpleInput from './SimpleInput';
 import SimpleButton from './SimpleButton';
 import * as media from '../functions/media';
 import * as logger from '../functions/logger';
-import { createBug } from '../api/calls';
+import { calls, mmAPI } from '../api/mmAPI';
 
 export default function BugReport({ visible, onClose, currentUser }) {
     const [description, setDescription] = useState(false);
@@ -35,22 +34,17 @@ export default function BugReport({ visible, onClose, currentUser }) {
                 const id = uuid.v4();
                 const imgs = []
                 for (var i = 0; i < images.length; i++) {
-                    const response = await fetch(images[i].full);
-                    if (response) {
-                        const img = await response.blob();
-                        if (img) {
-                            imgs.push({
-                                bucket: "proxychatf2d762e9bc784204880374b0ca905be4120629-dev",
-                                region: "us-east-2",
-                                full: "BUGREPORT" + id + "-" + i + ".jpg",
-                                loadFull: " "
-                            })
-                            await Storage.put("BUGREPORT" + id + "-" + i + ".jpg", img);
-                        }
-                    }
+                    await mmAPI.store("BUGREPORT" + id + "-" + i + ".jpg", images[i].full);
+                    imgs.push({
+                        bucket: "proxychatf2d762e9bc784204880374b0ca905be4120629-dev",
+                        region: "us-east-2",
+                        full: "BUGREPORT" + id + "-" + i + ".jpg",
+                        loadFull: ""
+                    });
                 }
                 const now = new Date(Date.now());
-                await API.graphql(graphqlOperation(createBug, {
+                await mmAPI.mutate({
+                    call: calls.CREATE_BUG,
                     input: {
                         id: id,
                         description: description,
@@ -59,7 +53,7 @@ export default function BugReport({ visible, onClose, currentUser }) {
                         createdAt: now.toUTCString(),
                         updatedAt: now.toUTCString(),
                     }
-                })) 
+                });
                 Alert.alert("Thank you!", "You have successfully submitted your bug report.");
                 setLoading(false);
                 close()
@@ -74,7 +68,7 @@ export default function BugReport({ visible, onClose, currentUser }) {
     }
     const renderItem = useCallback(({item}) => (
         <Image style={styles.imageSelection} source={{uri: item.full}} />    
-        //<View style={{height: 40, width: 40, backgroundColor: "red"}} />
+
     ));
     return (
         <Modal visible={visible} animationType="slide">

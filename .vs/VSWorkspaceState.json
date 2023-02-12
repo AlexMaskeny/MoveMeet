@@ -1,14 +1,16 @@
 {
   "ExpandedNodes": [
     "",
-    "\\amplify",
     "\\amplify\\backend",
     "\\amplify\\backend\\types",
-    "\\assets",
     "\\src",
+    "\\src\\api",
+    "\\src\\api\\mutations",
+    "\\src\\api\\queries",
     "\\src\\comps",
+    "\\src\\functions",
     "\\src\\pages"
   ],
-  "SelectedNode": "\\src\\pages\\PrivateChatsPage.js",
+  "SelectedNode": "\\src\\api\\mutations\\updateUser.js",
   "PreviewInSolutionExplorer": false
 }
