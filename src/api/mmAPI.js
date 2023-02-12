@@ -1,29 +1,27 @@
-import { API, graphqlOperation, Storage } from "aws-amplify";
+import { API, graphqlOperation } from "aws-amplify";
 
 import * as logger from '../functions/logger';
-import * as mutations from './mutations/index';
-import * as queries from './queries/index';
-import * as subscriptions from './subscriptions/index';
+import * as mutations from './mutations';
+import * as queries from './queries';
+import * as subscriptions from './subscriptions';
 
 export const instances = {
-    FULL: "full", //Everything used
-    EMPTY: "empty", //Only ID
-    LEAST: "least" //Minimum type with a non id
+    FULL: "full",
 }
 
 export const calls = {
     //QUERIES
-    GET_CHAT: "getChat", //LoadingPage(loadingPage)
+    GET_CHAT: "getChat",
     GET_CHAT_MEMBERS: "getChatMembers",
-    GET_CHAT_MEMBERS_BY_IDS: "getChatMembersByIds", //LoadingPage(loadingPage)
+    GET_CHAT_MEMBERS_BY_IDS: "getChatMembersByIds",
     GET_MESSAGE: "getMessage",
-    GET_USER: "getUser", //chatsPage(chats)
-    GET_USER_BY_COGNITO: "getUserByCognito", //LoadingPage(least), ChatsPage(least)
+    GET_USER: "getUser",
+    GET_USER_BY_COGNITO: "getUserByCognito",
     GET_USER_BY_USERNAME: "getUserByUsername",
-    LIST_BROADCASTS: "listBroadcasts", //LoadingPage(full)
+    LIST_BROADCASTS: "listBroadcasts",
     LIST_CHAT_MEMBERS: "listChatMembers",
-    LIST_CHATS_BY_LOCATION: "listChatsByLocation", //LoadingPage(loadingPage)
-    LIST_MESSAGES_BY_TIME: "listMessagesByTime", //ChatsPage(chatsPage)
+    LIST_CHATS_BY_LOCATION: "listChatsByLocation",
+    LIST_MESSAGES_BY_TIME: "listMessagesByTime",
     LIST_USERS_BY_LOCATION: "listUsersByLocation",
     LIST_USERS_BY_USERNAME: "listUsersByUsername",
     //MUTATIONS
@@ -33,67 +31,39 @@ export const calls = {
     CREATE_POST: "createPost",
     CREATE_REPORT: "createReport",
     CREATE_USER: "createUser",
-    CREATE_CHAT: "createChat",
     DELETE_USER: "deleteUser",
-    DELETE_CHAT_MEMBERS: "deleteChatMembers", //LoadingPage(empty)
     UPDATE_CHAT_MEMBERS: "updateChatMembers",
-    UPDATE_USER: "updateUser", //LoadingPage(empty)
-    UPDATE_CHAT: "updateChat", //ChatsPage(empty)
-    UPDATE_MESSAGE: "updateMessage",
+    UPDATE_USER: "updateUser",
     //SUBSCRIPTIONS:
-    ON_MEMBER_STATUS_CHANGE: "onMemberStatusChange", //ChatsPage(chatsPage)
+    ON_MEMBER_STATUS_CHANGE: "onMemberStatusChange",
     ON_READ_MESSAGE: "onReadMessage",
-    ON_RECEIVE_MESSAGE: "onReceiveMessage", //ChatsPage
+    ON_RECEIVE_MESSAGE: "onReceiveMessage",
     ON_USER_REMOVED: "onUserRemoved",
     ON_USER_TYPING: "onUserTyping",
 }
 
 //CALL IS IN FORMAT: call: {callString: string,isArray: }
 export const mmAPI = {
-    query: async ({ call = "", instance = instances.EMPTY, input = {} }) => { //input is of standard query input form 
+    query: async ({ call = "", instance = instances.FULL, input = {} }) => { //input is of standard query input form 
         try {
-            const response = await API.graphql(graphqlOperation(queries[call][instance], input));
-            return response.data[call];
+            return (await API.graphql(graphqlOperation(queries[call][instance], input))).data[call];
         } catch (error) {
             logger.warn(error);
             return false;
         }
     },
-    mutate: async ({ call = "", instance = instances.EMPTY, input = {} }) => { //input is of standard mutation form
+    mutate: async ({ call = "", instance = instances.FULL, input = {} }) => { //input is of standard mutation form
         try {
-            const response = await API.graphql(graphqlOperation(mutations[call][instance], { input: input }));
-            return response.data[call];
+            return (await API.graphql(graphqlOperation(mutations[call][instance], { input: input }))).data[call];
         } catch (error) {
             logger.warn(error);
             return false;
         }
     },
-    subscribe: ({ call = "", instance = instances.FULL, input = {}, sendData = false, onReceive, onError }) => { //input is of standard sub from. onReceive & onError are functions
-        if (sendData) {
-            return API.graphql(graphqlOperation(subscriptions[call][instance], input)).subscribe({
-                next: (data) => onReceive(data),
-                error: (error) => onError(error),
-            });
-        } else {
-            return API.graphql(graphqlOperation(subscriptions[call][instance], input)).subscribe({
-                next: () => onReceive(),
-                error: (error) => onError(error)
-            });
-        }
+    subscribe: async({ call = "", instance = instances.FULL, input = {}, onReceive, onError }) => { //input is of standard sub from. onReceive & onError are functions
+        return API.graphql(graphqlOperation(mutations[call][instance]))
     },
-    store: async (id, uri) => {
-        try {
-            const response = await fetch(uri);
-            if (response) {
-                const img = await response.blob();
-                if (img) {
-                    await Storage.put(id, img);
-                    return true;
-                } else throw "Failed Store Img Response (response 2)";
-            } else throw "Failed Store Response 1";
-        } catch (error) {
-            logger.warn(error); 
-            return false;
-        }
+    store: async (uri, id) => {
+
     }
 }

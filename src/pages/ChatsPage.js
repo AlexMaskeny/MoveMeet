@@ -1,26 +1,29 @@
 import React, { useCallback, useState, useRef, useEffect } from 'react';
 import { View, StyleSheet, FlatList, RefreshControl, ActivityIndicator, Alert } from 'react-native';
-import { Auth, Storage } from 'aws-amplify';
+import { API, Auth, graphqlOperation, Storage } from 'aws-amplify';
 import { useFocusEffect } from '@react-navigation/native';
 import { useNetInfo } from "@react-native-community/netinfo";
 import * as Location from 'expo-location';
+import { MaterialIcons } from '@expo/vector-icons';
 
 import Screen from '../comps/Screen';
 import Chat from '../comps/Chat';
-import { colors, rules } from '../config';
+import { getUserByCognito, getUserChats, listMessagesByTime, updateMessage, onMemberStatusChange, onReceiveMessage, updateChat } from '../api/calls';
+import { colors, rules, css, strings } from '../config';
 import useSubSafe from '../hooks/useSubSafe';
 import * as logger from '../functions/logger';
 import * as locConversion from '../functions/locConversion';
 import * as timeLogic from '../functions/timeLogic';
 import * as distance from '../functions/distance';
 import NoLocationAlert from '../comps/NoLocationAlert';
+import BeamTitle from '../comps/BeamTitle';
+import SubTitle from '../comps/SubTitle';
 import CreateChat from '../comps/CreateChat';
 import IconButton from '../comps/IconButton';
 import HelpChatsPage from '../comps/HelpChatsPage';
 import BugReport from '../comps/BugReport';
 import CheckingForUsers from '../comps/CheckingForUsers';
 import NoChatsAlert from '../comps/NoChatsAlert';
-import { calls, instances, mmAPI } from '../api/mmAPI';
 
 export default function ChatsPage({ navigation }) {
     const memberStatusSub = useRef();
@@ -76,26 +79,19 @@ export default function ChatsPage({ navigation }) {
             try {
                 if (netInfo.isConnected || !ready) {
                     const cognitoUser = await Auth.currentAuthenticatedUser();
-                    currentUser.current = await mmAPI.query({
-                        call: calls.GET_USER_BY_COGNITO,
-                        instance: instances.LEAST,
-                        input: {
-                            id: cognitoUser.attributes.sub
-                        }
-                    })
+                    currentUser.current = (await API.graphql(graphqlOperation(getUserByCognito, {
+                        id: cognitoUser.attributes.sub
+                    }))).data.getUserByCognito;
                     currentUser.current.profilePicture.loadFull = await Storage.get(currentUser.current.profilePicture.loadFull);
                     if (memberStatusSub.current) memberStatusSub.current.unsubscribe();
-                    memberStatusSub.current = mmAPI.subscribe({
-                        call: calls.ON_MEMBER_STATUS_CHANGE,
-                        instance: instances.EMPTY,
-                        input: {
-                            userID: currentUser.current.id
-                        },
-                        onReceive: () => {
+                    memberStatusSub.current = API.graphql(graphqlOperation(onMemberStatusChange, {
+                        userID: currentUser.current.id
+                    })).subscribe({
+                        next: () => {
                             logger.eLog("[SUBMANAGER]: onMemberStatusChange notification received.");
-                            onRefresh();                            
+                            onRefresh();
                         },
-                        onError: (error) => {
+                        error: (error) => {
                             if (memberStatusSub.current) memberStatusSub.current.unsubscribe();
                             logger.warn(error);
                             logger.eWarn("[SUBMANAGER]: Error detected receiving onMemberStatusChange notification. Reconnecting...");
@@ -142,16 +138,12 @@ export default function ChatsPage({ navigation }) {
                     const userLocation = await Location.getLastKnownPositionAsync();
                     const userLocationConverted = locConversion.toChat(userLocation.coords.latitude, userLocation.coords.longitude);
 
-                    const userChatsResponse = await mmAPI.query({
-                        call: calls.GET_USER,
-                        instance: "chatsFull",
-                        input: {
-                            id: currentUser.current.id
-                        }
-                    });
+                    const userChatsResponse = await API.graphql(graphqlOperation(getUserChats, {
+                        id: currentUser.current.id
+                    }));
 
                     if (userChatsResponse) {
-                        const userChats = userChatsResponse.chats.items;
+                        const userChats = userChatsResponse.data.getUser.chats.items;
                         var chatData = [];
                         for (var i = 0; i < userChats.length; i++) {
                             var chat = userChats[i].chat;
@@ -163,49 +155,42 @@ export default function ChatsPage({ navigation }) {
                             } 
                             chat.distance = distance.formula(userLocationConverted.lat, userLocationConverted.long, chat.lat, chat.long);
 
-                            const last3 = await mmAPI.query({
-                                call: calls.LIST_MESSAGES_BY_TIME,
-                                instance: "chatsPage",
-                                input: {
-                                    chatMessagesId: chat.id,
-                                    limit: 3
-                                }
-                            })
-
+                            const last3 = await API.graphql(graphqlOperation(listMessagesByTime, {
+                                chatMessagesId: chat.id,
+                                limit: 3
+                            }));
                             chat.last3 = [];
                             chat.glow = false;
                             chat.latest = "New Chat";
 
                             try {
-                                if ((Date.now() - Date.parse(last3.items[0].createdAt)) / 1000 > 60 * 60 * rules.chatDeletionTime) { //if enabled and greater than rules.chatDeletionTime hours old then remove
-                                    await mmAPI.mutate({
-                                        call: calls.UPDATE_CHAT,
+                                if ((Date.now() - Date.parse(last3.data.listMessagesByTime.items[0].createdAt)) / 1000 > 60 * 60 * rules.chatDeletionTime) { //if enabled and greater than rules.chatDeletionTime hours old then remove
+                                    await API.graphql(graphqlOperation(updateChat, {
                                         input: {
                                             id: chat.id,
                                             enabled: false
                                         }
-                                    });
+                                    }))
                                     continue;
                                 }
                             } catch (error) { }
                             try {
-                                if (last3.items.length == 0 && (Date.now() - Date.parse(chat.createdAt)) / 1000 > 60 * 60 * rules.chatDeletionTime) {
-                                    await mmAPI.mutate({
-                                        call: calls.UPDATE_CHAT,
+                                if (last3.data.listMessagesByTime.items.length == 0 && (Date.now() - Date.parse(chat.createdAt)) / 1000 > 60 * 60 * rules.chatDeletionTime) {
+                                    await API.graphql(graphqlOperation(updateChat, {
                                         input: {
                                             id: chat.id,
                                             enabled: false
                                         }
-                                    });
+                                    }))
                                     continue;
                                 }
                             } catch (error) { }
 
                             if (last3) {
-                                chat.last3 = last3.items;
-                                if (last3.items[0]) {
-                                    chat.latest = timeLogic.ago((Date.now() - Date.parse(last3.items[0].createdAt)) / 1000);
-                                    if (!last3.items[0].read.includes(currentUser.current.id)) { chat.glow = true }
+                                chat.last3 = last3.data.listMessagesByTime.items;
+                                if (last3.data.listMessagesByTime.items[0]) {
+                                    chat.latest = timeLogic.ago((Date.now() - Date.parse(last3.data.listMessagesByTime.items[0].createdAt)) / 1000);
+                                    if (!last3.data.listMessagesByTime.items[0].read.includes(currentUser.current.id)) { chat.glow = true }
                                 }
                                 getLast3(chat.last3);
                             } else {
@@ -236,24 +221,20 @@ export default function ChatsPage({ navigation }) {
                                 chat.members.items[j].user.picture = picture;
 
                             }
-                            if (chatData.findIndex((el) => el.id == chat.id) == -1) chatData.push(chat);
-                            userChatsSub.current.push(mmAPI.subscribe({
-                                call: calls.ON_RECEIVE_MESSAGE,
-                                instance: "chatsPage",
-                                input: {
-                                    chatMessagesId: chat.id,
-                                },
-                                onReceive: ({ value }) => {
+                            if(chatData.findIndex((el)=>el.id==chat.id) == -1) chatData.push(chat);
+                            userChatsSub.current.push(API.graphql(graphqlOperation(onReceiveMessage, {
+                                chatMessagesId: chat.id,
+                            })).subscribe({
+                                next: ({ value }) => {
                                     logger.eLog("[SUBMANAGER]: userChats notification received.");
                                     messageUpdate(value);
                                 },
-                                onError: (error) => {
+                                error: (error) => {
                                     unsubscribeChats();
                                     logger.warn(error);
                                     logger.eWarn("[SUBMANAGER]: Error detected receiving userChats notification. Reconnecting");
                                     setRerender(!rerender);
-                                },
-                                sendData: true
+                                }
                             }));
                         }
                         setCheckingForUsers(false);
@@ -322,13 +303,12 @@ export default function ChatsPage({ navigation }) {
             if (item.last3.length >= 1) {
                 if (!item.last3[0].read.includes(currentUser.current.id)) {
                     item.last3[0].read.push(currentUser.current.id)
-                    await mmAPI.mutate({
-                        call: calls.UPDATE_MESSAGE,
+                    await API.graphql(graphqlOperation(updateMessage, {
                         input: {
                             id: item.last3[0].id,
                             read: item.last3[0].read
                         }
-                    })
+                    }))
                     item.glow = false
                 }
             }

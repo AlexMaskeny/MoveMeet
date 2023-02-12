@@ -1,10 +1,11 @@
 import React, { useState, useRef, useCallback, useEffect } from 'react';
 import { StyleSheet, FlatList, RefreshControl, View, ActivityIndicator} from 'react-native';
-import { Storage, Auth } from 'aws-amplify';
+import { API, graphqlOperation, Storage, Auth } from 'aws-amplify';
 import * as Location from 'expo-location';
 import { useNetInfo } from "@react-native-community/netinfo";
 
 import { colors, css, rules } from '../config';
+import {listUsersByLocation, getUserByCognito} from '../api/calls';
 import Screen from '../comps/Screen';
 import * as logger from '../functions/logger';
 import * as distance from '../functions/distance';
@@ -15,7 +16,6 @@ import NoLocationAlert from '../comps/NoLocationAlert';
 import IconButton from '../comps/IconButton';
 import HelpDiscoverPage from '../comps/HelpDiscoverPage';
 import BugReport from '../comps/BugReport';
-import { calls, instances, mmAPI } from '../api/mmAPI';
 
 export default function DiscoverPage({ navigation, route }) {
     const currentUser = useRef();
@@ -25,6 +25,7 @@ export default function DiscoverPage({ navigation, route }) {
     const [locEnabled, setLocEnabled] = useState(true);
     const [ready, setReady] = useState(false);
     const [refresh, setRefresh] = useState(false);
+    const [bottomRefresh, setBottomRefresh] = useState(false);
     const [rerender, setRerender] = useState(false);
     const [showHelp, setShowHelp] = useState(false);
     const [showBug, setShowBug] = useState(false);
@@ -53,13 +54,9 @@ export default function DiscoverPage({ navigation, route }) {
             try {
                 if (netInfo.isConnected || !ready) {
                     const cognitoUser = await Auth.currentAuthenticatedUser();
-                    currentUser.current = await mmAPI.query({
-                        call: calls.GET_USER_BY_COGNITO,
-                        instance: instances.LEAST,
-                        input: {
-                            id: cognitoUser.attributes.sub
-                        }
-                    });
+                    currentUser.current = (await API.graphql(graphqlOperation(getUserByCognito, {
+                        id: cognitoUser.attributes.sub
+                    }))).data.getUserByCognito;
                     onRefresh();
                 }
             } catch (error) {
@@ -73,6 +70,7 @@ export default function DiscoverPage({ navigation, route }) {
         if (remainingUsers.current.length > 0) {
             const userLocation = await Location.getLastKnownPositionAsync();
             const userLocationConverted = locConversion.toChat(userLocation.coords.latitude, userLocation.coords.longitude);
+            setBottomRefresh(true);
             var userData = [];
             for (var i = 0; i < Math.min(rules.pagination.DiscoverPage, remainingUsers.current.length); i++) {
                 var user = remainingUsers.current[i];
@@ -87,6 +85,7 @@ export default function DiscoverPage({ navigation, route }) {
                 else return [...existingData, ...userData]
             });
             remainingUsers.current = remainingUsers.current.slice(rules.pagination.DiscoverPage);
+            setBottomRefresh(false);
         }
     }
 
@@ -98,16 +97,13 @@ export default function DiscoverPage({ navigation, route }) {
                 if (locPerm.granted) {
                     const userLocation = await Location.getLastKnownPositionAsync();
                     const userLocationConverted = locConversion.toChat(userLocation.coords.latitude, userLocation.coords.longitude);
-                    const nearbyUsersResponse = await mmAPI.query({
-                        call: calls.LIST_USERS_BY_LOCATION,
-                        instance: instances.LEAST,
-                        input: {
-                            ...userLocationConverted,
-                            radius: rules.nearYouRadius
-                        }
-                    });
+
+                    const nearbyUsersResponse = await API.graphql(graphqlOperation(listUsersByLocation, {
+                        ...userLocationConverted,
+                        radius: rules.nearYouRadius
+                    }));
                     if (nearbyUsersResponse) {
-                        const nearbyUsers = nearbyUsersResponse.items;
+                        const nearbyUsers = nearbyUsersResponse.data.listUsersByLocation.items;
                         var userData = [];
                         for (var i = 0; i < nearbyUsers.length; i++) {
                             var user = nearbyUsers[i];

@@ -1,6 +1,6 @@
 import React, { useEffect, useState } from 'react';
 import { Modal, StyleSheet, View, TouchableOpacity, Alert } from 'react-native';
-import { Storage } from 'aws-amplify';
+import { API, graphqlOperation, Storage } from 'aws-amplify';
 import { CommonActions } from '@react-navigation/native';
 
 import SimpleButton from './SimpleButton';
@@ -10,7 +10,7 @@ import { colors, css } from '../config';
 import IconButton from './IconButton';
 import SubTitle from './SubTitle';
 import * as logger from '../functions/logger';
-import { calls, mmAPI } from '../api/mmAPI';
+import { deleteChatMembers,  getChatMembersByIds, getUserFriends, listMessagesByTime, updateMessage, updateUser } from '../api/calls';
 
 export default function SettingsChat({ item, onClose, visible, navigate, currentUser, navigation }) {
     const [ready, setReady] = useState(false);
@@ -44,23 +44,15 @@ export default function SettingsChat({ item, onClose, visible, navigate, current
                     const Close = async () => {
                         try {
                             await updateStatus("666");
-                            const result = await mmAPI.query({
-                                call: calls.GET_CHAT_MEMBERS_BY_IDS,
-                                instance: "loadingPage",
+                            const result = await API.graphql(graphqlOperation(getChatMembersByIds, {
+                                userID: currentUser.id
+                            }));
+                            const memberIndex = result.data.getChatMembersByIds.items.findIndex((el) => el.chatID == item.friend.chatID);
+                            await API.graphql(graphqlOperation(deleteChatMembers, {
                                 input: {
-                                    userID: currentUser.id
+                                    id: result.data.getChatMembersByIds.items[memberIndex].id
                                 }
-                            })
-
-                            const memberIndex = result.items.findIndex((el) => el.chatID == item.friend.chatID);
-
-                            await mmAPI.mutate({
-                                call: calls.DELETE_CHAT_MEMBERS,
-                                instance: "background",
-                                input: {
-                                    id: result.items[memberIndex].id
-                                }
-                            });
+                            }))
                             close();
                         } catch (error) {
                             logger.warn(error);
@@ -74,43 +66,33 @@ export default function SettingsChat({ item, onClose, visible, navigate, current
     }
     const updateStatus = async (statusCode) => {
         try {
-            const userFriendsResponse = await mmAPI.query({
-                call: calls.GET_USER,
-                instance: "friends",
-                input: {
-                    id: currentUser.id
-                }
-            })
+            const userFriendsResponse = await API.graphql(graphqlOperation(getUserFriends, {
+                UserID: currentUser.id,
+            }));
             if (userFriendsResponse) {
-                var userFriends = userFriendsResponse.friends;
+                var userFriends = userFriendsResponse.data.getUser.friends;
                 const friendIndex = userFriends.findIndex((el) => el.friendID == item.friend.friendID);
                 userFriends[friendIndex].status = statusCode;
-                await mmAPI.mutate({
-                    call: calls.UPDATE_USER,
+                await API.graphql(graphqlOperation(updateUser, {
                     input: {
                         id: currentUser.id,
                         friends: userFriends
                     }
-                });
-                const userMessagesResult = await mmAPI.query({
-                    call: calls.LIST_MESSAGES_BY_TIME,
-                    instance: "settingsChat",
-                    input: {
-                        chatMessagesId: userFriends[friendIndex].chatID,
-                        limit: 1
-                    }
-                });
+                }));
 
-                var newRead = userMessagesResult.items[0].read;
+                const userMessagesResult = await API.graphql(graphqlOperation(listMessagesByTime, {
+                    chatMessagesId: userFriends[friendIndex].chatID,
+                    limit: 1
+                }));
+                var newRead = userMessagesResult.data.listMessagesByTime.items[0].read;
                 if (!newRead.includes(currentUser.id)) {
                     newRead.push(currentUser.id);
-                    await mmAPI.mutate({
-                        calls: calls.UPDATE_MESSAGE,
+                    await API.graphql(graphqlOperation(updateMessage, {
                         input: {
-                            id: userMessagesResult.items[0].id,
+                            id: userMessagesResult.data.listMessagesByTime.items[0].id,
                             read: newRead
                         }
-                    })
+                    }))
                 }
             }
         } catch (error) {
