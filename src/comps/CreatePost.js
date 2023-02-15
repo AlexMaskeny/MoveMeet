@@ -1,11 +1,9 @@
 import React, { useRef, useState } from 'react';
 import { StyleSheet, Modal, View, Alert, TouchableOpacity, ActivityIndicator, ImageBackground} from 'react-native';
 import uuid from "react-native-uuid";
-import { API, graphqlOperation, Storage } from 'aws-amplify';
 import * as Location from 'expo-location';
 
 import { colors, css, strings } from '../config';
-import { createPost } from '../api/calls';
 import IconButton from './IconButton';
 import SimpleButton from './SimpleButton';
 import SubTitle from './SubTitle';
@@ -13,6 +11,7 @@ import * as media from '../functions/media';
 import * as logger from '../functions/logger'
 import * as locConversion from '../functions/locConversion';
 import Beam from './Beam';
+import { calls, mmAPI } from '../api/mmAPI';
 
 
 export default function CreatePost({ visible, onClose, currentUser, navigation }) {
@@ -67,22 +66,11 @@ export default function CreatePost({ visible, onClose, currentUser, navigation }
             }
             const userLocation = await Location.getLastKnownPositionAsync();
             const userLocationConverted = locConversion.toUser(userLocation.coords.latitude, userLocation.coords.longitude);
-            const response1 = await fetch(image);
-            if (response1) {
-                const img = await response1.blob();
-                if (img) {
-                    await Storage.put("FULLpost" + id.current + ".jpg", img);
-                }
-            }
-            const response2 = await fetch(smallImage);
-            if (response2) {
-                const img = await response2.blob();
-                if (img) {
-                    await Storage.put("LOADFULLpost" + id.current + ".jpg", img);
-                }
-            }
+            await mmAPI.store("FULLpost" + id.current + ".jpg", image);
+            await mmAPI.store("LOADFULLpost" + id.current + ".jpg", smallImage);
             
-            const result2 = await API.graphql(graphqlOperation(createPost, {
+            const result2 = await mmAPI.mutate({
+                call: calls.CREATE_POST,
                 input: {
                     id: id.current,
                     image: {
@@ -99,7 +87,8 @@ export default function CreatePost({ visible, onClose, currentUser, navigation }
                     longf2: userLocationConverted.longf2,
                     userPostsId: currentUser.id
                 }
-            }));
+
+            });
             if (result2) {
                 setTimeout(function () {
                     Alert.alert("Success", "Post Successfully Created.", [

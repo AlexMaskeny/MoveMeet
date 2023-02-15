@@ -1,6 +1,6 @@
 import React, { useState, useRef, useCallback, useEffect } from 'react';
 import { StyleSheet, View, Image, FlatList, RefreshControl, Alert, ActivityIndicator, TouchableOpacity} from 'react-native';
-import { API, graphqlOperation, Storage, Auth } from 'aws-amplify';
+import { Storage, Auth } from 'aws-amplify';
 import { LinearGradient } from 'expo-linear-gradient';
 import * as Location from 'expo-location';
 import { CommonActions } from '@react-navigation/native';
@@ -12,13 +12,13 @@ import * as logger from '../functions/logger';
 import * as timeLogic from '../functions/timeLogic';
 import * as distance from '../functions/distance';
 import * as locConversion from '../functions/locConversion';
-import { createChat, createChatMembers, getUserByCognito, getDetailedUser, getSimplifiedChat, getUserFriends, listMessagesByTime, updateMessage, updateUser } from '../api/calls';
 import Beam from '../comps/Beam';
 import ProfileCircle from '../comps/ProfileCircle';
 import SubTitle from '../comps/SubTitle';
 import Post from '../comps/Post';
 import SimpleInput from '../comps/SimpleInput';
 import IconButton from '../comps/IconButton';
+import { calls, instances, mmAPI } from '../api/mmAPI';
 
 
 
@@ -61,14 +61,20 @@ export default function OProfilePage({ navigation, route }) {
             try {
                 logger.eLog("[OProfilePage] Fetching User Data...");
                 const cognitoUser = await Auth.currentAuthenticatedUser();
-                const cUserResponse = await API.graphql(graphqlOperation(getUserByCognito, {
-                    id: cognitoUser.attributes.sub
-                }))
-                cUser.current = cUserResponse.data.getUserByCognito;
-                const user = await API.graphql(graphqlOperation(getDetailedUser, {
-                    id: route.params.opposingUser.id
-                }));
-                currentUser.current = user.data.getUser;
+                cUser.current = await mmAPI.query({
+                    call: calls.GET_USER_BY_COGNITO,
+                    instance: "oProfilePage",
+                    input: {
+                        id: cognitoUser.attributes.sub
+                    }
+                })
+                currentUser.current = await mmAPI.query({
+                    call: calls.GET_USER,
+                    instance: instances.FULL,
+                    input: {
+                        id: route.params.opposingUser.id
+                    }
+                });
                 setUsername(currentUser.current.username);
                 setName(currentUser.current.name);
                 setBio(currentUser.current.bio);
@@ -122,114 +128,127 @@ export default function OProfilePage({ navigation, route }) {
         try {
             setLoading(true);
             const userID = cUser.current.id;
-            var userFriends = (await API.graphql(graphqlOperation(getUserFriends, {
-                UserID: userID
-            }))).data.getUser.friends;
+            var userFriends = cUser.current.friends;
             const opposingUserEl = userFriends.findIndex(el => el.friendID == currentUser.current.id);
+
             if (opposingUserEl != -1) {
                 const friend = userFriends[opposingUserEl];
                 if (friend.status == "666") {
                     Alert.alert("This user is blocked.", "You blocked this user. Go into your settings to unblock them.");
                     throw "Blocked";
                 } else {
-                    const last1response = await API.graphql(graphqlOperation(listMessagesByTime, {
-                        limit: 1,
-                        chatMessagesId: friend.chatID
-                    }));
-                    if (last1response.data.listMessagesByTime.items.length > 0) {
-                        var read = last1response.data.listMessagesByTime.items[0].read;
+                    const last1response = await mmAPI.query({
+                        call: calls.LIST_MESSAGES_BY_TIME,
+                        instance: "settingsChat",
+                        input: {
+                            limit: 1,
+                            chatMessagesId: friend.chatID
+                        }
+                    });
+                    if (last1response.items.length > 0) {
+                        var read = last1response.items[0].read;
                         if (!read.includes(userID)) read.push(userID);
-                        await API.graphql(graphqlOperation(updateMessage, {
+                        await mmAPI.mutate({
+                            call: calls.UPDATE_MESSAGE,
                             input: {
-                                id: last1response.data.listMessagesByTime.items[0].id,
+                                id: last1response.items[0].id,
                                 read: read
                             }
-                        }));
+                        })
                         if (userFriends[opposingUserEl].status == "1" || userFriends[opposingUserEl].status == "3") {
                             if (userFriends[opposingUserEl].status == "1") userFriends[opposingUserEl].status = "0";
                             if (userFriends[opposingUserEl].status == "3") userFriends[opposingUserEl].status = "2";
-                            await API.graphql(graphqlOperation(updateUser, {
+                            await mmAPI.mutate({
+                                call: calls.UPDATE_USER,
                                 input: {
                                     id: userID,
                                     friends: userFriends
                                 }
-                            }));
+                            });
                         }
                     }
-                    const chat = await API.graphql(graphqlOperation(getSimplifiedChat, {
-                        id: friend.chatID
-                    }));
-                    if (chat.data.getChat.members.items.length < 2) throw "Blocked 2";
+                    const chat = await mmAPI.query({
+                        call: calls.GET_CHAT,
+                        instance: "loadingPage",
+                        input: {
+                            id: friend.chatID
+                        }
+                    })
+                    if (chat.members.items.length < 2) throw "Blocked 2";
                     navigation.dispatch(CommonActions.navigate({
                         name: "ChatPage",
                         key: friend.chatID,
                         params: {
                             name: currentUser.current.username,
-                            created: chat.data.getChat.createdAt,
+                            created: chat.createdAt,
                             id: friend.chatID,
-                            userChatMembersID: chat.data.getChat.members.items[0].user.id == userID ? chat.data.getChat.members.items[0].id : chat.data.getChat.members.items[1].id,
+                            userChatMembersID: chat.members.items[0].user.id == userID ? chat.members.items[0].id : chat.members.items[1].id,
                             user: cUser.current,
                             private: true
                         }
                     }));
                 }
             } else {
-                const newChat = await API.graphql(graphqlOperation(createChat, {
+                const newChat = await mmAPI.mutate({
+                    call: calls.CREATE_CHAT,
                     input: {
                         enabled: true,
                         private: true,
                     }
-                }));
-                const newChatID = newChat.data.createChat.id;
-                const newMember = await API.graphql(graphqlOperation(createChatMembers, {
+                })
+                const newMember = await mmAPI.mutate({
+                    call: calls.CREATE_CHAT_MEMBERS,
                     input: {
-                        chatID: newChatID,
+                        chatID: newChat.id,
                         userID: userID,
                     }
-                }));
-                await API.graphql(graphqlOperation(createChatMembers, {
+                })
+                await mmAPI.mutate({
+                    call: calls.CREATE_CHAT_MEMBERS,
                     input: {
-                        chatID: newChatID,
+                        chatID: newChat.id,
                         userID: currentUser.current.id,
                     }
-                }));
+                })
+
                 navigation.dispatch(CommonActions.navigate({
                     name: "ChatPage",
-                    key: newChatID,
+                    key: newChat.id,
                     params: {
                         name: currentUser.current.username,
-                        created: newChat.data.createChat.createdAt,
-                        id: newChatID,
-                        userChatMembersID: newMember.data.createChatMembers.id,
+                        created: newChat.createdAt,
+                        id: newChat.id,
+                        userChatMembersID: newMember.id,
                         user: cUser.current,
                         private: true
                     }
                 }));
-                var opposingUserFriends = (await API.graphql(graphqlOperation(getUserFriends, {
-                    UserID: currentUser.current.id
-                }))).data.getUser.friends;
+                var opposingUserFriends = currentUser.current.friends;
                 opposingUserFriends.push({
                     friendID: userID,
-                    chatID: newChatID,
+                    chatID: newChat.id,
                     status: 0,
                 })
                 userFriends.push({
                     friendID: currentUser.current.id,
-                    chatID: newChatID,
+                    chatID: newChat.id,
                     status: 0
                 });
-                await API.graphql(graphqlOperation(updateUser, {
+                await mmAPI.mutate({
+                    call: calls.UPDATE_USER,
                     input: {
                         id: userID,
                         friends: userFriends
                     }
-                }));
-                await API.graphql(graphqlOperation(updateUser, {
+                })
+                await mmAPI.mutate({
+                    call: calls.UPDATE_USER,
                     input: {
                         id: currentUser.current.id,
                         friends: opposingUserFriends
                     }
-                }));
+                })
+
             }
         } catch (error) {
             logger.warn(error);

@@ -12,6 +12,7 @@ import SubTitle from '../comps/SubTitle';
 import * as logger from '../functions/logger';
 import * as perms from '../functions/perms';
 import BeamTitle from '../comps/BeamTitle';
+import { calls, mmAPI } from '../api/mmAPI';
 
 
 //current potential problems:
@@ -49,6 +50,20 @@ export default function LoginPage({navigation}) {
                 logger.log("Login Successful")
                 await perms.getLocation();
                 await perms.getNotifications();
+                const cognitoUser = await Auth.currentAuthenticatedUser();
+                const currentUser = await mmAPI.query({
+                    call: calls.GET_USER_BY_COGNITO,
+                    input: {
+                        id: cognitoUser.attributes.sub
+                    }
+                })
+                await mmAPI.mutate({
+                    call: calls.UPDATE_USER,
+                    input: {
+                        id: currentUser.id,
+                        loggedOut: false,
+                    }
+                })
                 navigation.navigate("LoadingPage") //Actually navigate to loadingpage
             }
         } catch (error) {

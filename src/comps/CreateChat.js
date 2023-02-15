@@ -1,11 +1,10 @@
 import React, { useEffect, useRef, useState } from 'react';
 import { StyleSheet, Modal, View, TouchableWithoutFeedback, Keyboard, Alert} from 'react-native';
 import uuid from "react-native-uuid";
-import { API, Auth, graphqlOperation, Storage } from 'aws-amplify';
+import { Auth } from 'aws-amplify';
 import * as Location from 'expo-location';
 
 import { colors, rules, strings } from '../config';
-import { createChat, createChatMembers, getUserChats, listMessagesByTime, updateChat } from '../api/calls';
 import IconButton from './IconButton';
 import SimpleButton from './SimpleButton';
 import SimpleInput from './SimpleInput';
@@ -16,13 +15,13 @@ import * as logger from '../functions/logger'
 import * as locConversion from '../functions/locConversion';
 import Beam from './Beam';
 import BackgroundEditor from './BackgroundEditor';
+import { calls, mmAPI } from '../api/mmAPI';
 
 
 export default function CreateChat({ visible, onClose, currentUser, navigation }) {
     const cTitleRef = useRef();
     const [loading, setLoading] = useState(false);
     const [loading2, setLoading2] = useState(false);
-    const [numChats, setNumChats] = useState(0);
     const [enabled, setEnabled] = useState(true);
     const [showBack, setShowBack] = useState(false);
     const [cTitle, setcTitle] = useState("");
@@ -33,43 +32,54 @@ export default function CreateChat({ visible, onClose, currentUser, navigation }
     useEffect(() => {
         const initialFunction = async () => {
             try {
-                const result = await API.graphql(graphqlOperation(getUserChats, {
-                    id: currentUser.id
-                }));
+                const result = await mmAPI.query({
+                    call: calls.GET_USER,
+                    instance: "createChat",
+                    input: {
+                        id: currentUser.id
+                    }
+                });
+                
                 var count = 0;
-                for (var i = 0; i < result.data.getUser.chats.items.length; i++) {
-                    const chat = result.data.getUser.chats.items[i].chat;
+                for (var i = 0; i < result.chats.items.length; i++) {
+                    const chat = result.chats.items[i].chat;
                     if ((chat.creator == currentUser.id) && !chat.private && chat.enabled) {
-                        const last3 = await API.graphql(graphqlOperation(listMessagesByTime, {
-                            chatMessagesId: chat.id,
-                            limit: 3
-                        })); 
+                        const last3 = await mmAPI.query({
+                            call: calls.LIST_MESSAGES_BY_TIME,
+                            instance: "createChat",
+                            input: {
+                                chatMessagesId: chat.id,
+                                limit: 3
+                            }
+                        })
                         try {
-                            if ((Date.now() - Date.parse(last3.data.listMessagesByTime.items[0].createdAt)) / 1000 > 60 * 60 * rules.chatDeletionTime) { //if enabled and greater than rules.chatDeletionTime hours old then remove
-                                await API.graphql(graphqlOperation(updateChat, {
+                            if ((Date.now() - Date.parse(last3.items[0].createdAt)) / 1000 > 60 * 60 * rules.chatDeletionTime) { //if enabled and greater than rules.chatDeletionTime hours old then remove
+                                await mmAPI.mutate({
+                                    call: calls.UPDATE_CHAT,
                                     input: {
                                         id: chat.id,
                                         enabled: false
                                     }
-                                }))
+                                });
                                 continue;
                             }
                         } catch (error) { }
                         try {
-                            if (last3.data.listMessagesByTime.items.length == 0 && (Date.now() - Date.parse(chat.createdAt)) / 1000 > 60 * 60 * rules.chatDeletionTime) {
-                                await API.graphql(graphqlOperation(updateChat, {
+                            if (last3.items.length == 0 && (Date.now() - Date.parse(chat.createdAt)) / 1000 > 60 * 60 * rules.chatDeletionTime) {
+                                await mmAPI.mutate({
+                                    call: calls.UPDATE_CHAT,
                                     input: {
                                         id: chat.id,
                                         enabled: false
                                     }
-                                }))
+                                });
                                 continue;
                             }
                         } catch (error) { }
                         count++;
                     }
                 }
-                setNumChats(count);
+                
                 if (count <= rules.maxNumChats) setEnabled(true);
                 else setEnabled(false);
             } catch (error) {
@@ -148,23 +158,11 @@ export default function CreateChat({ visible, onClose, currentUser, navigation }
             const userLocation = await Location.getLastKnownPositionAsync();
             const userLocationConverted = locConversion.toUser(userLocation.coords.latitude, userLocation.coords.longitude);
             if (!cBackground.isColor) {
-                const response = await fetch(cBackground.full);
-                if (response) {
-                    const img = await response.blob();
-                    if (img) {
-                        await Storage.put("FULLchatBackground" + id.current + ".jpg", img);
-                    }
-                }
-                const response2 = await fetch(cBackground.loadFull);
-                if (response2) {
-                    const img = await response2.blob();
-                    if (img) {
-                        await Storage.put("LOADFULLchatBackground" + id.current + ".jpg", img);
-                    }
-                }
-
+                await mmAPI.store("FULLchatBackground" + id.current + ".jpg", cBackground.full);
+                await mmAPI.store("LOADFULLchatBackground" + id.current + ".jpg", cBackground.loadFull);
             }
-            const result2 = await API.graphql(graphqlOperation(createChat, {
+            const result2 = await mmAPI.mutate({
+                call: calls.CREATE_CHAT,
                 input: {
                     id: id.current,
                     background: {
@@ -187,13 +185,15 @@ export default function CreateChat({ visible, onClose, currentUser, navigation }
                     longf1: userLocationConverted.longf1,
                     longf2: userLocationConverted.longf2,
                 }
-            }));
-            const result3 = await API.graphql(graphqlOperation(createChatMembers, {
+            })
+            const result3 = await mmAPI.mutate({
+                call: calls.CREATE_CHAT_MEMBERS,
+                instance: "background",
                 input: {
                     userID: currentUser.id,
                     chatID: id.current,
                 }
-            }));
+            })
             if (result2 && result3) {
                 setTimeout(function () {
                     Alert.alert("Success", "Chat Successfully Created.", [

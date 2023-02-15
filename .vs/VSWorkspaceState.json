@@ -1,16 +1,12 @@
 {
   "ExpandedNodes": [
     "",
-    "\\amplify\\backend",
-    "\\amplify\\backend\\types",
     "\\src",
     "\\src\\api",
-    "\\src\\api\\mutations",
-    "\\src\\api\\queries",
     "\\src\\comps",
     "\\src\\functions",
     "\\src\\pages"
   ],
-  "SelectedNode": "\\src\\api\\mutations\\updateUser.js",
+  "SelectedNode": "\\src\\comps\\ImageMessage.js",
   "PreviewInSolutionExplorer": false
 }

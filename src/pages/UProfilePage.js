@@ -1,19 +1,17 @@
 import React, { useState, useRef, useCallback, useEffect } from 'react';
 import { Keyboard, StyleSheet, TouchableOpacity, View, Image, FlatList, RefreshControl, Alert } from 'react-native';
-import { API, Auth, graphqlOperation, Storage } from 'aws-amplify';
+import { Auth, Storage } from 'aws-amplify';
 import { LinearGradient } from 'expo-linear-gradient';
 import * as Location from 'expo-location';
-import { Ionicons } from '@expo/vector-icons';
 
 import Screen from '../comps/Screen';
 import Loading from '../comps/Loading';
-import { colors, css } from '../config';
+import { colors } from '../config';
 import * as logger from '../functions/logger';
 import * as timeLogic from '../functions/timeLogic';
 import * as distance from '../functions/distance';
 import * as locConversion from '../functions/locConversion';
 import * as media from '../functions/media';
-import { deletePost, getDetailedUserByCognito, updateUser } from '../api/calls';
 import Beam from '../comps/Beam';
 import ProfileCircle from '../comps/ProfileCircle';
 import IconButton from '../comps/IconButton';
@@ -23,9 +21,7 @@ import SimpleInput from '../comps/SimpleInput';
 import CreatePost from '../comps/CreatePost';
 import Settings from '../comps/Settings';
 import BackgroundEditor from '../comps/BackgroundEditor';
-
-
-
+import { calls, instances, mmAPI } from '../api/mmAPI';
 
 export default function UProfilePage({ navigation }) {
     const currentUser = useRef();
@@ -35,7 +31,6 @@ export default function UProfilePage({ navigation }) {
     const [username, setUsername] = useState("");
     const [showBack, setShowBack] = useState(false);
     const [bio, setBio] = useState("");
-    const [email, setEmail] = useState("");
     const [name, setName] = useState("");
     const [profilePicture, setProfilePicture] = useState({});
     const [background, setBackground] = useState({});
@@ -111,11 +106,13 @@ export default function UProfilePage({ navigation }) {
                 const cognitoUser = await Auth.currentAuthenticatedUser();
                 if (cognitoUser) {
                     setUsername(cognitoUser.username);
-                    setEmail(cognitoUser.attributes.email);
-                    const user = await API.graphql(graphqlOperation(getDetailedUserByCognito, {
-                        id: cognitoUser.attributes.sub
-                    }));
-                    currentUser.current = user.data.getUserByCognito;
+                    currentUser.current = await mmAPI.query({
+                        call: calls.GET_USER_BY_COGNITO,
+                        instance: instances.FULL,
+                        input: {
+                            id: cognitoUser.attributes.sub
+                        }
+                    });
                     setName(currentUser.current.name);
                     setBio(currentUser.current.bio);
                     const loadFull = await Storage.get(currentUser.current.profilePicture.loadFull);
@@ -178,37 +175,30 @@ export default function UProfilePage({ navigation }) {
                     text: "Confirm", onPress: async () => {
                         try {
                             if (changedImage) {
-                                const response1 = await fetch(profilePicture.uri);
-                                const response2 = await fetch(profilePicture.loadImage);
-                                const img1 = await response1.blob();
-                                const img2 = await response2.blob();
-                                if (img1 && img2) {
-                                    //console.log(currentUser.current.profilePicture.full);
-                                    if (currentUser.current.profilePicture.full != " ") {
-                                        await Storage.remove(currentUser.current.profilePicture.loadFull);
-                                        await Storage.remove(currentUser.current.profilePicture.full);
-                                        await Storage.put(currentUser.current.profilePicture.full, img1);
-                                        await Storage.put(currentUser.current.profilePicture.loadFull, img2);
-                                    } else {
-                                        await API.graphql(graphqlOperation(updateUser, {
-                                            input: {
-                                                id: currentUser.current.id,
-                                                profilePicture: {
-                                                    full: "FULLprofilePicture" + currentUser.current.id + ".jpg",
-                                                    loadFull: "LOADFULLprofilePicture" + currentUser.current.id + ".jpg",
-                                                    region: "us-east-2",
-                                                    bucket: "proxychatf2d762e9bc784204880374b0ca905be4120629-dev"
-                                                }
+                                await Storage.remove("FULLprofilePicture" + currentUser.current.id + ".jpg");
+                                await Storage.remove("LOADFULLprofilePicture" + currentUser.current.id + ".jpg");
+                                await mmAPI.store("FULLprofilePicture" + currentUser.current.id + ".jpg", profilePicture.uri);
+                                await mmAPI.store("LOADFULLprofilePicture" + currentUser.current.id + ".jpg", profilePicture.loadImage);
+                                if (currentUser.current.profilePicture.full == " ") {
+                                    await mmAPI.mutate({
+                                        call: calls.UPDATE_USER,
+                                        input: {
+                                            id: currentUser.current.id,
+                                            profilePicture: {
+                                                full: "FULLprofilePicture" + currentUser.current.id + ".jpg",
+                                                loadFull: "LOADFULLprofilePicture" + currentUser.current.id + ".jpg",
+                                                region: "us-east-2",
+                                                bucket: "proxychatf2d762e9bc784204880374b0ca905be4120629-dev"
                                             }
-                                        }));
-                                        await Storage.put("FULLprofilePicture" + currentUser.current.id + ".jpg", img1);
-                                        await Storage.put("LOADFULLprofilePicture" + currentUser.current.id + ".jpg", img2);
-                                    }
+                                        }
+                                    });
                                 }
+                                
                             }
                             if (changedBackground) {
                                 if (background.isColor) {
-                                    await API.graphql(graphqlOperation(updateUser, {
+                                    await mmAPI.mutate({
+                                        call: calls.UPDATE_USER,
                                         input: {
                                             id: currentUser.current.id,
                                             background: {
@@ -220,49 +210,44 @@ export default function UProfilePage({ navigation }) {
                                                 color: background.color
                                             }
                                         }
-                                    }))
+                                    });
                                 } else {
-                                    const response1 = await fetch(background.uri);
-                                    const response2 = await fetch(background.loadImage);
-                                    const img1 = await response1.blob();
-                                    const img2 = await response2.blob();
-                                    if (img1 && img2) {
-                                        await Storage.remove(currentUser.current.background.loadFull);
-                                        await Storage.remove(currentUser.current.background.full);
-                                        await Storage.put(currentUser.current.background.full, img1);
-                                        await Storage.put(currentUser.current.background.loadFull, img2);
-                                        await API.graphql(graphqlOperation(updateUser, {
-                                            input: {
-                                                id: currentUser.current.id,
-                                                background: {
-                                                    full: "FULLbackground" + currentUser.current.id + ".jpg",
-                                                    loadFull: "LOADFULLbackground" + currentUser.current.id + ".jpg",
-                                                    region: "us-east-2",
-                                                    bucket: "proxychatf2d762e9bc784204880374b0ca905be4120629-dev",
-                                                    enableColor: false
-                                                }
+                                    await Storage.remove("FULLbackground" + currentUser.current.id + ".jpg");
+                                    await Storage.remove("LOADFULLbackground" + currentUser.current.id + ".jpg");
+                                    await mmAPI.store("FULLbackground" + currentUser.current.id + ".jpg", background.uri);
+                                    await mmAPI.store("LOADFULLbackground" + currentUser.current.id + ".jpg", background.loadImage);
+                                    await mmAPI.mutate({
+                                        call: calls.UPDATE_USER,
+                                        input: {
+                                            id: currentUser.current.id,
+                                            background: {
+                                                full: "FULLbackground" + currentUser.current.id + ".jpg",
+                                                loadFull: "LOADFULLbackground" + currentUser.current.id + ".jpg",
+                                                region: "us-east-2",
+                                                bucket: "proxychatf2d762e9bc784204880374b0ca905be4120629-dev",
+                                                enableColor: false
                                             }
-                                        }));
-
-
-                                    }
+                                        }
+                                    });
                                 }
                             }
                             if (bio != currentUser.current.bio) {
-                                await API.graphql(graphqlOperation(updateUser, {
+                                await mmAPI.mutate({
+                                    call: calls.UPDATE_USER,
                                     input: {
                                         id: currentUser.current.id,
                                         bio: bio,
                                     }
-                                }));
+                                });
                             }
                             if (postsToDelete.length > 0) {
                                 for (var i = 0; i < postsToDelete.length; i++) {
-                                    await API.graphql(graphqlOperation(deletePost, {
+                                    await mmAPI.mutate({
+                                        call: calls.DELETE_POST,
                                         input: {
                                             id: postsToDelete[i]
                                         }
-                                    }));
+                                    });
                                     setPosts(existingItems => {
                                         const result = existingItems.filter(el => el.id != postsToDelete[i])
                                         return [...result];

@@ -34,6 +34,7 @@ export default function SignupPage4({ navigation, route }) {
             var params = {
                 id: route.params.userID,
                 allowNotifications: false,
+                loggedOut: false,
             }
             const result2 = await Notifications.getPermissionsAsync();
             if (result2.granted) {

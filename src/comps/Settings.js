@@ -1,20 +1,15 @@
 import React, { useEffect, useRef, useState } from 'react';
-import { StyleSheet, Modal, View, Alert, TouchableOpacity, ActivityIndicator, ImageBackground, Switch, FlatList} from 'react-native';
-import uuid from "react-native-uuid";
-import { API, Auth, graphqlOperation } from 'aws-amplify';
-import * as Location from 'expo-location';
+import { StyleSheet, Modal, View, Alert, TouchableOpacity, Switch, FlatList} from 'react-native';
+import { Auth } from 'aws-amplify';
 import * as Notifications from 'expo-notifications';
 
-import { colors, css } from '../config';
-import { createChatMembers, getDetailedUserByCognito, getUser, updateUser } from '../api/calls';
+import { colors } from '../config';
 import IconButton from './IconButton';
 import SimpleButton from './SimpleButton';
 import SubTitle from './SubTitle';
-import * as media from '../functions/media';
 import * as logger from '../functions/logger'
-import * as locConversion from '../functions/locConversion';
-import Beam from './Beam';
 import DarkBeam from './DarkBeam';
+import { calls, mmAPI } from '../api/mmAPI';
 
 
 export default function Settings({ visible, onClose, navigation }) {
@@ -31,12 +26,16 @@ export default function Settings({ visible, onClose, navigation }) {
             var blockedUsers = [];
             for (var i = 0; i < currentUser.current.friends.length; i++) {
                 if (currentUser.current.friends[i].status == "666") {
-                    const blockedUser = await API.graphql(graphqlOperation(getUser, {
-                        id: currentUser.current.friends[i].friendID
-                    }))
+                    const blockedUser = await mmAPI.query({
+                        call: calls.GET_USER,
+                        instance: "username",
+                        input: {
+                            id: currentUser.current.friends[i].friendID
+                        }
+                    })
                     blockedUsers.push({
                         id: currentUser.current.friends[i].friendID,
-                        username: blockedUser.data.getUser.username
+                        username: blockedUser.username
                     })
                 }
             }
@@ -51,10 +50,13 @@ export default function Settings({ visible, onClose, navigation }) {
         const initialFunction = async () => {
             try {
                 const cognitoUser = await Auth.currentAuthenticatedUser();
-                const user = await API.graphql(graphqlOperation(getDetailedUserByCognito, {
-                    id: cognitoUser.attributes.sub
-                }));
-                currentUser.current = user.data.getUserByCognito;
+                currentUser.current = await mmAPI.query({
+                    call: calls.GET_USER_BY_COGNITO,
+                    instance: "friendsIDnot",
+                    input: {
+                        id: cognitoUser.attributes.sub
+                    }
+                });
                 setAllowNotifications(currentUser.current.allowNotifications);
                 getBlockedUsers();
             } catch (error) {
@@ -70,13 +72,34 @@ export default function Settings({ visible, onClose, navigation }) {
 
     const logout = async () => {
         try {
+
             setLoading1(true);
-            await API.graphql(graphqlOperation(updateUser, {
+            await mmAPI.mutate({
+                call: calls.UPDATE_USER,
                 input: {
                     id: currentUser.current.id,
                     allowNotifications: false,
+                    loggedOut: true,
                 }
-            }))
+            });
+            const chatMembers = await mmAPI.query({
+                call: calls.GET_CHAT_MEMBERS_BY_IDS,
+                instance: "loadingPage",
+                input: {
+                    userID: currentUser.current.id
+                }
+            });
+            for (var i = 0; i < chatMembers.items.length; i++) {
+                if (!chatMembers.items[i].chat.private) {
+                    await mmAPI.mutate({
+                        call: calls.DELETE_CHAT_MEMBERS,
+                        instance: "background",
+                        input: {
+                            id: chatMembers.items[i].id
+                        }
+                    });
+                }
+            }
             close();
             setLoading1(false);
             await Auth.signOut();
@@ -95,18 +118,20 @@ export default function Settings({ visible, onClose, navigation }) {
                     try {
                         const friendIndex = currentUser.current.friends.findIndex((el) => el.friendID == item.id);
                         currentUser.current.friends[friendIndex].status = "0";
-                        await API.graphql(graphqlOperation(updateUser, {
+                        await mmAPI.mutate({
+                            call: calls.UPDATE_USER,
                             input: {
                                 id: currentUser.current.id,
                                 friends: currentUser.current.friends
                             }
-                        }));
-                        await API.graphql(graphqlOperation(createChatMembers, {
+                        });
+                        await mmAPI.mutate({
+                            call: calls.CREATE_CHAT_MEMBERS,
                             input: {
                                 chatID: currentUser.current.friends[friendIndex].chatID,
                                 userID: currentUser.current.id
                             }
-                        }))
+                        });
                         getBlockedUsers();
                     } catch (error) {
                         logger.warn(error);
@@ -127,22 +152,24 @@ export default function Settings({ visible, onClose, navigation }) {
                         if (!result2.granted) throw "Didn't enable Notifications";
                     }
                     const expoToken = await Notifications.getExpoPushTokenAsync();
-                    await API.graphql(graphqlOperation(updateUser, {
+                    await mmAPI.mutate({
+                        call: calls.UPDATE_USER,
                         input: {
                             id: currentUser.current.id,
                             allowNotifications: true,
                             expoToken: expoToken.data,
                         }
-                    }));
+                    });
                     close();
                     navigation.navigate("LoadingPage");
                 } else {
-                    await API.graphql(graphqlOperation(updateUser, {
+                    await mmAPI.mutate({
+                        call: calls.UPDATE_USER,
                         input: {
                             id: currentUser.current.id,
                             allowNotifications: false,
                         }
-                    }));
+                    });
                 }
                 currentUser.current.allowNotifications = !currentUser.current.allowNotifications;
 

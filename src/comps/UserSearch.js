@@ -1,6 +1,6 @@
 import React, { useState, useRef, useCallback } from 'react';
 import { StyleSheet, Modal, View, TouchableOpacity, FlatList, Dimensions, ActivityIndicator, Image } from 'react-native';
-import { API, graphqlOperation, Storage } from 'aws-amplify';
+import { Storage } from 'aws-amplify';
 
 import * as logger from '../functions/logger';
 import { colors, css, strings } from '../config';
@@ -8,9 +8,8 @@ import BeamTitle from './BeamTitle';
 import IconButton from './IconButton';
 import SimpleInput from './SimpleInput';
 import SubTitle from './SubTitle';
-import { listUsersByUsername } from '../api/calls';
-import SimpleButton from './SimpleButton';
 import { CommonActions } from '@react-navigation/native';
+import { calls, instances, mmAPI } from '../api/mmAPI';
 
 
 
@@ -118,11 +117,15 @@ export default function UserSearch({ visible, onClose, navigation, currentUser }
                                     setLoading(true);
                                     try {
                                         setSentText(text);
-                                        const result = await API.graphql(graphqlOperation(listUsersByUsername, {
-                                            username: text
-                                        }));
-                                        if (result.data.listUsersByUsername.items.length > 0) {
-                                            var data = result.data.listUsersByUsername.items;
+                                        const result = await mmAPI.query({
+                                            call: calls.LIST_USERS_BY_USERNAME,
+                                            instance: instances.LEAST,
+                                            input: {
+                                                username: text
+                                            }
+                                        })
+                                        if (result.items.length > 0) {
+                                            var data = result.items;
                                             data[0].profilePicture.loadFull = await Storage.get(data[0].profilePicture.loadFull);
                                             data[0].profilePicture.full = await Storage.get(data[0].profilePicture.full);
                                             setFoundUsers(data);

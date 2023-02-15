@@ -1,12 +1,11 @@
 import React, { useCallback, useEffect, useRef, useState } from 'react';
 import { View, StyleSheet, FlatList, RefreshControl, ActivityIndicator } from 'react-native';
-import { API, Auth, graphqlOperation, Storage } from 'aws-amplify';
+import { Auth, Storage } from 'aws-amplify';
 import { useFocusEffect } from '@react-navigation/native';
 import { useNetInfo } from "@react-native-community/netinfo";
 
 import Screen from '../comps/Screen';
 import { colors } from '../config';
-import { getUserByCognito, listMessagesByTime, updateMessage, onReceiveMessage, getUserFriends, getChat, updateUser } from '../api/calls';
 import useSubSafe from '../hooks/useSubSafe';
 import * as logger from '../functions/logger';
 import * as timeLogic from '../functions/timeLogic';
@@ -17,6 +16,7 @@ import IconButton from '../comps/IconButton';
 import UserSearch from '../comps/UserSearch';
 import HelpPrivateChatsPage from '../comps/HelpPrivateChatsPage';
 import BugReport from '../comps/BugReport';
+import { calls, instances, mmAPI } from '../api/mmAPI';
 
 export default function PrivateChatsPage({ navigation }) {
     const userChatsSub = useRef([]);
@@ -72,9 +72,14 @@ export default function PrivateChatsPage({ navigation }) {
             try {
                 if (netInfo.isConnected || !ready) {
                     const cognitoUser = await Auth.currentAuthenticatedUser();
-                    currentUser.current = (await API.graphql(graphqlOperation(getUserByCognito, {
-                        id: cognitoUser.attributes.sub
-                    }))).data.getUserByCognito;
+                    currentUser.current = await mmAPI.query({
+                        call: calls.GET_USER_BY_COGNITO,
+                        instance: instances.LEAST,
+                        input: {
+                            id: cognitoUser.attributes.sub
+                        }
+                    });
+                    
                     onRefresh();
                 }
             } catch (error) {
@@ -104,18 +109,27 @@ export default function PrivateChatsPage({ navigation }) {
     const onRefresh = async () => {
         try {
             if (netInfo.isConnected || !ready) {
-                const userFriendsResponse = await API.graphql(graphqlOperation(getUserFriends, {
-                    UserID: currentUser.current.id,
-                }));
+                const userFriendsResponse = await mmAPI.query({
+                    call: calls.GET_USER,
+                    instance: "friends",
+                    input: {
+                        id: currentUser.current.id
+                    }
+                })
                 if (userFriendsResponse) {
-                    var userFriends = userFriendsResponse.data.getUser.friends;
+                    var userFriends = userFriendsResponse.friends;
                     var chatData = [];
                     for (var i = 0; i < userFriends.length; i++) {
+
                         if (userFriends[i].status == "666") continue;
-                        const chatResponse = await API.graphql(graphqlOperation(getChat, {
-                            id: userFriends[i].chatID
-                        }));
-                        var chat = chatResponse.data.getChat;
+                        var chat = await mmAPI.query({
+                            call: calls.GET_CHAT,
+                            instance: instances.FULL,
+                            input: {
+                                id: userFriends[i].chatID
+                            }
+                        })
+
                         chat.friend = userFriends[i];
                         if (chat.members.items.length < 2) continue;
                         if (chat.members.items[0].user.id == currentUser.current.id) { chat.opposingMember = chat.members.items[1]; chat.userChatMembersID = chat.members.items[0].id }
@@ -123,19 +137,23 @@ export default function PrivateChatsPage({ navigation }) {
                         chat.profilePicture = await Storage.get(chat.opposingMember.user.profilePicture.loadFull);
                         chat.createdAt = chat.createdAt.substring(0, 10);
 
-                        const last1 = await API.graphql(graphqlOperation(listMessagesByTime, {
-                            chatMessagesId: chat.id,
-                            limit: 1
-                        }));
+                        const last1 = await mmAPI.query({
+                            call: calls.LIST_MESSAGES_BY_TIME,
+                            instance: "chatsPage",
+                            input: {
+                                chatMessagesId: chat.id,
+                                limit: 1
+                            }
+                        });
                         chat.last1 = [];
                         chat.status = userFriends[i].status;
                         chat.glow = false;
                         chat.latest = "";
                         if (last1) {
-                            chat.last1 = last1.data.listMessagesByTime.items;
-                            if (last1.data.listMessagesByTime.items[0]) {
-                                chat.latest = timeLogic.ago((Date.now() - Date.parse(last1.data.listMessagesByTime.items[0].createdAt)) / 1000);
-                                if (!last1.data.listMessagesByTime.items[0].read.includes(currentUser.current.id)) { chat.glow = true }
+                            chat.last1 = last1.items;
+                            if (last1.items[0]) {
+                                chat.latest = timeLogic.ago((Date.now() - Date.parse(last1.items[0].createdAt)) / 1000);
+                                if (!last1.items[0].read.includes(currentUser.current.id)) { chat.glow = true }
                             }
                         } else throw "[PRIVATECHATSPAGE] onRefresh failed because of an error getting a chat's last1 messages";
                         if (!chat.glow && (userFriends[i].status == "1" || userFriends[i].status == "3")) chat.glow = false;
@@ -143,27 +161,31 @@ export default function PrivateChatsPage({ navigation }) {
                         if (chat.glow) {
                             if (userFriends[i].status == "1") userFriends[i].status = "0";
                             if (userFriends[i].status == "3") userFriends[i].status = "2";
-                            await API.graphql(graphqlOperation(updateUser, {
+                            await mmAPI.mutate({
+                                call: calls.UPDATE_USER,
                                 input: {
                                     id: currentUser.current.id,
                                     friends: userFriends
                                 }
-                            }));
+                            });
                         }
-                        userChatsSub.current.push(API.graphql(graphqlOperation(onReceiveMessage, {
-                            chatMessagesId: chat.id,
-                        })).subscribe({
-                            next: ({ value }) => {
+                        userChatsSub.current.push(mmAPI.subscribe({
+                            call: calls.ON_RECEIVE_MESSAGE,
+                            input: {
+                                chatMessagesId: chat.id,
+                            },
+                            onReceive: ({ value }) => {
                                 logger.eLog("[SUBMANAGER]: userChats notification received.");
                                 messageUpdate(value);
                             },
-                            error: (error) => {
+                            onError: (error) => {
                                 unsubscribeChats();
                                 logger.warn(error);
                                 logger.eWarn("[SUBMANAGER]: Error detected receiving userChats notification. Reconnecting");
                                 setRerender(!rerender);
-                            }
-                        }));
+                            },
+                            sendData: true,
+                        }))
                     }
                     sortChats(chatData);
                     setChats(chatData);
@@ -218,12 +240,13 @@ export default function PrivateChatsPage({ navigation }) {
             if (item.last1.length >= 1) {
                 if (!item.last1[0].read.includes(currentUser.current.id)) {
                     item.last1[0].read.push(currentUser.current.id)
-                    await API.graphql(graphqlOperation(updateMessage, {
+                    await mmAPI.mutate({
+                        call: calls.UPDATE_MESSAGE,
                         input: {
                             id: item.last1[0].id,
                             read: item.last1[0].read
                         }
-                    }))
+                    })
                     item.glow = false
                 }
             }

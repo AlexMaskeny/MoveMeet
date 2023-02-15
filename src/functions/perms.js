@@ -31,7 +31,7 @@ const getNotifications = async () => {
                 input: {
                     id: user.data.getUserByCognito.id,
                     allowNotifications: true,
-                    expoToken: token
+                    expoToken: token.data
                 }
             }))
         } else if (user.data.getUserByCognito.allowNotifications) {
