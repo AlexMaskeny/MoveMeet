@@ -12,8 +12,6 @@ export const full = /* GraphQL */ `
              status
           }
           profilePicture {
-            bucket
-            region
             loadFull
             full
           }
@@ -21,8 +19,32 @@ export const full = /* GraphQL */ `
         createdAt
         updatedAt
         image {
-          bucket
-          region
+          loadFull
+          full
+        }
+        content
+        type
+    }
+  }
+`;
+
+export const chatPage = /* GraphQL */ `
+  subscription OnReceiveMessage($chatMessagesId: String) {
+    onReceiveMessage(chatMessagesId: $chatMessagesId) {
+        id
+        chatMessagesId
+        read
+        user {
+          id
+          username
+          profilePicture {
+            loadFull
+            full
+          }
+        }
+        createdAt
+        updatedAt
+        image {
           loadFull
           full
         }
@@ -42,8 +64,6 @@ export const chatsPage = /* GraphQL */ `
           id
           username
           profilePicture {
-            bucket
-            region
             loadFull
             full
           }

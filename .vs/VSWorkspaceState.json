@@ -3,10 +3,10 @@
     "",
     "\\src",
     "\\src\\api",
-    "\\src\\comps",
-    "\\src\\functions",
+    "\\src\\api\\mutations",
+    "\\src\\hooks",
     "\\src\\pages"
   ],
-  "SelectedNode": "\\src\\comps\\ImageMessage.js",
+  "SelectedNode": "\\src\\pages\\DiscoverPage.js",
   "PreviewInSolutionExplorer": false
 }

@@ -36,7 +36,7 @@ function navigation() {
                 gestureEnabled: false,
             }}
         >
-            <Primary.Screen name="LoadingPage" component={LoadingPage} />
+            <Primary.Screen name="LoadingPage" component={LoadingPage} initialParams={{signOut: false}}/>
             <Primary.Screen name="AuthPage" component={AuthPage} />
             <Primary.Screen name="LoginPage" component={LoginPage} />
             <Primary.Screen name="SignupPage1" component={SignupPage1} />

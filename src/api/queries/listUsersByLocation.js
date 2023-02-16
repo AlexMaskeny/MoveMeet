@@ -15,6 +15,7 @@ export const least = /* GraphQL */ `
         lat
         long
         username
+        loggedOut
         bio
         profilePicture {
             full

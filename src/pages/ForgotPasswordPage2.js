@@ -29,6 +29,7 @@ export default function ForgotPasswordPage2({ navigation, route }) {
             await Auth.signIn(route.params.username, password);
             await perms.getLocation();
             await perms.getNotifications();
+            await perms.signIn();
             navigation.navigate("LoadingPage");
         } catch (error) {
             logger.warn(error);

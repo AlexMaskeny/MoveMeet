@@ -1,7 +1,5 @@
-import React, { useCallback, useState } from 'react';
-import { StyleSheet, Modal, View, TouchableOpacity, FlatList, Dimensions, KeyboardAvoidingView, Keyboard, Image, Alert, Linking } from 'react-native';
-import uuid from "react-native-uuid";
-import { API, graphqlOperation, Storage } from 'aws-amplify';
+import React from 'react';
+import { StyleSheet, Modal, View, TouchableOpacity, Linking } from 'react-native';
 
 import { colors, css, strings } from '../config';
 import IconButton from './IconButton';

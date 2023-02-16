@@ -1,8 +1,8 @@
-import { API, Auth, graphqlOperation } from 'aws-amplify';
+import { Auth } from 'aws-amplify';
 import * as Location from 'expo-location';
 import * as Notifications from 'expo-notifications';
 
-import { getUserByCognito, updateUser } from '../api/calls';
+import { calls, mmAPI } from '../api/mmAPI';
 import * as logger from './logger';
 
 const getLocation = async () => {
@@ -17,9 +17,12 @@ const getLocation = async () => {
 const getNotifications = async () => {
     try {
         const cognitoUser = await Auth.currentAuthenticatedUser();
-        const user = await API.graphql(graphqlOperation(getUserByCognito, {
-            id: cognitoUser.attributes.sub
-        }));
+        const user = await mmAPI.query({
+            call: calls.GET_USER_BY_COGNITO,
+            input: {
+                id: cognitoUser.attributes.sub
+            }
+        })
         const result1 = await Notifications.getPermissionsAsync();
         var result2 = {granted: false};
         if (!result1.granted) {
@@ -27,27 +30,45 @@ const getNotifications = async () => {
         }
         if (result1.granted || result2.granted || result1.ios.status == Notifications.IosAuthorizationStatus.AUTHORIZED) {
             const token = await Notifications.getExpoPushTokenAsync();
-            await API.graphql(graphqlOperation(updateUser, {
+            await mmAPI.mutate({
+                call: calls.UPDATE_USER,
                 input: {
-                    id: user.data.getUserByCognito.id,
+                    id: user.id,
                     allowNotifications: true,
                     expoToken: token.data
                 }
-            }))
-        } else if (user.data.getUserByCognito.allowNotifications) {
-            await API.graphql(graphqlOperation(updateUser, {
-                input: {
-                    id: user.data.getUserByCognito.id,
-                    allowNotifications: false,
-                }
-            }))
+            });
         }
     } catch (error) {
+        logger.eWarn("error getting notification perms");
+        logger.warn(error);
+    }
+}
+
+const signIn = async () => {
+    try {
+        const cognitoUser = await Auth.currentAuthenticatedUser();
+        const user = await mmAPI.query({
+            call: calls.GET_USER_BY_COGNITO,
+            input: {
+                id: cognitoUser.attributes.sub
+            }
+        })
+        await mmAPI.mutate({
+            call: calls.UPDATE_USER,
+            input: {
+                id: user.id,
+                loggedOut: false,
+            }
+        });
+    } catch (error) {
+        logger.eWarn("error updating user loggedout status");
         logger.warn(error);
     }
 }
 
 export {
     getLocation,
-    getNotifications
+    getNotifications,
+    signIn,
 }

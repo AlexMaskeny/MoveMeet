@@ -1,17 +1,17 @@
 import AsyncStorage from '@react-native-async-storage/async-storage';
-import { API, Auth, graphqlOperation } from 'aws-amplify';
+import { Auth } from 'aws-amplify';
 import React, { useRef, useState } from 'react';
 import { StyleSheet, View, TouchableOpacity, Keyboard, Alert } from 'react-native';
 
 import Beam from '../comps/Beam';
 import BeamTitle from '../comps/BeamTitle';
-import { createUser } from '../api/calls';
 import Screen from '../comps/Screen';
 import SimpleButton from '../comps/SimpleButton';
 import SimpleInput from '../comps/SimpleInput';
 import SubTitle from '../comps/SubTitle';
 import { colors, storage } from '../config';
 import * as logger from '../functions/logger';
+import { calls, mmAPI } from '../api/mmAPI';
 
 export default function SignupPage3({ navigation }) {
     const [code, setCode] = useState("");
@@ -30,7 +30,8 @@ export default function SignupPage3({ navigation }) {
             await AsyncStorage.removeItem(storage.UNCONFIRMEDUSER);
             await Auth.signIn(user.username, user.password);
             const currentUser = await Auth.currentAuthenticatedUser();
-            const result = await API.graphql(graphqlOperation(createUser, {
+            const result = await mmAPI.mutate({
+                call: calls.CREATE_USER,
                 input: {
                     allowNotifications: false,
                     bio: " ",
@@ -38,6 +39,7 @@ export default function SignupPage3({ navigation }) {
                     friends: [],
                     name: user.name.length > 0 ? user.name : user.username,
                     username: user.username,
+                    loggedOut: false,
                     profilePicture: {
                         full: " ",
                         loadFull: " ",
@@ -54,8 +56,8 @@ export default function SignupPage3({ navigation }) {
                     },
                     broadcasts: []
                 }
-            }))
-            navigation.navigate("SignupPage4", { cognitoUser: user, userID: result.data.createUser.id });
+            });
+            navigation.navigate("SignupPage4", { cognitoUser: user, userID: result.id });
         } catch (error) {
             if (error.code == "CodeMismatchException")
                 Alert.alert("Wrong Code", "You entered the wrong code.", [{ text: "Try Again" }])

@@ -1,7 +1,6 @@
 import React, { useState } from 'react';
 import { StyleSheet, Modal, View, TouchableOpacity, KeyboardAvoidingView, Keyboard, Alert, Linking} from 'react-native';
 import uuid from "react-native-uuid";
-import { API, graphqlOperation} from 'aws-amplify';
 
 import { colors, css } from '../config';
 import IconButton from './IconButton';
@@ -10,7 +9,7 @@ import { MaterialIcons } from '@expo/vector-icons';
 import SimpleInput from './SimpleInput';
 import SimpleButton from './SimpleButton';
 import * as logger from '../functions/logger';
-import { createReport } from '../api/calls';
+import { calls, mmAPI } from '../api/mmAPI';
 
 export default function ContentReport({ visible, onClose, currentUserId, opposingUserId }) {
     const [description, setDescription] = useState(false);
@@ -27,7 +26,8 @@ export default function ContentReport({ visible, onClose, currentUserId, opposin
             if (description.length > 16) {
                 const id = uuid.v4();
                 const now = new Date(Date.now());
-                await API.graphql(graphqlOperation(createReport, {
+                await mmAPI.mutate({
+                    call: calls.CREATE_REPORT,
                     input: {
                         id: id,
                         description: description,
@@ -36,7 +36,7 @@ export default function ContentReport({ visible, onClose, currentUserId, opposin
                         createdAt: now.toUTCString(),
                         updatedAt: now.toUTCString(),
                     }
-                })) 
+                })
                 Alert.alert("Report Submitted", "You have successfully submitted your report. We will look into this content.");
                 setLoading(false);
                 close()

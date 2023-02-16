@@ -48,6 +48,8 @@ export const rules = {
     locationDismissalRate: 1, //x dismalls per 1 success
     locationUpdateFrequency: 1000, // in ms
     locationDistanceInterval: 0,
+    subSafeInitializationDelay: 2000, //in ms
+    subSafeUpdateTimeout: 1000, // in ms
     maxNumChats: 10,
     pagination: {
         DiscoverPage: 14 //Max number of users per load

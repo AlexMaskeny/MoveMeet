@@ -65,8 +65,6 @@ export const chatsPage = /* GraphQL */ `
               id
               username
               profilePicture {
-                bucket
-                region
                 loadFull
                 full
               }
@@ -97,8 +95,6 @@ export const full = /* GraphQL */ `
               id
               username
               profilePicture {
-                bucket
-                region
                 loadFull
                 full
               }
@@ -106,8 +102,6 @@ export const full = /* GraphQL */ `
             createdAt
             updatedAt
             image {
-              bucket
-              region
               loadFull
               full
             }

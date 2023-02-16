@@ -1,6 +1,4 @@
-import AsyncStorage from '@react-native-async-storage/async-storage';
-import { API, Auth, graphqlOperation, Storage } from 'aws-amplify';
-import React, { useCallback, useRef, useState } from 'react';
+import React, { useState } from 'react';
 import { StyleSheet, View, TouchableOpacity, Keyboard, Alert, ImageBackground, ActivityIndicator } from 'react-native';
 import * as Notifications from 'expo-notifications';
 import * as Location from 'expo-location';
@@ -11,12 +9,12 @@ import Screen from '../comps/Screen';
 import SimpleButton from '../comps/SimpleButton';
 import SimpleInput from '../comps/SimpleInput';
 import SubTitle from '../comps/SubTitle';
-import { colors, css, storage, strings } from '../config';
+import { colors, css, strings } from '../config';
 import * as logger from '../functions/logger'; 
 import * as media from '../functions/media';
-import { updateUser } from '../api/calls';
 import IconButton from '../comps/IconButton';
 import BackgroundEditor from '../comps/BackgroundEditor';
+import { calls, mmAPI } from '../api/mmAPI';
 
 export default function SignupPage4({ navigation, route }) {
     const [bio, setBio] = useState("");
@@ -59,22 +57,8 @@ export default function SignupPage4({ navigation, route }) {
             
             if (bio.length > 0) params = { ...params, bio: bio };
             if (profilePicture) {
-
-                const response1 = await fetch(image.full);
-
-                if (response1) {
-                    const img = await response1.blob();
-                    if (img) {
-                        await Storage.put("FULLprofilePicture" + route.params.userID + ".jpg", img);
-                    }
-                }
-                const response2 = await fetch(image.loadFull);
-                if (response2) {
-                    const img = await response2.blob();
-                    if (img) {
-                        await Storage.put("LOADFULLprofilePicture" + route.params.userID + ".jpg", img);
-                    }
-                }
+                await mmAPI.store("FULLprofilePicture" + route.params.userID + ".jpg", image.full)
+                await mmAPI.store("LOADFULLprofilePicture" + route.params.userID + ".jpg", image.loadFull)
                 params = {
                     ...params,
                     profilePicture: {
@@ -98,29 +82,24 @@ export default function SignupPage4({ navigation, route }) {
                     }
                 }
             } else {
-                const response1 = await fetch(background.full);
-                const response2 = await fetch(background.loadFull);
-                const img1 = await response1.blob();
-                const img2 = await response2.blob();
-                if (img1 && img2) {
-                    await Storage.put("FULLbackground" + route.params.userID + ".jpg", img1);
-                    await Storage.put("LOADFULLbackground" + route.params.userID + ".jpg", img2);
-                    params = {
-                        ...params,
-                        background: {
-                            full: "FULLbackground" + route.params.userID + ".jpg",
-                            loadFull: "LOADFULLbackground" + route.params.userID + ".jpg",
-                            enableColor: false,
-                            color: " ",
-                            bucket: "proxychatf2d762e9bc784204880374b0ca905be4120629-dev",
-                            region: "us-east-2",
-                        }
+                await mmAPI.store("FULLbackground" + route.params.userID + ".jpg", background.full);
+                await mmAPI.store("LOADFULLbackground" + route.params.userID + ".jpg", background.loadFull);
+                params = {
+                    ...params,
+                    background: {
+                        full: "FULLbackground" + route.params.userID + ".jpg",
+                        loadFull: "LOADFULLbackground" + route.params.userID + ".jpg",
+                        enableColor: false,
+                        color: " ",
+                        bucket: "proxychatf2d762e9bc784204880374b0ca905be4120629-dev",
+                        region: "us-east-2",
                     }
-                }
+                }      
             }
-            await API.graphql(graphqlOperation(updateUser, {
+            await mmAPI.mutate({
+                call: calls.UPDATE_USER,
                 input: params
-            }));
+            });
         } catch (error) {
             logger.warn(error);
         } finally {
@@ -144,7 +123,6 @@ export default function SignupPage4({ navigation, route }) {
         setShowBack(false);
         setBackground({ isColor: true, color: color, full: " ", loadFull: " " });
     }
-
 
     const selectImage = async () => {
         try {

@@ -17,7 +17,7 @@ import { calls, instances, mmAPI } from '../api/mmAPI';
 const NO_USER = "The user is not authenticated";
 const NO_PERMS = "No Perms";
 
-export default function LoadingPage({navigation}) {
+export default function LoadingPage({navigation, route}) {
     const loc = useRef();
     const not = useRef();
     const lc = useRef();
@@ -35,7 +35,7 @@ export default function LoadingPage({navigation}) {
         currentUser.current = null;
         try { loc.current.remove() } catch { }
         try { not.current.remove() } catch { }
-        try { clearInteveral(lc.current) } catch { }
+        try { clearInterval(lc.current) } catch { }
         logger.log("Unsubscribed from notification / location updates.");
     };
 
@@ -56,6 +56,37 @@ export default function LoadingPage({navigation}) {
                             id: currentUser.current.attributes.sub
                         }
                     });
+                    if (route.params?.signOut) {
+                        unsubscribe();
+                        await mmAPI.mutate({
+                            call: calls.UPDATE_USER,
+                            input: {
+                                id: user.id,
+                                allowNotifications: false,
+                                loggedOut: true,
+                            }
+                        });
+                        const chatMembers = await mmAPI.query({
+                            call: calls.GET_CHAT_MEMBERS_BY_IDS,
+                            instance: "loadingPage",
+                            input: {
+                                userID: user.id
+                            }
+                        });
+                        for (var i = 0; i < chatMembers.items.length; i++) {
+                            if (!chatMembers.items[i].chat.private) {
+                                await mmAPI.mutate({
+                                    call: calls.DELETE_CHAT_MEMBERS,
+                                    instance: "background",
+                                    input: {
+                                        id: chatMembers.items[i].id
+                                    }
+                                });
+                            }
+                        }
+                        await Auth.signOut();
+                        throw NO_USER;
+                    }
                     const notificationStatus = await Notifications.getPermissionsAsync();
                     if (!notificationStatus.granted && user.allowNotifications) {
                         await mmAPI.mutate({
@@ -97,10 +128,12 @@ export default function LoadingPage({navigation}) {
                                 const iF = async () => {
                                     try {
                                         const netInfo = await NetInfo.fetch();
-                                        if (!netInfo.isInternetReachable) {
+                                        if (!netInfo.isInternetReachable || !netInfo.isConnected) {
                                             i++;
                                             if (i < 4) setTimeout(iF, 1200);
                                         } else {
+                                            currentUser.current = await Auth.currentAuthenticatedUser();
+                                            if (!currentUser.current) throw NO_USER
                                             setTimeout(async () => {
                                                 const chat = await mmAPI.query({
                                                     call: calls.GET_CHAT,
@@ -142,7 +175,12 @@ export default function LoadingPage({navigation}) {
                                             }, 400);
                                         }
                                     } catch (error) {
-                                        logger.warn(error.errors);
+                                        console.warn(error);
+                                        if (error != NO_USER) {
+                                            logger.warn(error.errors);
+                                        } else {
+                                            unsubscribe();
+                                        }
                                     }
                                 }
                                 iF();
@@ -161,13 +199,12 @@ export default function LoadingPage({navigation}) {
                         //var i = 0;
                         loc.current = await Location.watchPositionAsync({ accuracy: rules.locationAccuracy, distanceInterval: rules.locationDistanceInterval, timeInterval: rules.locationUpdateFrequency }, async (location) => {
                             try {
-                                //i++
-                                //if (i % rules.locationDismissalRate == 0) {
                                 currentUser.current = await Auth.currentAuthenticatedUser();
-                                if (currentUser.current) {
+                                if (!currentUser.current) throw NO_USER;
+                                if (location) {
                                     const convertedLocs = locConversion.toUser(location.coords.latitude, location.coords.longitude);
                                     const netInfo = await NetInfo.fetch();
-                                    if (netInfo.isInternetReachable) {
+                                    if (netInfo.isInternetReachable && netInfo.isConnected) {
                                         await mmAPI.mutate({
                                             call: calls.UPDATE_USER,
                                             input: {
@@ -177,7 +214,7 @@ export default function LoadingPage({navigation}) {
                                         });
                                     }
 
-                                } else throw NO_USER
+                                } 
                                 //}
                             } catch (error) {
                                 logger.warn(error);
@@ -191,12 +228,15 @@ export default function LoadingPage({navigation}) {
                         const updateChatMembership = async () => {
                             try {
                                 const netInfo = await NetInfo.fetch();
-                                if (currentUser.current && netInfo.isInternetReachable) {
+                                currentUser.current = await Auth.currentAuthenticatedUser();
+                                if (!currentUser.current) throw NO_USER;
+                                if (netInfo.isInternetReachable && netInfo.isConnected) {
                                     if (Date.now() - locUpdateHandler.current < 10000) return;
                                     locUpdateHandler.current = Date.now();
                                     const allow = await Location.getForegroundPermissionsAsync();
                                     if (!allow.granted) throw NO_PERMS;
                                     const location = await Location.getLastKnownPositionAsync();
+                                    if (!location) return;
                                     const convertedLocs2 = locConversion.toChat(location.coords.latitude, location.coords.longitude);
                                     const newChats = await mmAPI.query({
                                         call: calls.LIST_CHATS_BY_LOCATION,
@@ -266,7 +306,7 @@ export default function LoadingPage({navigation}) {
                                             }
                                         }
                                     }
-                                }
+                                } 
                             } catch (error) {
                                 logger.warn(error);
                                 if (error != NO_USER && error != NO_PERMS) {
@@ -341,7 +381,7 @@ export default function LoadingPage({navigation}) {
         }
 
         initialFunction();
-    },[]));
+    },[route.params?.signOut]));
 
     return (
         <Screen innerStyle={styles.page}>

@@ -37,17 +37,6 @@ export default function SignupPage1({ navigation }) {
                     <SubTitle size={14}>Username must be at least 4 characters</SubTitle>
                     <SubTitle size={14}>Password must be at least 8 characters</SubTitle>
                     <View style={{ height: 20 }} />
-                    {/*<SimpleInput*/}
-                    {/*    reference={nameRef}*/}
-                    {/*    placeholder="Name (optional)"*/}
-                    {/*    autocorrect={false}*/}
-                    {/*    icon="account"*/}
-                    {/*    autoCapitalize="none"*/}
-                    {/*    maxLength={16}*/}
-                    {/*    onChangeText={(text) => {*/}
-                    {/*        setName(text);*/}
-                    {/*    }}*/}
-                    {/*/>*/}
                     <SimpleInput
                         reference={usernameRef}
                         placeholder="Username"

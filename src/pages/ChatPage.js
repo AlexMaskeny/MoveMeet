@@ -1,9 +1,9 @@
 import React, { useCallback, useRef, useState, useEffect } from 'react';
-import { StyleSheet, ActivityIndicator, FlatList, View, KeyboardAvoidingView, Keyboard, Platform } from 'react-native'
+import { StyleSheet, ActivityIndicator, FlatList, View, KeyboardAvoidingView, Keyboard, Platform, Alert } from 'react-native'
 import { useHeaderHeight } from '@react-navigation/elements';
 import { useNetInfo } from '@react-native-community/netinfo';
 import uuid from "react-native-uuid";
-import { API, graphqlOperation, Storage } from 'aws-amplify';
+import { Storage } from 'aws-amplify';
 import { useFocusEffect } from '@react-navigation/native';
 import * as Notifications from 'expo-notifications';
 import ImageView from 'react-native-image-viewing';
@@ -18,11 +18,11 @@ import SubTitle from '../comps/SubTitle';
 import ImageInput from '../comps/ImageInput';
 import ImageMessage from '../comps/ImageMessage';
 import ProfileCircle from '../comps/SpinningProfileCircle';
-import { listMessagesByTime, onReceiveMessage, onUserRemoved, onUserTyping, updateMessage, updateTyping, createMessage } from '../api/calls';
 import * as logger from '../functions/logger';
 import * as media from '../functions/media';
 import * as timeLogic from '../functions/timeLogic';
-import useSubSafe from '../hooks/useSubSafe';
+import { calls, mmAPI } from '../api/mmAPI';
+
 
 //Now we just need to incorperate a nolongermember alert
 export default function ChatPage({ route, navigation }) {
@@ -37,9 +37,8 @@ export default function ChatPage({ route, navigation }) {
     const messageReceptionSub = useRef();
     const nonUserMemberSub = useRef();
     const userMemberSub = useRef();
+    const subSafeSub = useRef();
     const memberStatusTracker = useRef(new Map);
-
-    const [keyboardShown, setKeyboardShown] = useState(false);
 
     const [nextToken, setNextToken] = useState("i2");
     const [noLongerMember, setNoLongerMember] = useState(false);
@@ -81,6 +80,10 @@ export default function ChatPage({ route, navigation }) {
                 shouldSetBadge: false,
             }),
         });
+        try {
+            subSafeSub.current();
+            logger.eLog("[SUBMANAGER] ChatPage subSafe subscription closed");
+        } catch (error) { logger.eLog("The sub safe has yet to be enabled.") }
         if (timeClockSub.current) clearInterval(timeClockSub.current);
         timeClockSub.current = setInterval(updateTime, 10000);
         logger.eLog("[SUBMANAGER] ChatPage timeClock subscription open.");
@@ -88,43 +91,52 @@ export default function ChatPage({ route, navigation }) {
         //MESSAGE RECEPTION
         logger.eLog("[SUBMANAGER] ChatPage messageReception subscription open.");
         if (messageReceptionSub.current) messageReceptionSub.current.unsubscribe();
-        messageReceptionSub.current = API.graphql(graphqlOperation(onReceiveMessage, {
-            chatMessagesId: route.params.id,
-        })).subscribe({
-            next: ({ value }) => {
-                if (value.data.onReceiveMessage.user.id != route.params.user.id) {
-                    clearTimeout(memberStatusTracker.current.get(value.data.onReceiveMessage.user.id));
-                    memberStatusTracker.current.delete(value.data.onReceiveMessage.user.id);
+        messageReceptionSub.current = mmAPI.subscribe({
+            call: calls.ON_RECEIVE_MESSAGE,
+            instance: "chatPage",
+            input: {
+                chatMessagesId: route.params.id,
+            },
+            sendData: true,
+            onReceive: (data) => {
+                if (data.user.id != route.params.user.id) {
+                    clearTimeout(memberStatusTracker.current.get(data.user.id));
+                    memberStatusTracker.current.delete(data.user.id);
                     setMembers(existingMembers => {
-                        return existingMembers.filter(Member => Member.id != value.data.onReceiveMessage.user.id);
+                        return existingMembers.filter(Member => Member.id != data.user.id);
                     })
 
-                    var message = value.data.onReceiveMessage;
+                    var message = data;
                     message.createdAt = Date.parse(message.createdAt);
                     addMessage(message);
                     readMessage(message);
                 }
             },
-            error: (error) => {
+            onError: (error) => {
                 if (messageReceptionSub.current) messageReceptionSub.current.unsubscribe();
                 logger.warn(error);
                 logger.eWarn("[SUBMANAGER]: Error detected receiving a message notification. Reconnecting...");
             }
+
         });
 
         //MEMBER MANAGEMENT FOR TYPING
         logger.eLog("[SUBMANAGER] ChatPage nonUserMember subscription open.");
         if (nonUserMemberSub.current) nonUserMemberSub.current.unsubscribe();
         if (memberStatusTracker.current.size > 0) memberStatusTracker.current.clear();
-        nonUserMemberSub.current = API.graphql(graphqlOperation(onUserTyping, {
-            chatID: route.params.id
-        })).subscribe({
-            next: ({ value }) => {
-                if (value.data.onUserTyping.user.id != route.params.user.id && value.data.onUserTyping.status == 4) {
+        nonUserMemberSub.current = mmAPI.subscribe({
+            call: calls.ON_USER_TYPING,
+            instance: "full",
+            input: {
+                chatID: route.params.id
+            },
+            sendData: true,
+            onReceive: (data) => {
+                if (data.user.id != route.params.user.id && data.status == 4) {
 
                     setMembers(existingData => {
-                        const existingMember = existingData.findIndex((el) => el.id == value.data.onUserTyping.user.id);
-                        var member = value.data.onUserTyping;
+                        const existingMember = existingData.findIndex((el) => el.id == data.user.id);
+                        var member = data;
                         getProfilePicture(member);
                         if (existingMember == -1) {
                             existingData = [...existingData, { id: member.user.id, picture: member.picture }];
@@ -149,29 +161,38 @@ export default function ChatPage({ route, navigation }) {
                     });
                 }
             },
-            error: (error) => {
+            onError: (error) => {
                 if (nonUserMemberSub.current) nonUserMemberSub.current.unsubscribe();
                 logger.warn(error);
                 logger.eLog("[SUBMANAGER]: Error detected receiving a chat member update in a ChatPage. Reconnecting...");
             }
-        });
+        })
+
         //MEMBER MANAGEMENT TO DECIDE TO ALLOW USER TO CONTINUE
         logger.eLog("[SUBMANAGER] ChatPage userMember subscription open.");
         if (userMemberSub.current) userMemberSub.current.unsubscribe();
-        userMemberSub.current = API.graphql(graphqlOperation(onUserRemoved, {
-            chatID: route.params.id,
-            userID: route.params.user.id
-        })).subscribe({
-            next: () => setNoLongerMember(!noLongerMember),
-            error: (error) => {
+        userMemberSub.current = mmAPI.subscribe({
+            call: calls.ON_USER_REMOVED,
+            instance: "empty",
+            input: {
+                chatID: route.params.id,
+                userID: route.params.user.id
+            },
+            onReceive: () => setNoLongerMember(!noLongerMember),
+            onError: (error) => {
                 if (userMemberSub.current) userMemberSub.current.unsubscribe();
                 logger.warn(error);
-                logger.eLog("[SUBMANAGER]: Error detected receiving a user status update in a ChatPage. Reconnecting...");
-            }
+                logger.eLog("[SUBMANAGER]: Error detected receiving a user status update in a ChatPage.");
+           }
         })
 
+        subSafeSub.current = mmAPI.subSafe(() => setRerender(!rerender));
         getMoreMessages({ initial: true });
         return () => {
+            try {
+                subSafeSub.current();
+                logger.eLog("[SUBMANAGER] ChatPage subSafe subscription closed");
+            } catch (error) { }
             try {
                 clearInputs();
                 setNoLongerMember(false);
@@ -211,16 +232,17 @@ export default function ChatPage({ route, navigation }) {
             } catch (error) { }
         }
     }, [rerender, navigation, route]));
-    useSubSafe(() => setRerender(!rerender));
+
     const readMessage = async (message) => {
         if (message.read.includes(route.params.user.id)) return;
         try {
-            await API.graphql(graphqlOperation(updateMessage, {
+            await mmAPI.mutate({
+                call: calls.UPDATE_MESSAGE,
                 input: {
                     id: message.id,
                     read: [...message.read, route.params.user.id]
                 }
-            }))
+            });
         } catch (error) {
             logger.warn("Error alerting server that user read message");
             logger.warn(error);
@@ -240,15 +262,19 @@ export default function ChatPage({ route, navigation }) {
         if (!tokenExists({initial})) return;
         const token = initial ? null : nextToken;
         try {
-            const messagesResponse = await API.graphql(graphqlOperation(listMessagesByTime, {
-                chatMessagesId: route.params.id,
-                nextToken: token,
-                limit: 18
-            }));
-            if (messagesResponse.data.listMessagesByTime.items.length > 0) {
+            const messagesResponse = await mmAPI.query({
+                call: calls.LIST_MESSAGES_BY_TIME,
+                instance: "full",
+                input: {
+                    chatMessagesId: route.params.id,
+                    nextToken: token,
+                    limit: 18
+                }
+            })
+            if (messagesResponse.items.length > 0) {
                 lastToken.current = nextToken;
-                setNextToken(messagesResponse.data.listMessagesByTime.nextToken);
-                var messages = [...messagesResponse.data.listMessagesByTime.items];
+                setNextToken(messagesResponse.nextToken);
+                var messages = [...messagesResponse.items];
                 if (initial) readMessage(messages[0]);
                 for (var i = 0; i < messages.length; i++) {
                     messages[i].createdAt = Date.parse(messages[i].createdAt);
@@ -282,7 +308,10 @@ export default function ChatPage({ route, navigation }) {
     //MUTATION FUNCTIONS
     const send = async () => {
         //RESETTING INPUT
-        if (!netInfo.isConnected) return;
+        if (!netInfo.isConnected) {
+            Alert.alert("Connection Problem", "It looks like you aren't connected to the internet. You must be to send messages.");
+            return;
+        }
         clearInputs();
 
         var message = {
@@ -320,7 +349,9 @@ export default function ChatPage({ route, navigation }) {
             }}
         }
         try {
-            const result = await API.graphql(graphqlOperation(createMessage, {
+            const result = await mmAPI.mutate({
+                call: calls.CREATE_MESSAGE,
+                instance: "full",
                 input: {
                     id: message.id,
                     userMessagesId: route.params.user.id,
@@ -330,28 +361,16 @@ export default function ChatPage({ route, navigation }) {
                     read: message.read,
                     ...image
                 }
-            }));
+            })
             if (message.type == "Image") {
-                const response1 = await fetch(selectedImage);
-                if (response1) {
-                    const img = await response1.blob();
-                    if (img) {
-                        await Storage.put("FULLMESSAGE" + message.id + ".jpg", img);
-                    }
-                }
-                const response2 = await fetch(selectedSmallImage);
-                if (response2) {
-                    const img = await response2.blob();
-                    if (img) {
-                        await Storage.put("LOADFULLMESSAGE" + message.id + ".jpg", img);
-                    }
-                }
+                mmAPI.store("FULLMESSAGE" + message.id + ".jpg", selectedImage);
+                mmAPI.store("LOADFULLMESSAGE" + message.id + ".jpg", selectedSmallImage);
             }
             if (result) {
                 setData(existingData => {
                     existingData[existingData.length - lengthAtCreation].undelivered = false;
-                    existingData[existingData.length - lengthAtCreation].date = timeLogic.noAgo((Date.now() - Date.parse(result.data.createMessage.createdAt)) / 1000);
-                    existingData[existingData.length - lengthAtCreation].createdAt = Date.parse(result.data.createMessage.createdAt);
+                    existingData[existingData.length - lengthAtCreation].date = timeLogic.noAgo((Date.now() - Date.parse(result.createdAt)) / 1000);
+                    existingData[existingData.length - lengthAtCreation].createdAt = Date.parse(result.createdAt);
                     return [...existingData];
                 })
             }
@@ -383,8 +402,9 @@ export default function ChatPage({ route, navigation }) {
     }
 
     //UPDATING CHATLIST FUNCTIONS
-    const addMessage = async (message) => {
+    const addMessage = async (data) => {
         try {
+            var message = data;
             await getProfilePicture(message);
 
             //Resolving the datetime 
@@ -392,7 +412,7 @@ export default function ChatPage({ route, navigation }) {
 
             //Setting the data
             if (message.type == "Image") { //ADD IMAGE MESSAGE
-                getMessageImage(message);
+                await getMessageImage(message);
                 setData(existingData => {
                     existingData.unshift(message);
                     return [...existingData];
@@ -424,12 +444,14 @@ export default function ChatPage({ route, navigation }) {
         if (text.length <= 16) setButtonsMinimized(false);
         try {
             if (text.length > 0) {
-                API.graphql(graphqlOperation(updateTyping, {
+                mmAPI.mutate({
+                    call: calls.UPDATE_CHAT_MEMBERS,
+                    instance: "updateTyping",
                     input: {
                         id: route.params.userChatMembersID,
                         status: 4
                     }
-                }));
+                });
             }
         } catch (error) {
             logger.warn(error);
@@ -537,15 +559,15 @@ export default function ChatPage({ route, navigation }) {
         <View style={{ width: 10 }} />
         <IconButton icon="duplicate" brand="Ionicons" color={colors.text3} size={34} style={{ marginBottom: 6, }} onPress={() => media.openPhotos((item) => { setSelectedImage(item.full), setMsgIsImage(true), setSelectedSmallImage(item.loadFull) })} />
         <View style={{ width: 10 }} />
-        <IconButton icon="md-chevron-down-circle" brand="Ionicons" color={colors.text3} style={{ marginBottom: 6 }} size={34} onPress={() => { Keyboard.dismiss(); setKeyboardShown(false) }} />     
+        <IconButton icon="md-chevron-down-circle" brand="Ionicons" color={colors.text3} style={{ marginBottom: 6 }} size={34} onPress={() => { Keyboard.dismiss() }} />     
     </>)
     const RenderButtonsMinimized = () => (<IconButton icon="md-chevron-forward-circle" brand="Ionicons" color={colors.text3} style={{ marginBottom: 6 }} size={34} onPress={() => setButtonsMinimized(false)} />)
     const RenderTextInput = useCallback(() => (
         <SimpleInput
             reference={textInputRef}
             placeholder="Say something"
-            onFocus={() => { chatListRef.current.scrollToOffset({ offset: 0 }); setKeyboardShown(true) }}
-            onPressIn={() => { chatListRef.current.scrollToOffset({ offset: 0 }); setKeyboardShown(true) }}
+            onFocus={() => { chatListRef.current.scrollToOffset({ offset: 0 }) }}
+            onPressIn={() => { chatListRef.current.scrollToOffset({ offset: 0 }) }}
             cStyle={{ overflow: "hidden", flex: 1, borderRadius: 20 }}
             tStyle={styles.message}
             multiline={true}
@@ -593,7 +615,7 @@ export default function ChatPage({ route, navigation }) {
                 images={[{ uri: previewImage }]}
                 imageIndex={0}
                 visible={showPreviewImage}
-                onRequestClose={() => { setShowPreviewImage(false); setKeyboardShown(false) }}
+                onRequestClose={() => { setShowPreviewImage(false) }}
             />
         </Screen>
 

@@ -8,7 +8,6 @@ import * as Location from 'expo-location';
 import Screen from '../comps/Screen';
 import Chat from '../comps/Chat';
 import { colors, rules } from '../config';
-import useSubSafe from '../hooks/useSubSafe';
 import * as logger from '../functions/logger';
 import * as locConversion from '../functions/locConversion';
 import * as timeLogic from '../functions/timeLogic';
@@ -27,11 +26,11 @@ export default function ChatsPage({ navigation }) {
     const userChatsSub = useRef([]);
     const timeClockSub = useRef();
     const currentUser = useRef();
+    const subSafeSub = useRef();
 
     const [refresh, setRefresh] = useState(false);
     const [ready, setReady] = useState(false);
     const [locEnabled, setLocEnabled] = useState(true);
-    const [rerender, setRerender] = useState(false);
     const [chats, setChats] = useState([]);
     const [showCreate, setShowCreate] = useState(false);
     const [showHelp, setShowHelp] = useState(false);
@@ -84,24 +83,23 @@ export default function ChatsPage({ navigation }) {
                         }
                     })
                     currentUser.current.profilePicture.loadFull = await Storage.get(currentUser.current.profilePicture.loadFull);
-                    if (memberStatusSub.current) memberStatusSub.current.unsubscribe();
+                    memberStatusSub?.current?.unsubscribe();
                     memberStatusSub.current = mmAPI.subscribe({
                         call: calls.ON_MEMBER_STATUS_CHANGE,
-                        instance: instances.EMPTY,
+                        instance: "chatsPage",
                         input: {
                             userID: currentUser.current.id
                         },
                         onReceive: () => {
                             logger.eLog("[SUBMANAGER]: onMemberStatusChange notification received.");
-                            onRefresh();                            
+                            onRefresh();
                         },
                         onError: (error) => {
-                            if (memberStatusSub.current) memberStatusSub.current.unsubscribe();
+                            memberStatusSub?.current?.unsubscribe();
                             logger.warn(error);
                             logger.eWarn("[SUBMANAGER]: Error detected receiving onMemberStatusChange notification. Reconnecting...");
-                            setRerender(!rerender);
                         }
-                    })
+                    });
                     onRefresh();
                 }
             } catch (error) {
@@ -111,6 +109,10 @@ export default function ChatsPage({ navigation }) {
         initialFunction();
         logger.eLog("[SUBMANAGER] onMemberStatusChange subscription begun.")
         return () => {
+            try {
+                subSafeSub.current();
+                logger.eLog("[SUBMANAGER] ChatsPage subSafe subscription closed");
+            } catch (error) { }
             try {
                 clearInterval(timeClockSub.current);
                 logger.eLog("[SUBMANAGER] ChatsPage timeClock subscription closed.");
@@ -123,8 +125,7 @@ export default function ChatsPage({ navigation }) {
                 unsubscribeChats();
             } catch (error) { }
         }
-    }, [rerender]));
-    useSubSafe(onRefresh);
+    }, []));
     const unsubscribeChats = () => {
         for (var i = 0; i < userChatsSub.current.length; i++) {
             userChatsSub.current[i].unsubscribe();
@@ -138,6 +139,10 @@ export default function ChatsPage({ navigation }) {
             if (netInfo.isConnected || !ready) {
                 const locPerm = await Location.getForegroundPermissionsAsync();
                 unsubscribeChats();
+                try {
+                    subSafeSub.current();
+                    logger.eLog("[SUBMANAGER] ChatsPage subSafe subscription closed");
+                } catch (error) { logger.eLog("The sub safe has yet to be enabled.") }
                 if (locPerm.granted) {
                     const userLocation = await Location.getLastKnownPositionAsync();
                     const userLocationConverted = locConversion.toChat(userLocation.coords.latitude, userLocation.coords.longitude);
@@ -229,7 +234,7 @@ export default function ChatsPage({ navigation }) {
                             chat.userChatMembersID = chat.members.items[userChatMembersIDIndex].id;
                             if (chat.userChatMembersID == -1) {
                                 logger.warn("Userchat member not found in userchat...");
-                                //setRerender(true);
+
                             }
                             for (var j = 0; j < chat.numMembers; j++) {
                                 const picture = await Storage.get(chat.members.items[j].user.profilePicture.loadFull);
@@ -243,15 +248,15 @@ export default function ChatsPage({ navigation }) {
                                 input: {
                                     chatMessagesId: chat.id,
                                 },
-                                onReceive: ({ value }) => {
+                                onReceive: (data) => {
                                     logger.eLog("[SUBMANAGER]: userChats notification received.");
-                                    messageUpdate(value);
+                                    messageUpdate(data);
                                 },
                                 onError: (error) => {
                                     unsubscribeChats();
                                     logger.warn(error);
                                     logger.eWarn("[SUBMANAGER]: Error detected receiving userChats notification. Reconnecting");
-                                    setRerender(!rerender);
+
                                 },
                                 sendData: true
                             }));
@@ -259,6 +264,8 @@ export default function ChatsPage({ navigation }) {
                         setCheckingForUsers(false);
                         sortChats(chatData);
                         setChats(chatData);
+                        subSafeSub.current = mmAPI.subSafe(() => onRefresh());
+                        logger.eLog("subSafe enabled");
                     } else throw "[CHATSPAGE] onRefresh failed because of an error getting userChats."
                 } else {
                     setLocEnabled(false);
@@ -273,7 +280,7 @@ export default function ChatsPage({ navigation }) {
         } finally {
             setReady(true);
             setRefresh(false);
-            logger.eLog("Finished Refreshing");
+            logger.eLog("Finished Refreshing ChatsPage");
         }
     }
     //HELPER FUNCTIONS
@@ -283,16 +290,14 @@ export default function ChatsPage({ navigation }) {
         }
     }
     const messageUpdate = async (data) => {
-        const value = data.data.onReceiveMessage;
-
         setChats(existingItems => {
             var Chats = [...existingItems];
-            const index = Chats.findIndex(el => el.id == value.chatMessagesId);
+            const index = Chats.findIndex(el => el.id == data.chatMessagesId);
             if (Chats[index].last3) {
-                Chats[index].last3.unshift(value);
+                Chats[index].last3.unshift(data);
                 if (Chats[index].last3.length > 3) Chats[index].last3.splice(-1);
                 Chats[index].latest = "Now";
-                if (value.user.id != currentUser.current.id) Chats[index].glow = true;
+                if (data.user.id != currentUser.current.id) Chats[index].glow = true;
             }
             sortChats(Chats);
             return [...Chats];

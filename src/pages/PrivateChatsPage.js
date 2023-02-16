@@ -6,7 +6,6 @@ import { useNetInfo } from "@react-native-community/netinfo";
 
 import Screen from '../comps/Screen';
 import { colors } from '../config';
-import useSubSafe from '../hooks/useSubSafe';
 import * as logger from '../functions/logger';
 import * as timeLogic from '../functions/timeLogic';
 import NoChatsAlert from '../comps/NoChatsAlert';
@@ -22,6 +21,7 @@ export default function PrivateChatsPage({ navigation }) {
     const userChatsSub = useRef([]);
     const timeClockSub = useRef();
     const currentUser = useRef();
+    const subSafeSub = useRef();
 
     const [refresh, setRefresh] = useState(false);
     const [ready, setReady] = useState(false);
@@ -79,7 +79,6 @@ export default function PrivateChatsPage({ navigation }) {
                             id: cognitoUser.attributes.sub
                         }
                     });
-                    
                     onRefresh();
                 }
             } catch (error) {
@@ -89,6 +88,10 @@ export default function PrivateChatsPage({ navigation }) {
         initialFunction();
         return () => {
             try {
+                subSafeSub.current();
+                logger.eLog("[SUBMANAGER] PrivateChatsPage subSafe subscription closed");
+            } catch (error) { }
+            try {
                 clearInterval(timeClockSub.current);
                 logger.eLog("[SUBMANAGER] PrivateChatsPage timeClock subscription closed.");
             } catch (error) { }
@@ -97,7 +100,6 @@ export default function PrivateChatsPage({ navigation }) {
             } catch (error) { }
         }
     }, [rerender]));
-    useSubSafe(onRefresh);
     const unsubscribeChats = () => {
         for (var i = 0; i < userChatsSub.current.length; i++) {
             userChatsSub.current[i].unsubscribe();
@@ -109,6 +111,11 @@ export default function PrivateChatsPage({ navigation }) {
     const onRefresh = async () => {
         try {
             if (netInfo.isConnected || !ready) {
+                unsubscribeChats();
+                try {
+                    subSafeSub.current();
+                    logger.eLog("[SUBMANAGER] PrivateChatsPage subSafe subscription closed");
+                } catch (error) { }
                 const userFriendsResponse = await mmAPI.query({
                     call: calls.GET_USER,
                     instance: "friends",
@@ -174,9 +181,9 @@ export default function PrivateChatsPage({ navigation }) {
                             input: {
                                 chatMessagesId: chat.id,
                             },
-                            onReceive: ({ value }) => {
+                            onReceive: (data) => {
                                 logger.eLog("[SUBMANAGER]: userChats notification received.");
-                                messageUpdate(value);
+                                messageUpdate(data);
                             },
                             onError: (error) => {
                                 unsubscribeChats();
@@ -196,23 +203,24 @@ export default function PrivateChatsPage({ navigation }) {
         } finally {
             setReady(true);
             setRefresh(false);
-            logger.eLog("Finished Refreshing PrivateChatsPage");
+            logger.eLog("Finished Refreshing PrivateChatsPage, enabling subSafe");
+            subSafeSub.current = mmAPI.subSafe(() => onRefresh());
+            logger.eLog("subSafe enabled");
         }
     }
 
     const messageUpdate = async (data) => {
-        const value = data.data.onReceiveMessage;
         setChats(existingItems => {
             var Chats = [...existingItems];
-            const index = Chats.findIndex(el => el.id == value.chatMessagesId);
+            const index = Chats.findIndex(el => el.id == data.chatMessagesId);
             if (index == -1) {
                 unsubscribeChats();
                 onRefresh();
 
             } else {
                 Chats[index].latest = "Now";
-                Chats[index].last1 = [value];  
-                if (value.user.id != currentUser.current.id) Chats[index].glow = true;
+                Chats[index].last1 = [data];  
+                if (data.user.id != currentUser.current.id) Chats[index].glow = true;
             }
             return [...Chats];
 

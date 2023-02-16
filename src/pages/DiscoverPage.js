@@ -111,7 +111,7 @@ export default function DiscoverPage({ navigation, route }) {
                         var userData = [];
                         for (var i = 0; i < nearbyUsers.length; i++) {
                             var user = nearbyUsers[i];
-                            if (user.id == currentUser.current.id) continue;
+                            if (user.id == currentUser.current.id || user.loggedOut) continue;
                             user.dis = distance.raw(user.lat, user.long, userLocationConverted.lat, userLocationConverted.long);
                             if (user.dis > 1000) continue;
                             userData.push(user);

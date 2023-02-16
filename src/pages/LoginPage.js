@@ -47,23 +47,10 @@ export default function LoginPage({navigation}) {
         try {
             const response = await Auth.signIn(user, pass);
             if (response) {
-                logger.log("Login Successful")
                 await perms.getLocation();
                 await perms.getNotifications();
-                const cognitoUser = await Auth.currentAuthenticatedUser();
-                const currentUser = await mmAPI.query({
-                    call: calls.GET_USER_BY_COGNITO,
-                    input: {
-                        id: cognitoUser.attributes.sub
-                    }
-                })
-                await mmAPI.mutate({
-                    call: calls.UPDATE_USER,
-                    input: {
-                        id: currentUser.id,
-                        loggedOut: false,
-                    }
-                })
+                await perms.signIn();
+                logger.log("Login Successful")
                 navigation.navigate("LoadingPage") //Actually navigate to loadingpage
             }
         } catch (error) {

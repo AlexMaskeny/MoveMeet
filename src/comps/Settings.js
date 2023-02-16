@@ -15,7 +15,6 @@ import { calls, mmAPI } from '../api/mmAPI';
 export default function Settings({ visible, onClose, navigation }) {
     const currentUser = useRef();
 
-    const [loading1, setLoading1] = useState(false);
     const [loading2, setLoading2] = useState(false);
 
     const [allowNotifications, setAllowNotifications] = useState(false);
@@ -71,43 +70,8 @@ export default function Settings({ visible, onClose, navigation }) {
     }
 
     const logout = async () => {
-        try {
-
-            setLoading1(true);
-            await mmAPI.mutate({
-                call: calls.UPDATE_USER,
-                input: {
-                    id: currentUser.current.id,
-                    allowNotifications: false,
-                    loggedOut: true,
-                }
-            });
-            const chatMembers = await mmAPI.query({
-                call: calls.GET_CHAT_MEMBERS_BY_IDS,
-                instance: "loadingPage",
-                input: {
-                    userID: currentUser.current.id
-                }
-            });
-            for (var i = 0; i < chatMembers.items.length; i++) {
-                if (!chatMembers.items[i].chat.private) {
-                    await mmAPI.mutate({
-                        call: calls.DELETE_CHAT_MEMBERS,
-                        instance: "background",
-                        input: {
-                            id: chatMembers.items[i].id
-                        }
-                    });
-                }
-            }
-            close();
-            setLoading1(false);
-            await Auth.signOut();
-            navigation.navigate("LoginPage");
-            logger.log("Signed User Out");
-        } catch (error) {
-            logger.warn(error);
-        }
+        close();
+        navigation.navigate("LoadingPage", { signOut: true });
     }
 
     const removeBlocked = (item) => {
