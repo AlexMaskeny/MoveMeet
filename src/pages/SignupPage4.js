@@ -2,6 +2,7 @@ import React, { useState } from 'react';
 import { StyleSheet, View, TouchableOpacity, Keyboard, Alert, ImageBackground, ActivityIndicator } from 'react-native';
 import * as Notifications from 'expo-notifications';
 import * as Location from 'expo-location';
+import NetInfo from "@react-native-community/netinfo";
 
 import Beam from '../comps/Beam';
 import BeamTitle from '../comps/BeamTitle';
@@ -27,6 +28,12 @@ export default function SignupPage4({ navigation, route }) {
     const Submit = async () => {
         try {
             setLoading(true);
+            const netInfo = await NetInfo.fetch();
+            if (!netInfo.isConnected) {
+                Alert.alert("No Connection", "You must be connected to the internet to signup.");
+                setLoading(false);
+                return;
+            }
             const result1 = await Location.getForegroundPermissionsAsync();
             if (!result1.granted) await Location.requestForegroundPermissionsAsync();
             var params = {

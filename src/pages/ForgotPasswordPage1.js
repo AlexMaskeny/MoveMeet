@@ -2,6 +2,7 @@ import React, {  useRef, useState } from 'react';
 import { Auth } from 'aws-amplify';
 import { StyleSheet, View, TouchableOpacity, Keyboard, Alert } from 'react-native';
 import BeamTitle from '../comps/BeamTitle';
+import NetInfo from "@react-native-community/netinfo";
 
 import Screen from '../comps/Screen';
 import SimpleButton from '../comps/SimpleButton';
@@ -17,6 +18,12 @@ export default function ForgotPasswordPage1({ navigation, route }) {
 
     const onNext = async () => {
         try {
+            const netInfo = await NetInfo.fetch();
+            if (!netInfo.isConnected) {
+                Alert.alert("No Connection", "You must be connected to the internet to do this.");
+                setLoading(false);
+                return;
+            }
             setLoading(true);
             await Auth.forgotPassword(username);
             navigation.navigate("ForgotPasswordPage2", { username: username });

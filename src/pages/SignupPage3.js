@@ -2,6 +2,7 @@ import AsyncStorage from '@react-native-async-storage/async-storage';
 import { Auth } from 'aws-amplify';
 import React, { useRef, useState } from 'react';
 import { StyleSheet, View, TouchableOpacity, Keyboard, Alert } from 'react-native';
+import NetInfo from "@react-native-community/netinfo";
 
 import Beam from '../comps/Beam';
 import BeamTitle from '../comps/BeamTitle';
@@ -23,6 +24,12 @@ export default function SignupPage3({ navigation }) {
     const onNext = async () => {
         try {
             setLoading(true);
+            const netInfo = await NetInfo.fetch();
+            if (!netInfo.isConnected) {
+                Alert.alert("No Connection", "You must be connected to the internet to login.");
+                setLoading(false);
+                return;
+            }
             const unconfirmedUser = await AsyncStorage.getItem(storage.UNCONFIRMEDUSER);
             const user = JSON.parse(unconfirmedUser);
             await Auth.confirmSignUp(user.username, code);

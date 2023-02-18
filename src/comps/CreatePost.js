@@ -2,6 +2,7 @@ import React, { useRef, useState } from 'react';
 import { StyleSheet, Modal, View, Alert, TouchableOpacity, ActivityIndicator, ImageBackground} from 'react-native';
 import uuid from "react-native-uuid";
 import * as Location from 'expo-location';
+import NetInfo from "@react-native-community/netinfo";
 
 import { colors, css, strings } from '../config';
 import IconButton from './IconButton';
@@ -63,6 +64,11 @@ export default function CreatePost({ visible, onClose, currentUser, navigation }
                     { text: "Give Access", onPress: enableLocation },
                 ]);
                 throw "Location Needed";
+            }
+            const netInfo = await NetInfo.fetch();
+            if (!netInfo.isConnected) {
+                Alert.alert("No Connection", "You must be connected to the internet to do this.");
+                throw "No Connection";
             }
             const userLocation = await Location.getLastKnownPositionAsync();
             const userLocationConverted = locConversion.toUser(userLocation.coords.latitude, userLocation.coords.longitude);

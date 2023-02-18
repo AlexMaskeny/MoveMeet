@@ -4,6 +4,7 @@ import React, { useRef, useState } from 'react';
 import { StyleSheet, View, TouchableOpacity, Keyboard, Alert } from 'react-native';
 import Beam from '../comps/Beam';
 import BeamTitle from '../comps/BeamTitle';
+import NetInfo from "@react-native-community/netinfo";
 
 import Screen from '../comps/Screen';
 import SimpleButton from '../comps/SimpleButton';
@@ -21,6 +22,12 @@ export default function SignupPage2({ navigation, route }) {
     const onNext = async () => {
         try {
             setLoading(true);
+            const netInfo = await NetInfo.fetch();
+            if (!netInfo.isConnected) {
+                Alert.alert("No Connection", "You must be connected to the internet to signup.");
+                setLoading(false);
+                return;
+            }
             await AsyncStorage.setItem(storage.UNCONFIRMED, JSON.stringify({ val: true }));
             await AsyncStorage.setItem(storage.UNCONFIRMEDUSER, JSON.stringify({
                 username: route.params.username,

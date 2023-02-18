@@ -2,6 +2,7 @@ import React, { useEffect, useRef, useState } from 'react';
 import { StyleSheet, Modal, View, Alert, TouchableOpacity, Switch, FlatList} from 'react-native';
 import { Auth } from 'aws-amplify';
 import * as Notifications from 'expo-notifications';
+import NetInfo from "@react-native-community/netinfo";
 
 import { colors } from '../config';
 import IconButton from './IconButton';
@@ -70,6 +71,11 @@ export default function Settings({ visible, onClose, navigation }) {
     }
 
     const logout = async () => {
+        const netInfo = await NetInfo.fetch();
+        if (!netInfo.isConnected || !netInfo.isInternetReachable) {
+            Alert.alert("No Connection", "You must be connected to the internet to do this.");
+            return;
+        }
         close();
         navigation.navigate("LoadingPage", { signOut: true });
     }

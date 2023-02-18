@@ -1,6 +1,7 @@
 import React, { useEffect, useRef, useState } from 'react';
 import { StyleSheet, Modal, View, TouchableWithoutFeedback, Keyboard, Alert} from 'react-native';
 import uuid from "react-native-uuid";
+import NetInfo from "@react-native-community/netinfo";
 import { Auth } from 'aws-amplify';
 import * as Location from 'expo-location';
 
@@ -153,6 +154,12 @@ export default function CreateChat({ visible, onClose, currentUser, navigation }
                     { text: "Give Access", onPress: enableLocation },
                 ]);
                 throw "Location Needed";
+            }
+
+            const netInfo = await NetInfo.fetch();
+            if (!netInfo.isConnected) {
+                Alert.alert("No Connection", "You must be connected to the internet to do this.");
+                throw "No Connection";
             }
             const currentCognitoUser = await Auth.currentAuthenticatedUser();
             const userLocation = await Location.getLastKnownPositionAsync();

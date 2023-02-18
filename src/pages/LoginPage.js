@@ -2,7 +2,7 @@ import React from 'react';
 import { View, StyleSheet, KeyboardAvoidingView, Keyboard, Image, Alert, TouchableOpacity, TouchableWithoutFeedback, Platform } from 'react-native';
 import { colors } from '../config';
 import { Auth } from 'aws-amplify';
-import * as Clipboard from 'expo-clipboard';
+import NetInfo from "@react-native-community/netinfo";
 
 import Screen from '../comps/Screen';
 import SimpleInput from '../comps/SimpleInput';
@@ -12,7 +12,7 @@ import SubTitle from '../comps/SubTitle';
 import * as logger from '../functions/logger';
 import * as perms from '../functions/perms';
 import BeamTitle from '../comps/BeamTitle';
-import { calls, mmAPI } from '../api/mmAPI';
+
 
 
 //current potential problems:
@@ -45,6 +45,12 @@ export default function LoginPage({navigation}) {
         var pass = password;
         clear(); 
         try {
+            const netInfo = await NetInfo.fetch();
+            console.log(netInfo);
+            if (!netInfo.isConnected) {
+                Alert.alert("No Connection", "You must be connected to the internet to login.");
+                throw "No Connection";
+            }
             const response = await Auth.signIn(user, pass);
             if (response) {
                 await perms.getLocation();
@@ -60,12 +66,7 @@ export default function LoginPage({navigation}) {
                 Alert.alert("Incorrect Username or Password", "The username or password you entered was incorrect.", [
                     { text: "Try Again" },
                 ])
-            } else {
-                await Clipboard.setStringAsync(error.code + ": " + error.message);
-                Alert.alert("Some error occured...", "The error is in your copy/past clipboard.", [
-                    { text: "Okay" },
-                ])
-            }
+            } 
         }
         setSubmitButtonLoad(false);
     }

@@ -1,6 +1,7 @@
 import React, { useCallback, useState } from 'react';
 import { StyleSheet, Modal, View, TouchableOpacity, FlatList, Dimensions, KeyboardAvoidingView, Keyboard, Image, Alert} from 'react-native';
 import uuid from "react-native-uuid";
+import NetInfo from '@react-native-community/netinfo';
 
 import { colors, css, strings } from '../config';
 import IconButton from './IconButton';
@@ -31,6 +32,11 @@ export default function BugReport({ visible, onClose, currentUser }) {
         try {
             setLoading(true);
             if (description.length > 20) {
+                const netInfo = await NetInfo.fetch();
+                if (!netInfo.isConnected) {
+                    Alert.alert("No Connection", "You must be connected to the internet to do this.");
+                    throw "No Connection";
+                }
                 const id = uuid.v4();
                 const imgs = []
                 for (var i = 0; i < images.length; i++) {
