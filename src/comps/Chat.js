@@ -1,5 +1,5 @@
-import React, { useEffect } from 'react';
-import { View, StyleSheet, FlatList, ImageBackground as NormalBackground, TouchableOpacity } from 'react-native';
+import React from 'react';
+import { View, StyleSheet, FlatList, ImageBackground, TouchableOpacity } from 'react-native';
 import { CommonActions } from '@react-navigation/native';
 
 import { colors, css } from '../config';
@@ -9,7 +9,7 @@ import PCircleAndTitle from './PCircleAndTitle';
 import ChatButton from './ChatButton';
 import { LinearGradient } from 'expo-linear-gradient';
 import SimpleMessage from './SimpleMessage';
-import ImageBackground from './ImageLoader'
+import ImageLoader from './ImageLoader'
 
 //DESCRIPTION: A generalized chat box which will be embedded
 //             inside of a flatlist on the ChatsPage
@@ -37,7 +37,6 @@ function Chat({
     const navigate = () => {
         if (disabled) return;
         onPress(); 
-        user.profilePicture.loadFull = "LOADFULLprofilePicture" + user.id + ".jpg";
         navigation.dispatch(
             CommonActions.navigate({
                 name: "ChatPage",
@@ -91,10 +90,7 @@ function Chat({
     const keyExtractor = React.useCallback((item) => item.user.id, [])
     const renderItem = React.useCallback(({ item }) => (
         <TouchableOpacity style={styles.ppContain} onPress={()=>onClickMember(item.user.id)}>
-            <PCircleAndTitle username={item.user.username} ppic={{
-                uri: item.user.picture,
-                loadImage: item.user.picture,
-            }} />
+            <PCircleAndTitle username={item.user.username} ppic={item.user.picture} />
         </TouchableOpacity>
     ), [])
     return (
@@ -103,27 +99,19 @@ function Chat({
             height: getHeight(),
             ...glowStyle()
         }}>
-            {(disabled && !background.isColor) && 
-                <NormalBackground
-                    source={{uri: background.full}}
+            {(!background.isColor) &&
+                <ImageLoader
+                    source={background.uri.full}
+                    defaultSource={background.uri.loadFull}
+                    disabled={disabled}
+                    cacheKey={background.uri.fullKey}
                     isBackground={true}
                     imageStyle={styles.image}
                     style={styles.imageBackground}
                     resizeMode="cover"
                 >
                     <BeamTitle style={styles.title}>{title}</BeamTitle>
-                </NormalBackground>
-            }
-            {(!disabled && !background.isColor) &&
-                <ImageBackground
-                    source={{uri: background.full, loadImage: background.loadFull, key: "background"+id}}
-                    isBackground={true}
-                    imageStyle={styles.image}
-                    style={styles.imageBackground}
-                    resizeMode="cover"
-                >
-                    <BeamTitle style={styles.title}>{title}</BeamTitle>
-                </ImageBackground>
+                </ImageLoader>
             }
             {(background.isColor) &&
                 <View style={[styles.imageBackground, {backgroundColor: background.color}]}>
@@ -166,31 +154,19 @@ function Chat({
                     <View style={styles.chatSub}>
                         {last3.length >= 1 &&
                             <>
-                            <SimpleMessage ppic={{
-                                uri: last3[0].picture,
-                                loadImage: last3[0].picture,
-                                key: "chatPreviewPPic" + last3[0].id,
-                            }} username="Alexander" message={last3[0].content} />
+                            <SimpleMessage ppic={last3[0].picture} username="Alexander" message={last3[0].content} />
                                 <View style={{height: 4} } />
                             </>
                         }
                         {last3.length >= 2 &&
                             <>
-                            <SimpleMessage ppic={{
-                                uri: last3[1].picture,
-                                loadImage: last3[1].picture,
-                                key: "chatPreviewPPic" + last3[1].id,
-                            }} username="Alexander" message={last3[1].content} />
+                            <SimpleMessage ppic={last3[1].picture} username="Alexander" message={last3[1].content} />
                                 <View style={{ height: 4 }} />
                             </>
                         }
                         {last3.length >= 3 &&
                             <>
-                            <SimpleMessage ppic={{
-                                uri: last3[2].picture,
-                                loadImage: last3[2].picture,
-                                key: "chatPreviewPPic" + last3[2].id,
-                            }} username="Alexander" message={last3[2].content} />
+                            <SimpleMessage ppic={last3[2].picture} username="Alexander" message={last3[2].content} />
                                 <View style={{ height: 4 }} />
                             </>
                         }

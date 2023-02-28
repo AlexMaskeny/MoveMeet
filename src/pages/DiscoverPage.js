@@ -77,8 +77,15 @@ export default function DiscoverPage({ navigation, route }) {
             for (var i = 0; i < Math.min(rules.pagination.DiscoverPage, remainingUsers.current.length); i++) {
                 var user = remainingUsers.current[i];
                 if (user.profilePicture.loadFull == " " || user.profilePicture.full == " ") user.noImage = true;
-                user.profilePicture.loadFull = await Storage.get(user.profilePicture.loadFull);
-                user.profilePicture.full = await Storage.get(user.profilePicture.full);
+                else {
+                    const loadFull = await Storage.get(user.profilePicture.loadFull);
+                    const full = await Storage.get(user.profilePicture.full);
+                    user.profilePicture.uri = {
+                        loadFull: loadFull,
+                        full: full,
+                        fullKey: user.profilePicture.full
+                    }
+                }
                 user.distance = await distance.formula(user.lat, user.long, userLocationConverted.lat, userLocationConverted.long);
                 userData.push(user);
             }

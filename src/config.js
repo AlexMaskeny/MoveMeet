@@ -31,7 +31,7 @@ export const css = {
 }
 
 export const debug = true; //changes whether or not error messages print
-export const enhancedDebug = true;
+export const enhancedDebug = false;
 export const footerHeight = 80;
 export const version = "1.0.0";
 export const strings = {

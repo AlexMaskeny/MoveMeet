@@ -3,6 +3,7 @@ import { StyleSheet, View, TouchableOpacity, Keyboard, Alert, ImageBackground, A
 import * as Notifications from 'expo-notifications';
 import * as Location from 'expo-location';
 import NetInfo from "@react-native-community/netinfo";
+import uuid from "react-native-uuid";
 
 import Beam from '../comps/Beam';
 import BeamTitle from '../comps/BeamTitle';
@@ -19,7 +20,7 @@ import { calls, mmAPI } from '../api/mmAPI';
 
 export default function SignupPage4({ navigation, route }) {
     const [bio, setBio] = useState("");
-    const [profilePicture, setProfilePicture] = useState(false);
+    const [profilePicture, setProfilePicture] = useState({});
     const [image, setImage] = useState({});
     const [background, setBackground] = useState({isColor: true, color: colors.background})
     const [loading, setLoading] = useState(false);
@@ -63,14 +64,16 @@ export default function SignupPage4({ navigation, route }) {
             }
             
             if (bio.length > 0) params = { ...params, bio: bio };
+            const id = uuid.v4();
             if (profilePicture) {
-                await mmAPI.store("FULLprofilePicture" + route.params.userID + ".jpg", image.full)
-                await mmAPI.store("LOADFULLprofilePicture" + route.params.userID + ".jpg", image.loadFull)
+                
+                await mmAPI.store("FULLPROFILEPICTURE" + id + ".jpg", image.full)
+                await mmAPI.store("LOADFULLPROFILEPICTURE" + id + ".jpg", image.loadFull)
                 params = {
                     ...params,
                     profilePicture: {
-                        full: "FULLprofilePicture" + route.params.userID + ".jpg",
-                        loadFull: "LOADFULLprofilePicture" + route.params.userID + ".jpg",
+                        full: "FULLPROFILEPICTURE" + id + ".jpg",
+                        loadFull: "LOADFULLPROFILEPICTURE" + id + ".jpg",
                         region: "us-east-2",
                         bucket: "proxychatf2d762e9bc784204880374b0ca905be4120629-dev"
                     }
@@ -89,13 +92,13 @@ export default function SignupPage4({ navigation, route }) {
                     }
                 }
             } else {
-                await mmAPI.store("FULLbackground" + route.params.userID + ".jpg", background.full);
-                await mmAPI.store("LOADFULLbackground" + route.params.userID + ".jpg", background.loadFull);
+                await mmAPI.store("FULLBACKGROUND" + id + ".jpg", background.full);
+                await mmAPI.store("LOADFULLBACKGROUND" + id + ".jpg", background.loadFull);
                 params = {
                     ...params,
                     background: {
-                        full: "FULLbackground" + route.params.userID + ".jpg",
-                        loadFull: "LOADFULLbackground" + route.params.userID + ".jpg",
+                        full: "FULLBACKGROUND" + id + ".jpg",
+                        loadFull: "LOADFULLBACKGROUND" + id + ".jpg",
                         enableColor: false,
                         color: " ",
                         bucket: "proxychatf2d762e9bc784204880374b0ca905be4120629-dev",

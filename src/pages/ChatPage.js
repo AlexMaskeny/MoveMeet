@@ -31,8 +31,7 @@ export default function ChatPage({ route, navigation }) {
     const textInputRef = useRef();
     const lastToken = useRef("i1");
     const chatListRef = useRef();
-    const ppMap = useRef(new Map()); //Structure profilePictureMap.current.get(key) -> value pair
-    //(where the value pair is an object of { loadFull: "image url", updatedAt: standard data.now() date in ms })
+
     const timeClockSub = useRef();
     const messageReceptionSub = useRef();
     const nonUserMemberSub = useRef();
@@ -99,14 +98,14 @@ export default function ChatPage({ route, navigation }) {
             },
             sendData: true,
             onReceive: (data) => {
-                if (data.user.id != route.params.user.id) {
+                if (data.user.id !== route.params.user.id) {
                     clearTimeout(memberStatusTracker.current.get(data.user.id));
                     memberStatusTracker.current.delete(data.user.id);
                     setMembers(existingMembers => {
-                        return existingMembers.filter(Member => Member.id != data.user.id);
+                        return existingMembers.filter(Member => Member.id !== data.user.id);
                     })
 
-                    var message = data;
+                    let message = data;
                     message.createdAt = Date.parse(message.createdAt);
                     addMessage(message);
                     readMessage(message);
@@ -327,11 +326,10 @@ export default function ChatPage({ route, navigation }) {
                 type: "Image",
                 content: "Sent an image",
                 image: {
-                    full: "FULLMESSAGE" + message.id + ".jpg",
-                    loadFull: "LOADFULLMESSAGE" + message.id + ".jpg",
-                    loadImage: selectedImage,
-                    uri: selectedImage,
-                    local: true
+                    full: selectedImage,
+                    fullKey: "FULLMESSAGE" + message.id + ".jpg",
+                    loadFull: selectedImage,
+                    disabled: true
                 }
             }
         } else message = { ...message, type: "Text", content: textInput };
@@ -382,15 +380,17 @@ export default function ChatPage({ route, navigation }) {
 
     //GLOBAL HELPERS
     const getProfilePicture = async (message) => {
-        var ppLoadFull;
-        const mapResult = ppMap.current.get(message.user.id);
-        if (mapResult) { if (Date.now() - mapResult.updatedAt < 1000 * 3 * 60) ppLoadFull = mapResult.ppLoadFull } //If user image was taken within 3 minutes
-        if (!ppLoadFull) { ppLoadFull = await Storage.get(message.user.profilePicture.loadFull); ppMap.current.set(message.user.id, { ppLoadFull, updatedAt: Date.now() }) }
-        message.picture = ppLoadFull;
+        var ppLoadFull = await Storage.get(message.user.profilePicture.loadFull);
+        message.picture = {
+            full: ppLoadFull,
+            loadFull: ppLoadFull,
+            fullKey: message.user.profilePicture.loadFull
+        }
     }
     const getMessageImage = async (message) => {
-        if (!message.image.uri) message.image.uri = await Storage.get(message.image.full);
-        if (!message.image.loadImage) message.image.loadImage = await Storage.get(message.image.loadFull);
+        message.image.fullKey = message.image.full;
+        message.image.loadFull = await Storage.get(message.image.loadFull);
+        message.image.full = await Storage.get(message.image.full);
     }
 
     const clearInputs = () => {
@@ -493,10 +493,7 @@ export default function ChatPage({ route, navigation }) {
             return (
                 <View style={styles.ppContain}>
                     <ProfileCircle
-                        ppic={{
-                            uri: item.picture,
-                            loadImage: item.picture,
-                        }}
+                        ppic={item.picture}
                     />
                 </View>
             )
@@ -514,19 +511,17 @@ export default function ChatPage({ route, navigation }) {
         )
     }, [members])
     const RenderChat = useCallback(({ item }) => {
-        const ppic = {uri: item.picture, loadImage: item.picture }
         if (item.type == "Image") {
             return (
                 <View style={styles.chat}>
                     <ImageMessage
-                        ppic={ppic}
+                        ppic={item.picture}
                         onPress={() => {
-                            setPreviewImage(item.image.uri);
+                            setPreviewImage(item.image.full);
                             setShowPreviewImage(true);
                         }}
                         time={item.date}
                         navigation={navigation}
-                        imgKey={item.id}
                         username={item.user.username}
                         userId={route.params.user.id}
                         opposingUserId={item.user.id}
@@ -538,7 +533,7 @@ export default function ChatPage({ route, navigation }) {
             return (
                 <View style={styles.chat}>
                     <ComplexMessage
-                        ppic={ppic}
+                        ppic={item.picture}
                         userId={route.params.user.id}
                         navigation={navigation}
                         opposingUserId={item.user.id}
@@ -577,7 +572,7 @@ export default function ChatPage({ route, navigation }) {
         />
     ),[])
     return (<>
-        <Screen innerStyle={styles.page}>
+        <Screen innerStyle={styles.page} colorBack={true}>
             <KeyboardAvoidingView style={{ flex: 1, justifyContent: "flex-end" }} behavior={Platform.OS=="android" ? "height" : "padding"} keyboardVerticalOffset={headerHeight + 4}>
                 <View style={styles.chats}>
                     <FlatList
@@ -599,7 +594,7 @@ export default function ChatPage({ route, navigation }) {
                     {!(buttonsMinimized || msgIsImage) && <RenderButtons />}
                     {buttonsMinimized && <RenderButtonsMinimized />}
                     {!msgIsImage && <RenderTextInput />}
-                    {msgIsImage && <ImageInput pic={selectedImage} onDisable={() => { setMsgIsImage(false); setSelectedImage("") } } /> }
+                    {msgIsImage && <ImageInput uri={{full: selectedImage, loadFull: selectedSmallImage}} onDisable={() => { setMsgIsImage(false); setSelectedImage("") } } /> }
                     <IconButton
                         icon="arrow-forward-circle"
                         brand="Ionicons"

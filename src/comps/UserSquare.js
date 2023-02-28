@@ -1,5 +1,5 @@
 import React from 'react';
-import { View, StyleSheet, Text, TouchableHighlight } from 'react-native';
+import { View, StyleSheet, TouchableHighlight } from 'react-native';
 import { LinearGradient } from 'expo-linear-gradient';
 import { CommonActions } from '@react-navigation/native';
 
@@ -48,10 +48,14 @@ export default function UserSquare({
     )
     else return (
         <TouchableHighlight style={styles.touchable} onPress={navigate} underlayColor={colors.dark} activeOpacity={0.5}>
-            <ImageLoader style={styles.container} imageStyle={styles.image} isBackground={true} source={{
-                uri: user.profilePicture.full,
-                loadImage: user.profilePicture.loadFull
-            }}>
+            <ImageLoader
+                style={styles.container}
+                imageStyle={styles.image}
+                isBackground={true}
+                source={user.profilePicture.uri.full}
+                defaultSource={user.profilePicture.uri.loadFull}
+                fullKey={user.profilePicture.uri.fullKey}
+            >
                 <View style={styles.subContainer}>
                     <LinearGradient
                         // Background Linear Gradient

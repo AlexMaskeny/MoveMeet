@@ -1,5 +1,5 @@
 import React from 'react';
-import { ImageBackground, Platform, SafeAreaView, StyleSheet, View} from 'react-native';
+import { ImageBackground, SafeAreaView, StyleSheet, View} from 'react-native';
 import { colors } from '../config';
 
 //DESCRIPTION: A screen comp which sets the background color
@@ -8,8 +8,17 @@ import { colors } from '../config';
 //UTILIZED:    Utilized in all pages
 
 
-function Screen({children, style, innerStyle}) {
-    return (
+function Screen({ children, style, colorBack = false, innerStyle }) {
+    if (colorBack) return (
+        <View style={styles.img}>
+            <SafeAreaView style={[styles.screen, style]}>
+                <View style={[styles.inner, innerStyle]}>
+                    {children}
+                </View>
+            </SafeAreaView>
+        </View>
+    )
+    else return (
         <ImageBackground source={require("../../assets/darkback.png")} style={styles.img} resizeMode="cover">
             <SafeAreaView style={[styles.screen, style]}>
                 <View style={[styles.inner, innerStyle]}>
@@ -38,7 +47,7 @@ const styles = StyleSheet.create({
 
         width: "100%",
         height: "100%",
-        backgroundColor: colors.dark,
+        backgroundColor: colors.background,
     }
 })
 

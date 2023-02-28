@@ -141,7 +141,14 @@ export default function PrivateChatsPage({ navigation }) {
                         if (chat.members.items.length < 2) continue;
                         if (chat.members.items[0].user.id == currentUser.current.id) { chat.opposingMember = chat.members.items[1]; chat.userChatMembersID = chat.members.items[0].id }
                         else { chat.opposingMember = chat.members.items[0]; chat.userChatMembersID = chat.members.items[1].id }
-                        chat.profilePicture = await Storage.get(chat.opposingMember.user.profilePicture.loadFull);
+                        const picture = await Storage.get(chat.opposingMember.user.profilePicture.loadFull);
+                        chat.profilePicture = {
+                            uri: {
+                                full: picture,
+                                loadFull: picture,
+                                fullKey: chat.opposingMember.user.profilePicture.loadFull
+                            }
+                        }
                         chat.createdAt = chat.createdAt.substring(0, 10);
 
                         const last1 = await mmAPI.query({

@@ -14,21 +14,15 @@ import { calls, mmAPI } from '../api/mmAPI';
 
 export default function SettingsChat({ item, onClose, visible, navigate, currentUser, navigation }) {
     const [ready, setReady] = useState(false);
-    const [profilePicture, setProfilePicture] = useState({
-        uri: item.profilePicture,
-        loadImage: item.profilePicture,
-    });
+    const [profilePicture, setProfilePicture] = useState({});
     useEffect(() => {
         if (visible) {
             const initialFunction = async () => {
-                const full = await Storage.get(item.opposingMember.user.profilePicture.full);
-                setProfilePicture({
-                    uri: full,
-                    loadImage: item.profilePicture,
-                })
+                await setProfilePicture(item.profilePicture.uri);
                 setReady(true);
             }
             initialFunction();
+
         }
     }, [visible]);
     const clearChat = async () => {
@@ -133,7 +127,6 @@ export default function SettingsChat({ item, onClose, visible, navigate, current
     }
     const message = () => {
         navigate();
-        currentUser.profilePicture.loadFull = "LOADFULLprofilePicture" + currentUser.id + ".jpg";
         navigation.dispatch(
             CommonActions.navigate({
                 name: "ChatPage",

@@ -1,8 +1,9 @@
 import React, { useState, useRef, useCallback, useEffect } from 'react';
-import { Keyboard, StyleSheet, TouchableOpacity, View, Image, FlatList, RefreshControl, Alert } from 'react-native';
+import { Keyboard, StyleSheet, TouchableOpacity, View, FlatList, RefreshControl, Alert } from 'react-native';
 import { Auth, Storage } from 'aws-amplify';
 import { LinearGradient } from 'expo-linear-gradient';
 import * as Location from 'expo-location';
+import uuid from "react-native-uuid";
 
 import Screen from '../comps/Screen';
 import Loading from '../comps/Loading';
@@ -22,6 +23,7 @@ import CreatePost from '../comps/CreatePost';
 import Settings from '../comps/Settings';
 import BackgroundEditor from '../comps/BackgroundEditor';
 import { calls, instances, mmAPI } from '../api/mmAPI';
+import ImageLoader from '../comps/ImageLoader';
 
 export default function UProfilePage({ navigation }) {
     const currentUser = useRef();
@@ -121,7 +123,7 @@ export default function UProfilePage({ navigation }) {
                     else {
                         const backLoadFull = await Storage.get(currentUser.current.background.loadFull);
                         const backFull = await Storage.get(currentUser.current.background.full);
-                        setBackground({ uri: backFull, loadImage: backLoadFull, color: "", isColor: false });
+                        setBackground({ full: backFull, loadFull: backLoadFull, color: "", isColor: false, cacheKey: currentUser.current.background.full});
                     }
                     const locPerms = await Location.getForegroundPermissionsAsync();
                     var location;
@@ -130,8 +132,13 @@ export default function UProfilePage({ navigation }) {
                         location = locConversion.toUser(locResponse.coords.latitude, locResponse.coords.longitude);
                     };
                     for (var i = 0; i < currentUser.current.posts.items.length; i++) {
-                        currentUser.current.posts.items[i].image.loadFull = await Storage.get(currentUser.current.posts.items[i].image.loadFull);
-                        currentUser.current.posts.items[i].image.full = await Storage.get(currentUser.current.posts.items[i].image.full);
+                        const loadFull = await Storage.get(currentUser.current.posts.items[i].image.loadFull);
+                        const full = await Storage.get(currentUser.current.posts.items[i].image.full);
+                        currentUser.current.posts.items[i].image.uri = {
+                            loadFull: loadFull,
+                            full: full,
+                            cacheKey: currentUser.current.posts.items[i].image.full,
+                        }
                         currentUser.current.posts.items[i].time = timeLogic.ago((Date.now() - Date.parse(currentUser.current.posts.items[i].createdAt)) / 1000);
                         if (locPerms.granted) {
                             currentUser.current.posts.items[i].distance = distance.formula(
@@ -149,7 +156,7 @@ export default function UProfilePage({ navigation }) {
                             return -1;
                         } else return 1;
                     }));
-                    setProfilePicture({ uri: full, loadImage: loadFull });
+                    setProfilePicture({ full: full, loadFull: loadFull, cacheKey: currentUser.current.profilePicture.loadFull});
                 }
             } catch (error) {
                 logger.warn(error);
@@ -175,24 +182,23 @@ export default function UProfilePage({ navigation }) {
                     text: "Confirm", onPress: async () => {
                         try {
                             if (changedImage) {
-                                await Storage.remove("FULLprofilePicture" + currentUser.current.id + ".jpg");
-                                await Storage.remove("LOADFULLprofilePicture" + currentUser.current.id + ".jpg");
-                                await mmAPI.store("FULLprofilePicture" + currentUser.current.id + ".jpg", profilePicture.uri);
-                                await mmAPI.store("LOADFULLprofilePicture" + currentUser.current.id + ".jpg", profilePicture.loadImage);
-                                if (currentUser.current.profilePicture.full == " ") {
-                                    await mmAPI.mutate({
-                                        call: calls.UPDATE_USER,
-                                        input: {
-                                            id: currentUser.current.id,
-                                            profilePicture: {
-                                                full: "FULLprofilePicture" + currentUser.current.id + ".jpg",
-                                                loadFull: "LOADFULLprofilePicture" + currentUser.current.id + ".jpg",
-                                                region: "us-east-2",
-                                                bucket: "proxychatf2d762e9bc784204880374b0ca905be4120629-dev"
-                                            }
+                                const newId = uuid.v4();
+                                await Storage.remove(currentUser.current.profilePicture.full);
+                                await Storage.remove(currentUser.current.profilePicture.loadFull);
+                                await mmAPI.store("FULLPROFILEPICTURE" + newId + ".jpg", profilePicture.full);
+                                await mmAPI.store("LOADFULLPROFILEPICTURE" + newId + ".jpg", profilePicture.loadFull);
+                                await mmAPI.mutate({
+                                    call: calls.UPDATE_USER,
+                                    input: {
+                                        id: currentUser.current.id,
+                                        profilePicture: {
+                                            full: "FULLPROFILEPICTURE" + newId + ".jpg",
+                                            loadFull: "LOADFULLPROFILEPICTURE" + newId + ".jpg",
+                                            region: "us-east-2",
+                                            bucket: "proxychatf2d762e9bc784204880374b0ca905be4120629-dev"
                                         }
-                                    });
-                                }
+                                    }
+                                });
                                 
                             }
                             if (changedBackground) {
@@ -202,8 +208,8 @@ export default function UProfilePage({ navigation }) {
                                         input: {
                                             id: currentUser.current.id,
                                             background: {
-                                                full: "FULLbackground" + currentUser.current.id + ".jpg",
-                                                loadFull: "LOADFULLbackground" + currentUser.current.id + ".jpg",
+                                                full: " ",
+                                                loadFull: " ",
                                                 region: "us-east-2",
                                                 bucket: "proxychatf2d762e9bc784204880374b0ca905be4120629-dev",
                                                 enableColor: true,
@@ -212,17 +218,20 @@ export default function UProfilePage({ navigation }) {
                                         }
                                     });
                                 } else {
-                                    await Storage.remove("FULLbackground" + currentUser.current.id + ".jpg");
-                                    await Storage.remove("LOADFULLbackground" + currentUser.current.id + ".jpg");
-                                    await mmAPI.store("FULLbackground" + currentUser.current.id + ".jpg", background.uri);
-                                    await mmAPI.store("LOADFULLbackground" + currentUser.current.id + ".jpg", background.loadImage);
+                                    const newId = uuid.v4();
+                                    if (!currentUser.current.background.enableColor) {
+                                        await Storage.remove(currentUser.current.background.full);
+                                        await Storage.remove(currentUser.current.background.loadFull);
+                                    }
+                                    await mmAPI.store("FULLBACKGROUND" + newId + ".jpg", background.full);
+                                    await mmAPI.store("LOADFULLBACKGROUND" + newId + ".jpg", background.loadFull);
                                     await mmAPI.mutate({
                                         call: calls.UPDATE_USER,
                                         input: {
                                             id: currentUser.current.id,
                                             background: {
-                                                full: "FULLbackground" + currentUser.current.id + ".jpg",
-                                                loadFull: "LOADFULLbackground" + currentUser.current.id + ".jpg",
+                                                full: "FULLBACKGROUND" + newId + ".jpg",
+                                                loadFull: "LOADFULLBACKGROUND" + newId + ".jpg",
                                                 region: "us-east-2",
                                                 bucket: "proxychatf2d762e9bc784204880374b0ca905be4120629-dev",
                                                 enableColor: false
@@ -276,8 +285,11 @@ export default function UProfilePage({ navigation }) {
             const onSuccess = (uri) => {
                 setChangedImage(true);
                 setProfilePicture({
-                    uri: uri.full,
-                    loadImage: uri.loadFull,
+                    full: uri.full,
+                    loadFull: uri.loadFull,
+                    disable: true,
+                    fullKey: " ",
+                    loadFullKey: " ",
                 });
             }
             Alert.alert("Take a photo or select one", "Pick one of the options below to change your profile picture.", [
@@ -297,9 +309,12 @@ export default function UProfilePage({ navigation }) {
                         media.openPhotos((uri) => {
                             setChangedBackground(true);
                             setBackground({
-                                uri: uri.full,
-                                loadImage: uri.loadFull,
-                                isColor: false
+                                full: uri.full,
+                                loadFull: uri.loadFull,
+                                disable: true,
+                                fullKey: " ",
+                                loadFullKey: " ",
+                                isColor: false,
                             })
                         });
                     }
@@ -317,7 +332,7 @@ export default function UProfilePage({ navigation }) {
     }
     const successBack = (color) => {
         setChangedBackground(true);
-        setBackground({ color: color, isColor: true });
+        setBackground({ color: color, isColor: true, disable: true });
     }
     const changeBio = async () => {
         await setBioEdit(true);
@@ -357,10 +372,13 @@ export default function UProfilePage({ navigation }) {
     const ListHeaderComponent = useCallback(() => (<>
         <Beam style={{ marginTop: -6 }} />
         {!background.isColor &&
-            <Image
+            <ImageLoader
                 style={{ height: 100, width: "100%" }}
                 resizeMode="cover"
-                source={background}
+                cacheKey={background.fullKey}
+                disable={background.disable}
+                source={background.full}
+                defaultSource={background.loadFull}
             />
         }
         {background.isColor &&
@@ -382,7 +400,7 @@ export default function UProfilePage({ navigation }) {
             <Beam style={styles.beam} />
             {editing &&
                 <TouchableOpacity onPress={changePpic} style={{ justifyContent: "center" }}>
-                    <ProfileCircle ppic={{ uri: profilePicture.uri }} style={styles.ppicEditing} innerStyle={styles.innerPpicEditing} />
+                    <ProfileCircle ppic={profilePicture} style={styles.ppicEditing} innerStyle={styles.innerPpicEditing} />
                     <View style={styles.changePpic}>
                         <IconButton icon="square-edit-outline" brand="MaterialCommunityIcons" size={40} color={colors.text1} onPress={changePpic} />
                     </View>
@@ -390,7 +408,7 @@ export default function UProfilePage({ navigation }) {
             }
             {!editing &&
                 <View style={{ justifyContent: "center" }}>
-                    <ProfileCircle ppic={{ uri: profilePicture.uri }} style={styles.ppic} innerStyle={styles.innerPpic} />
+                    <ProfileCircle ppic={profilePicture} style={styles.ppic} innerStyle={styles.innerPpic} />
                 </View>
             }
             <Beam style={styles.beam} />

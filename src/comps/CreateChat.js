@@ -26,7 +26,7 @@ export default function CreateChat({ visible, onClose, currentUser, navigation }
     const [enabled, setEnabled] = useState(true);
     const [showBack, setShowBack] = useState(false);
     const [cTitle, setcTitle] = useState("");
-    const [cBackground, setCBackground] = useState({isColor: true, full: " ", loadFull: " ", color: colors.background});
+    const [cBackground, setCBackground] = useState({ isColor: true, uri: { full: " ", loadFull: " ", disabled: true, fullKey: " " }, color: colors.background});
     const [members, setMembers] = useState([]);
     const [ready, setReady] = useState(false);
 
@@ -107,13 +107,13 @@ export default function CreateChat({ visible, onClose, currentUser, navigation }
             user: {
                 id: currentUser.id,
                 username: currentUser.username,
-                picture: currentUser.profilePicture.loadFull,
+                picture: currentUser.profilePicture.uri,
             }
         }]);
         Alert.alert("Use a photo or use a color", "Pick one of the options below to select the background", [
             {
                 text: "Open Photos", onPress: async () => {
-                    await media.openPhotos((image) => { setCBackground({ ...image, isColor: false, color: "" }) });
+                    await media.openPhotos((image) => { setCBackground({ uri: { ...image, disabled: true }, isColor: false, color: ""}) });
                     setReady(true);
                 }
             },
@@ -165,8 +165,8 @@ export default function CreateChat({ visible, onClose, currentUser, navigation }
             const userLocation = await Location.getLastKnownPositionAsync();
             const userLocationConverted = locConversion.toUser(userLocation.coords.latitude, userLocation.coords.longitude);
             if (!cBackground.isColor) {
-                await mmAPI.store("FULLchatBackground" + id.current + ".jpg", cBackground.full);
-                await mmAPI.store("LOADFULLchatBackground" + id.current + ".jpg", cBackground.loadFull);
+                await mmAPI.store("FULLCHATBACKGROUND" + id.current + ".jpg", cBackground.uri.full);
+                await mmAPI.store("LOADFULLCHATBACKGROUND" + id.current + ".jpg", cBackground.uri.loadFull);
             }
             const result2 = await mmAPI.mutate({
                 call: calls.CREATE_CHAT,
@@ -174,8 +174,8 @@ export default function CreateChat({ visible, onClose, currentUser, navigation }
                     id: id.current,
                     background: {
                         bucket: "proxychatf2d762e9bc784204880374b0ca905be4120629-dev",
-                        full: "FULLchatBackground" + id.current + ".jpg",
-                        loadFull: "LOADFULLchatBackground" + id.current + ".jpg",
+                        full: "FULLCHATBACKGROUND" + id.current + ".jpg",
+                        loadFull: "LOADFULLCHATBACKGROUND" + id.current + ".jpg",
                         region: "us-east-2",
                         enableColor: cBackground.isColor,
                         color: cBackground.color

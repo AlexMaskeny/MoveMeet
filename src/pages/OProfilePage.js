@@ -1,5 +1,5 @@
 import React, { useState, useRef, useCallback, useEffect } from 'react';
-import { StyleSheet, View, Image, FlatList, RefreshControl, Alert, ActivityIndicator, TouchableOpacity} from 'react-native';
+import { StyleSheet, View, FlatList, RefreshControl, Alert, ActivityIndicator, TouchableOpacity} from 'react-native';
 import { Storage, Auth } from 'aws-amplify';
 import { LinearGradient } from 'expo-linear-gradient';
 import * as Location from 'expo-location';
@@ -8,6 +8,7 @@ import { CommonActions } from '@react-navigation/native';
 import Screen from '../comps/Screen';
 import Loading from '../comps/Loading';
 import { colors } from '../config';
+import ImageLoader from '../comps/ImageLoader';
 import * as logger from '../functions/logger';
 import * as timeLogic from '../functions/timeLogic';
 import * as distance from '../functions/distance';
@@ -84,7 +85,7 @@ export default function OProfilePage({ navigation, route }) {
                 else {
                     const backLoadFull = await Storage.get(currentUser.current.background.loadFull);
                     const backFull = await Storage.get(currentUser.current.background.full);
-                    setBackground({ uri: backFull, loadImage: backLoadFull, color: "", isColor: false });
+                    setBackground({ full: backFull, loadFull: backLoadFull, color: "", isColor: false, fullKey: currentUser.current.background.full });
                 }
                 const locPerms = await Location.getForegroundPermissionsAsync();
                 var location;
@@ -93,8 +94,13 @@ export default function OProfilePage({ navigation, route }) {
                     location = locConversion.toUser(locResponse.coords.latitude, locResponse.coords.longitude);
                 };
                 for (var i = 0; i < currentUser.current.posts.items.length; i++) {
-                    currentUser.current.posts.items[i].image.loadFull = await Storage.get(currentUser.current.posts.items[i].image.loadFull);
-                    currentUser.current.posts.items[i].image.full = await Storage.get(currentUser.current.posts.items[i].image.full);
+                    const pLoadFull = await Storage.get(currentUser.current.posts.items[i].image.loadFull);
+                    const pFull = await Storage.get(currentUser.current.posts.items[i].image.full);
+                    currentUser.current.posts.items[i].image.uri = {
+                        full: pFull,
+                        loadFull: pLoadFull,
+                        fullKey: currentUser.current.posts.items[i].image.full 
+                    }
                     currentUser.current.posts.items[i].time = timeLogic.ago((Date.now() - Date.parse(currentUser.current.posts.items[i].createdAt)) / 1000);
                     if (locPerms.granted) {
                         currentUser.current.posts.items[i].distance = distance.formula(
@@ -112,8 +118,8 @@ export default function OProfilePage({ navigation, route }) {
                         return -1;
                     } else return 1;
                 }));
-                setProfilePicture({ uri: full, loadImage: loadFull });
                 
+                setProfilePicture({ full: full, loadFull: loadFull, fullKey: currentUser.current.profilePicture.full });
             } catch (error) {
                 logger.warn(error);
             } finally {
@@ -282,10 +288,12 @@ export default function OProfilePage({ navigation, route }) {
         <View style={styles.body}>
             <Beam style={{ marginTop: -6 }} />
             {!background.isColor &&
-                <Image
+                <ImageLoader
                     style={{ height: 100, width: "100%" }}
                     resizeMode="cover"
-                    source={background}
+                    source={background.full}
+                    defaultSource={background.loadFull}
+                    cacheKey={background.fullKey }
                 />
             }
             {background.isColor &&
@@ -300,7 +308,7 @@ export default function OProfilePage({ navigation, route }) {
             <View style={styles.beamCircle}>
                 <Beam style={styles.beam} />
                 <View style={{ justifyContent: "center" }}>
-                    <ProfileCircle ppic={{uri: profilePicture.uri}} style={styles.ppic} innerStyle={styles.innerPpic} />
+                    <ProfileCircle ppic={profilePicture} style={styles.ppic} innerStyle={styles.innerPpic} />
                 </View>         
                 <Beam style={styles.beam} />
             </View>

@@ -1,9 +1,8 @@
-import React, { useEffect } from 'react';
-import { Text, View, StyleSheet, Image } from 'react-native';
-import { MaterialCommunityIcons } from '@expo/vector-icons';
+import React from 'react';
+import { View, StyleSheet } from 'react-native';
 
 import { colors, css } from '../config';
-//import Image from './ImageLoader';
+import Image from './ImageLoader';
 
 function ProfileCircle({
     ppic,
@@ -14,7 +13,10 @@ function ProfileCircle({
     return (
         <View style={[styles.container, style]}>
             <Image
-                source={{ uri: ppic.loadImage ? ppic.loadImage : ppic.uri }}
+                source={ppic.full}
+                defaultSource={ppic.loadFull}
+                cacheKey={ppic.fullKey}
+                disabled={ppic.disabled}
                 style={[styles.image, innerStyle]}
                 resizeMode="cover"
             />

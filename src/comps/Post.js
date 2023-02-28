@@ -13,10 +13,9 @@ export default function Post({ user, profilePicture, post, edit, onDelete }) {
             <ImageLoader
                 resizeMode="cover"
                 isBackground={true}
-                source={{
-                    uri: post.image.full,
-                    loadImage: post.image.loadFull,
-                }}
+                source={post.image.uri.full}
+                defaultSource={post.image.uri.loadFull}
+                cacheKey={post.image.uri.fullKey}
                 style={styles.image}
             >
                 <View style={styles.beam} >

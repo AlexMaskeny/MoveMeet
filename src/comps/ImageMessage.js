@@ -19,7 +19,7 @@ import ImageLoader from './ImageLoader';
 import DarkBeam from './DarkBeam';
 import * as logger from '../functions/logger';
 
-function ImageMessage({ children, ppic, username, userId, opposingUserId, source, style, time, imgKey, onPress, navigation, ...props }) {
+function ImageMessage({ children, ppic, username, userId, opposingUserId, source, style, time, onPress, navigation, ...props }) {
     const menuRef = useRef();
 
     const onView = async () => {
@@ -41,9 +41,9 @@ function ImageMessage({ children, ppic, username, userId, opposingUserId, source
                 if (!perms2.granted) return;
             }
             var localuri;
-            if (source.local) localuri = source.uri
+            if (source.disabled) localuri = source.full
             else {
-                const response = await FileSystem.downloadAsync(source.uri, FileSystem.documentDirectory + imgKey + ".jpg");
+                const response = await FileSystem.downloadAsync(source.full, FileSystem.documentDirectory + imgKey + ".jpg");
                 localuri = response.uri
             }
             await MediaLibrary.createAssetAsync(localuri);
@@ -64,12 +64,7 @@ function ImageMessage({ children, ppic, username, userId, opposingUserId, source
                 </View>
                 <View style={{ height: 4 }} />
                 <TouchableOpacity activeOpacity={1} onPress={onPress} onLongPress={() => menuRef.current.open()} style={styles.iContainer}>          
-                    {!source.local &&
-                        <ImageLoader style={styles.image} source={source} />
-                    }
-                    {source.local &&
-                            <Image style={styles.image} source={{uri: source.uri}} />
-                    }
+                    <ImageLoader style={styles.image} disabled={source.disabled} source={source.full} defaultSource={source.loadFull} cacheKey={source.fullKey} />
                     <Menu onOpen={() => Haptics.impactAsync(Haptics.ImpactFeedbackStyle.Heavy)} ref={menuRef}>
                         <MenuTrigger triggerOnLongPress={true} />
                         <MenuOptions customStyles={{ optionsContainer: styles.menu }}>
@@ -83,12 +78,7 @@ function ImageMessage({ children, ppic, username, userId, opposingUserId, source
                                     </View>
                                 </View>
                                 <View style={{marginTop: 10}} />
-                                {!source.local &&
-                                    <ImageLoader style={styles.image} source={source} />
-                                }
-                                {source.local &&
-                                    <Image style={styles.image} source={{ uri: source.uri }} />
-                                }
+                                <ImageLoader style={styles.image} disabled={source.disabled} source={source.full} defaultSource={source.loadFull} cacheKey={source.fullKey} />
                             </View>
                             <View style={{ marginTop: 10 }} />
                             <View style={styles.innerMenu}>

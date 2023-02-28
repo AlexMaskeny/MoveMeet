@@ -82,7 +82,13 @@ export default function ChatsPage({ navigation }) {
                             id: cognitoUser.attributes.sub
                         }
                     })
-                    currentUser.current.profilePicture.loadFull = await Storage.get(currentUser.current.profilePicture.loadFull);
+                    const loadFull = await Storage.get(currentUser.current.profilePicture.loadFull);
+                    currentUser.current.profilePicture.uri = {
+                        full: loadFull,
+                        loadFull: loadFull,
+                        disabled: false,
+                        fullKey: currentUser.current.profilePicture.loadFull
+                    }
                     memberStatusSub?.current?.unsubscribe();
                     memberStatusSub.current = mmAPI.subscribe({
                         call: calls.ON_MEMBER_STATUS_CHANGE,
@@ -218,11 +224,18 @@ export default function ChatsPage({ navigation }) {
                                 throw "[CHATSPAGE] onRefresh failed because of an error getting a chat's last3 messages"
                             }
                             if (!chat.background.enableColor) {
-                                chat.background.full = await Storage.get(chat.background.full);
-                                chat.background.loadFull = await Storage.get(chat.background.loadFull);
+
+                                const full = await Storage.get(chat.background.full);
+                                const loadFull = await Storage.get(chat.background.loadFull);
                                 chat.background.isColor = false;
+                                chat.background.uri = {
+                                    full: full,
+                                    loadFull: loadFull,
+                                    fullKey: chat.background.full,
+                                }
                             } else {
                                 chat.background.isColor = true;
+                                chat.background.uri = {};
                             }
                             chat.createdAt = chat.createdAt.substring(0, 10);
                             chat.numMembers = chat.members.items.length;
@@ -238,7 +251,11 @@ export default function ChatsPage({ navigation }) {
                             }
                             for (var j = 0; j < chat.numMembers; j++) {
                                 const picture = await Storage.get(chat.members.items[j].user.profilePicture.loadFull);
-                                chat.members.items[j].user.picture = picture;
+                                chat.members.items[j].user.picture = {
+                                    loadFull: picture,
+                                    full: picture,
+                                    fullKey: chat.members.items[j].user.profilePicture.loadFull
+                                };
 
                             }
                             if (chatData.findIndex((el) => el.id == chat.id) == -1) chatData.push(chat);
@@ -286,7 +303,12 @@ export default function ChatsPage({ navigation }) {
     //HELPER FUNCTIONS
     const getLast3 = async (last3) => {
         for (var i = 0; i < last3.length; i++) {
-            last3[i].picture = await Storage.get(last3[i].user.profilePicture.loadFull);
+            const picture = await Storage.get(last3[i].user.profilePicture.loadFull);
+            last3[i].picture = {
+                loadFull: picture,
+                full: picture,
+                fullKey: last3[i].user.profilePicture.loadFull
+            }
         }
     }
     const messageUpdate = async (data) => {

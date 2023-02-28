@@ -2,11 +2,9 @@
   "ExpandedNodes": [
     "",
     "\\src",
-    "\\src\\api",
-    "\\src\\api\\mutations",
-    "\\src\\hooks",
+    "\\src\\comps",
     "\\src\\pages"
   ],
-  "SelectedNode": "\\src\\pages\\DiscoverPage.js",
+  "SelectedNode": "\\src\\pages\\ChatPage.js",
   "PreviewInSolutionExplorer": false
 }

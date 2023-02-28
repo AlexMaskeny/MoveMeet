@@ -20,12 +20,10 @@ export default function PrivateChat({
     created,
     onPress,
     navigation,
-    status
 
 }) {
     const navigate = () => {
         onPress();
-        user.profilePicture.loadFull = "LOADFULLprofilePicture" + user.id + ".jpg";
         navigation.navigate("PChatNav", {
             screen: "ChatPage",
             key: id,
@@ -42,10 +40,7 @@ export default function PrivateChat({
     return (<>
         <TouchableOpacity style={[styles.container, glow ? styles.beam : {}]} onPress={navigate}>
             <View style={styles.subContainer}>
-                <ProfileCircle username={title} ppic={{
-                    uri: profilePicture,
-                    loadImage: profilePicture
-                }} />
+                <ProfileCircle username={title} ppic={profilePicture.uri} />
                 <View style={styles.messageContainer}>
                     <View style={styles.topLine}>
                         <SubTitle style={styles.title} size={16}>{title}</SubTitle>

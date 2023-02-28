@@ -1,23 +1,25 @@
 import React from 'react';
-import { Text, View, StyleSheet, ImageBackground } from 'react-native';
+import { View, StyleSheet } from 'react-native';
 
-import { colors, css } from '../config';
+import { colors } from '../config';
 import IconButton from './IconButton';
-//import Image from './ImageLoader';
+import ImageLoader from './ImageLoader';
 
 function ImageInput({
-    pic,
+    uri,
     onDisable,
     style
 
 }) {
     return (
         <View style={[styles.container, style]}>
-            <ImageBackground
-                source={{ uri: pic }}
+            <ImageLoader
+                isBackground={true}
+                source={uri.full}
+                defaultSource={uri.loadFull}
+                disabled={true}
                 style={styles.image}
-            >
-            </ImageBackground>
+            />
             <IconButton brand="Ionicons" icon="close-circle" size={34} color={colors.text1} style={styles.removeButton} onPress={() => onDisable()} />
         </View>
     );

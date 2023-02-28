@@ -72,8 +72,8 @@ export default function CreatePost({ visible, onClose, currentUser, navigation }
             }
             const userLocation = await Location.getLastKnownPositionAsync();
             const userLocationConverted = locConversion.toUser(userLocation.coords.latitude, userLocation.coords.longitude);
-            await mmAPI.store("FULLpost" + id.current + ".jpg", image);
-            await mmAPI.store("LOADFULLpost" + id.current + ".jpg", smallImage);
+            await mmAPI.store("FULLPOST" + id.current + ".jpg", image);
+            await mmAPI.store("LOADFULLPOST" + id.current + ".jpg", smallImage);
             
             const result2 = await mmAPI.mutate({
                 call: calls.CREATE_POST,
@@ -81,8 +81,8 @@ export default function CreatePost({ visible, onClose, currentUser, navigation }
                     id: id.current,
                     image: {
                         bucket: "proxychatf2d762e9bc784204880374b0ca905be4120629-dev",
-                        full: "FULLpost" + id.current + ".jpg",
-                        loadFull: "LOADFULLpost" + id.current + ".jpg",
+                        full: "FULLPOST" + id.current + ".jpg",
+                        loadFull: "LOADFULLPOST" + id.current + ".jpg",
                         region: "us-east-2",
                     },
                     lat: userLocationConverted.lat,
