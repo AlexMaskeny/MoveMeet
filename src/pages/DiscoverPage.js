@@ -30,7 +30,8 @@ export default function DiscoverPage({ navigation, route }) {
     const [showBug, setShowBug] = useState(false);
 
     const netInfo = useNetInfo();
-    
+
+    //SETTING HEADER ICONS
     useEffect(() => {
         navigation.setOptions({
             headerLeft: () => (
@@ -73,10 +74,10 @@ export default function DiscoverPage({ navigation, route }) {
         if (remainingUsers.current.length > 0) {
             const userLocation = await Location.getLastKnownPositionAsync();
             const userLocationConverted = locConversion.toChat(userLocation.coords.latitude, userLocation.coords.longitude);
-            var userData = [];
-            for (var i = 0; i < Math.min(rules.pagination.DiscoverPage, remainingUsers.current.length); i++) {
-                var user = remainingUsers.current[i];
-                if (user.profilePicture.loadFull == " " || user.profilePicture.full == " ") user.noImage = true;
+            let userData = [];
+            for (let i = 0; i < Math.min(rules.pagination.DiscoverPage, remainingUsers.current.length); i++) {
+                let user = remainingUsers.current[i];
+                if (user.profilePicture.loadFull === " " || user.profilePicture.full === " ") user.noImage = true;
                 else {
                     const loadFull = await Storage.get(user.profilePicture.loadFull);
                     const full = await Storage.get(user.profilePicture.full);
@@ -86,7 +87,7 @@ export default function DiscoverPage({ navigation, route }) {
                         fullKey: user.profilePicture.full
                     }
                 }
-                user.distance = await distance.formula(user.lat, user.long, userLocationConverted.lat, userLocationConverted.long);
+                user.distance = distance.formula(user.lat, user.long, userLocationConverted.lat, userLocationConverted.long);
                 userData.push(user);
             }
             setUsers(existingData => {

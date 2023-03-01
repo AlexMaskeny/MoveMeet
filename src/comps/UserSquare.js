@@ -54,7 +54,7 @@ export default function UserSquare({
                 isBackground={true}
                 source={user.profilePicture.uri.full}
                 defaultSource={user.profilePicture.uri.loadFull}
-                fullKey={user.profilePicture.uri.fullKey}
+                cacheKey={user.profilePicture.uri.fullKey}
             >
                 <View style={styles.subContainer}>
                     <LinearGradient

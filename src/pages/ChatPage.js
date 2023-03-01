@@ -23,7 +23,6 @@ import * as media from '../functions/media';
 import * as timeLogic from '../functions/timeLogic';
 import { calls, mmAPI } from '../api/mmAPI';
 
-
 //Now we just need to incorperate a nolongermember alert
 export default function ChatPage({ route, navigation }) {
     const headerHeight = useHeaderHeight();
@@ -70,11 +69,11 @@ export default function ChatPage({ route, navigation }) {
         })
     }, [navigation, route])
 
-    //INITIALIATION & SUBSCRIPTION HANDLING
+    //INITIALIZATION & SUBSCRIPTION HANDLING
     useFocusEffect(useCallback(() => {
         Notifications.setNotificationHandler({
             handleNotification: async (notification) => ({
-                shouldShowAlert: notification.request.content.data.chatID == route.params.id ? false : true,
+                shouldShowAlert: notification.request.content.data.chatID !== route.params.id,
                 shouldPlaySound: false,
                 shouldSetBadge: false,
             }),

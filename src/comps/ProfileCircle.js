@@ -8,6 +8,7 @@ function ProfileCircle({
     ppic,
     style,
     innerStyle,
+    disabled = false,
     
 }) {
     return (
@@ -16,7 +17,7 @@ function ProfileCircle({
                 source={ppic.full}
                 defaultSource={ppic.loadFull}
                 cacheKey={ppic.fullKey}
-                disabled={ppic.disabled}
+                disabled={disabled}
                 style={[styles.image, innerStyle]}
                 resizeMode="cover"
             />
@@ -39,8 +40,6 @@ const styles = StyleSheet.create({
         borderRadius: 30,
         overflow: 'hidden',
     },
-
-    
 });
 
 export default ProfileCircle;

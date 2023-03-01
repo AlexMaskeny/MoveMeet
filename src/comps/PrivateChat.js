@@ -1,6 +1,5 @@
 import React from 'react';
 import { StyleSheet, View, TouchableOpacity } from 'react-native';
-import { CommonActions } from '@react-navigation/native';
 
 import { colors, css } from '../config';
 import SubTitle from './SubTitle';
@@ -40,7 +39,7 @@ export default function PrivateChat({
     return (<>
         <TouchableOpacity style={[styles.container, glow ? styles.beam : {}]} onPress={navigate}>
             <View style={styles.subContainer}>
-                <ProfileCircle username={title} ppic={profilePicture.uri} />
+                <ProfileCircle ppic={profilePicture.uri}  />
                 <View style={styles.messageContainer}>
                     <View style={styles.topLine}>
                         <SubTitle style={styles.title} size={16}>{title}</SubTitle>
@@ -48,7 +47,7 @@ export default function PrivateChat({
                         <SubTitle style={styles.timeClock} size={12}>{latest}</SubTitle>
                     </View>
                     <SubTitle numberOfLines={1} style={styles.message} size={14}>
-                        {last1.length > 0 ? (last1[0].type == "Text" ? last1[0].content.substring(0, 32) + (last1[0].content.length > 32 ? "..." : "") : "Sent an image") : "Start chatting with " + title}
+                        {last1.length > 0 ? (last1[0].type === "Text" ? last1[0].content.substring(0, 32) + (last1[0].content.length > 32 ? "..." : "") : "Sent an image") : "Start chatting with " + title}
                     </SubTitle>
                 </View>
             </View>
@@ -104,5 +103,4 @@ const styles = StyleSheet.create({
         alignItems: "flex-end",
         padding: 10,
     },
-
 });
