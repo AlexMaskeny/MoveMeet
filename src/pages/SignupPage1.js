@@ -1,14 +1,16 @@
+//region 3rd Party Imports
 import React, { useRef, useState } from 'react';
-import { StyleSheet, View, TouchableOpacity, Keyboard, Linking } from 'react-native';
+import {StyleSheet, View, TouchableOpacity, Keyboard, Linking, Platform} from 'react-native';
 import Beam from '../comps/Beam';
 import BeamTitle from '../comps/BeamTitle';
-
+//endregion
+//region 1st Party Imports
 import Screen from '../comps/Screen';
 import SimpleButton from '../comps/SimpleButton';
 import SimpleInput from '../comps/SimpleInput';
 import SubTitle from '../comps/SubTitle';
 import { colors } from '../config';
-
+//endregion
 
 export default function SignupPage1({ navigation }) {
     const [username, setUsername] = useState("");
@@ -21,6 +23,7 @@ export default function SignupPage1({ navigation }) {
     const confirmPasswordRef = useRef();
     const passwordRef = useRef();
 
+    //region [FUNCTION]   "onSubmit = ()" = Navigates to the next signup page
     const onSubmit = () => {
         navigation.navigate("SignupPage2", {
             username: username.toLowerCase(),
@@ -28,6 +31,8 @@ export default function SignupPage1({ navigation }) {
             name: username.toLowerCase()
         });
     }
+    //endregion
+
     return (
         <Screen>
             <TouchableOpacity activeOpacity={1} onPress={() => Keyboard.dismiss()}>
@@ -47,9 +52,9 @@ export default function SignupPage1({ navigation }) {
                         value={username}
                         onChangeText={(text) => {
                             if (
-                                /^[a-zA-Z]+$/.test(text[text.length-1]) || text.length == 0 ||
-                                 /^[0-9]+$/.test(text[text.length - 1]) || text[text.length - 1] == '_' ||
-                                text[text.length - 1] == '.'
+                                /^[a-zA-Z]+$/.test(text[text.length-1]) || text.length === 0 ||
+                                 /^[0-9]+$/.test(text[text.length - 1]) || text[text.length - 1] === '_' ||
+                                text[text.length - 1] === '.'
                             ) setUsername(text);
                         }}
                     />
@@ -97,13 +102,13 @@ export default function SignupPage1({ navigation }) {
                         title="Next"
                         onPress={onSubmit}
                         outerStyle={{ flexDirection: 'row' }}
-                        disabled={!(username.length > 3 && password.length >= 8 && confirmPassword == password)}
+                        disabled={!(username.length > 3 && password.length >= 8 && confirmPassword === password)}
                     />
                     <View style={styles.tos}>
                         <SubTitle size={14} style={{ alignContent: "center" }}>By clicking next you agree to our</SubTitle>
                         <View style={{ flexDirection: 'row' }}>
                             <TouchableOpacity onPress={()=>Linking.openURL("https://movemeet.com/terms")}>
-                                <SubTitle size={14} style={{ alignContent: "center" }} color={colors.pBeam}>Terms & Conditons</SubTitle>
+                                <SubTitle size={14} style={{ alignContent: "center" }} color={colors.pBeam}>Terms & Conditions</SubTitle>
                             </TouchableOpacity>
                             <SubTitle size={14} style={{ alignContent: "center" }}> and </SubTitle>
                             <TouchableOpacity onPress={() => Linking.openURL("https://movemeet.com/privacy-policy")}>
@@ -125,17 +130,22 @@ export default function SignupPage1({ navigation }) {
 }
 
 const styles = StyleSheet.create({
+    //region logo
     logo: {
         height: 80,
         width: "100%"
     },
+    //endregion
+    //region page
     page: {
-        paddingTop: Platform.OS == "android" ? 50 : 20,
+        paddingTop: Platform.OS === "android" ? 50 : 20,
         width: "100%",
         height: "100%",
         alignItems: "center",
         justifyContent: "flex-start"
     },
+    //endregion
+    //region beamContainer
     beamContainer: {
         width: "100%",
         marginTop: -30,
@@ -144,15 +154,19 @@ const styles = StyleSheet.create({
         justifyContent: "space-between",
         alignItems: "center",
     },
+    //endregion
+    //region beam
     beam: {
         width: "33%",
         borderRadius: 10
     },
+    //endregion
+    //region tos
     tos: {
         marginVertical: 10,
         alignItems: "center",
         justifyContent: "center",
         alignContent: "center"
     }
-
-})
+    //endregion
+});

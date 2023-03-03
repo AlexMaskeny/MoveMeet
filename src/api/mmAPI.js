@@ -1,16 +1,19 @@
+//region 3rd Party Imports
 import { ConnectionState, CONNECTION_STATE_CHANGE } from "@aws-amplify/pubsub";
 import { API, graphqlOperation, Hub, Storage } from "aws-amplify";
+//endregion
+//region 1st Party Imports
 import { rules } from "../config";
-
 import * as logger from '../functions/logger';
 import * as mutations from './mutations/index';
 import * as queries from './queries/index';
 import * as subscriptions from './subscriptions/index';
+//endregion
 
-var priorConnectionState = "begin";
-var subSafeCreationDate;
-var subUpdateTimeout;
-var currentSubSafe;
+let priorConnectionState = "begin";
+let subSafeCreationDate;
+let subUpdateTimeout;
+let currentSubSafe;
 
 export const instances = {
     FULL: "full", //Everything used
@@ -18,6 +21,7 @@ export const instances = {
     LEAST: "least" //Minimum type with a non id
 }
 
+//region calls (different mmAPI call types)
 export const calls = {
     //QUERIES
     GET_CHAT: "getChat", //LoadingPage(loadingPage)
@@ -55,9 +59,11 @@ export const calls = {
     ON_USER_REMOVED: "onUserRemoved",
     ON_USER_TYPING: "onUserTyping",
 }
+//endregion
 
 //CALL IS IN FORMAT: call: {callString: string,isArray: }
 export const mmAPI = {
+    //region query
     query: async ({ call = "", instance = instances.EMPTY, input = {} }) => { //input is of standard query input form 
         try {
             const response = await API.graphql(graphqlOperation(queries[call][instance], input));
@@ -67,6 +73,8 @@ export const mmAPI = {
             return false;
         }
     },
+    //endregion
+    //region mutate
     mutate: async ({ call = "", instance = instances.EMPTY, input = {} }) => { //input is of standard mutation form
         try {
             const response = await API.graphql(graphqlOperation(mutations[call][instance], { input: input }));
@@ -76,6 +84,8 @@ export const mmAPI = {
             return false;
         }
     },
+    //endregion
+    //region subscribe
     subscribe: ({ call = "", instance = instances.FULL, input = {}, sendData = false, onReceive, onError }) => { //input is of standard sub from. onReceive & onError are functions
         return (API.graphql(graphqlOperation(subscriptions[call][instance], input)).subscribe({
             next: ({ value }) => {
@@ -88,6 +98,8 @@ export const mmAPI = {
             error: (error) => onError(error),
         }));
     },
+    //endregion
+    //region store
     store: async (id, uri) => {
         try {
             const response = await fetch(uri);
@@ -103,6 +115,8 @@ export const mmAPI = {
             return false;
         }
     },
+    //endregion
+    //region subSafe
     subSafe: (update) => {
         //This is a mechancism used on subscribing pages.
         //It will refresh the page whenever any of the following condtions occur:
@@ -121,8 +135,7 @@ export const mmAPI = {
         } catch (error) { }
         currentSubSafe = Hub.listen('api', (data) => {
             const { payload } = data;
-            ConnectionState.ConnectedPendingKeepAlive
-            if (payload.event == CONNECTION_STATE_CHANGE) {
+            if (payload.event === CONNECTION_STATE_CHANGE) {
                 logger.eLog("=========[SUBSAFE]=========");
                 logger.eLog("Prev: " + priorConnectionState);
                 logger.eLog("Current: " + payload.data.connectionState);
@@ -155,4 +168,5 @@ export const mmAPI = {
             } catch (error) { }
         }
     },
+    //endregion
 }

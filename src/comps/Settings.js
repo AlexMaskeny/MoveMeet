@@ -1,31 +1,33 @@
+//region 3rd Party Imports
 import React, { useEffect, useRef, useState } from 'react';
 import { StyleSheet, Modal, View, Alert, TouchableOpacity, Switch, FlatList} from 'react-native';
 import { Auth } from 'aws-amplify';
 import * as Notifications from 'expo-notifications';
 import NetInfo from "@react-native-community/netinfo";
-
-import { colors } from '../config';
+//endregion
+//region 1st Party Imports
 import IconButton from './IconButton';
 import SimpleButton from './SimpleButton';
 import SubTitle from './SubTitle';
-import * as logger from '../functions/logger'
 import DarkBeam from './DarkBeam';
 import { calls, mmAPI } from '../api/mmAPI';
-
+import { colors } from '../config';
+import * as logger from '../functions/logger'
+//endregion
 
 export default function Settings({ visible, onClose, navigation }) {
     const currentUser = useRef();
 
     const [loading2, setLoading2] = useState(false);
-
     const [allowNotifications, setAllowNotifications] = useState(false);
     const [blocked, setBlocked] = useState([]);
 
+    //region [FUNC ASYNC] "getBlockedUsers = async ()" = Gets the users blocked by currentUser
     const getBlockedUsers = async () => {
         try {
-            var blockedUsers = [];
-            for (var i = 0; i < currentUser.current.friends.length; i++) {
-                if (currentUser.current.friends[i].status == "666") {
+            let blockedUsers = [];
+            for (let i = 0; i < currentUser.current.friends.length; i++) {
+                if (currentUser.current.friends[i].status === "666") {
                     const blockedUser = await mmAPI.query({
                         call: calls.GET_USER,
                         instance: "username",
@@ -40,15 +42,17 @@ export default function Settings({ visible, onClose, navigation }) {
                 }
             }
             setBlocked(blockedUsers);
-
         } catch (error) {
-            console.warn(error);
+            logger.warn(error);
         }
     }
+    //endregion
 
+    //region [HOOK] "useEffect, [visible]" Get the initial state of the currentUser's settings & sets the currentUser.
     useEffect(() => {
-        const initialFunction = async () => {
+        (async function() {
             try {
+                //region Get the current user
                 const cognitoUser = await Auth.currentAuthenticatedUser();
                 currentUser.current = await mmAPI.query({
                     call: calls.GET_USER_BY_COGNITO,
@@ -57,19 +61,25 @@ export default function Settings({ visible, onClose, navigation }) {
                         id: cognitoUser.attributes.sub
                     }
                 });
+                //endregion
+
+                //Update the state with currentUser data
                 setAllowNotifications(currentUser.current.allowNotifications);
-                getBlockedUsers();
+                await getBlockedUsers();
             } catch (error) {
                 logger.warn(error);
             }
-        }
-        initialFunction();
+        })();
     }, [visible]);
+    //endregion
 
+    //region [FUNCTION]   "close = ()" = closes the modal
     const close = () => {
         onClose();
     }
+    //endregion
 
+    //region [FUNC ASYNC] "logout = async ()" = Logs the user out & sends to loadingPage
     const logout = async () => {
         const netInfo = await NetInfo.fetch();
         if (!netInfo.isConnected || !netInfo.isInternetReachable) {
@@ -79,14 +89,16 @@ export default function Settings({ visible, onClose, navigation }) {
         close();
         navigation.navigate("LoadingPage", { signOut: true });
     }
+    //endregion
 
-    const removeBlocked = (item) => {
-        Alert.alert("Are you sure?", "Are you sure you want to unblock " + item.username + "?", [
+    //region [FUNCTION]   "removeBlocked = (item)" = Make the blockedUser not blocked anymore
+    const removeBlocked = (blockedUser) => {
+        Alert.alert("Are you sure?", "Are you sure you want to unblock " + blockedUser.username + "?", [
             { text: "Cancel" },
             { text: "Confirm", onPress: () => {
-                const func = async () => {
+                (async function(){
                     try {
-                        const friendIndex = currentUser.current.friends.findIndex((el) => el.friendID == item.id);
+                        const friendIndex = currentUser.current.friends.findIndex((el) => el.friendID === blockedUser.id);
                         currentUser.current.friends[friendIndex].status = "0";
                         await mmAPI.mutate({
                             call: calls.UPDATE_USER,
@@ -102,19 +114,21 @@ export default function Settings({ visible, onClose, navigation }) {
                                 userID: currentUser.current.id
                             }
                         });
-                        getBlockedUsers();
+                        await getBlockedUsers();
                     } catch (error) {
                         logger.warn(error);
                     }
-                }
-                func();
+
+                })();
             }}
         ])
     }
+    //endregion
 
-    const Save = async () => { //The current problem.
+    //region [FUNC ASYNC] "save = async ()" = Saves the updates to the settings (Only notifications currently)
+    const save = async () => {
         try {
-            if (allowNotifications != currentUser.current.allowNotifications) {
+            if (allowNotifications !== currentUser.current.allowNotifications) {
                 if (allowNotifications) {
                     const result1 = await Notifications.getPermissionsAsync();
                     if (!result1.granted) {
@@ -151,6 +165,7 @@ export default function Settings({ visible, onClose, navigation }) {
             close();
         }
     }
+    //endregion
 
     return (
         <Modal visible={visible} animationType="slide">
@@ -160,7 +175,7 @@ export default function Settings({ visible, onClose, navigation }) {
                         <SubTitle color={colors.text1} style={styles.title} size={16}>Cancel</SubTitle>
                     </TouchableOpacity>
                     <SubTitle color={colors.pBeamBright} style={styles.title} size={18}>Settings </SubTitle>
-                    <TouchableOpacity onPress={Save}>
+                    <TouchableOpacity onPress={save}>
                         <SubTitle color={colors.text1} style={styles.title} size={16}>Done</SubTitle>
                     </TouchableOpacity>
                 </View>
@@ -202,10 +217,13 @@ export default function Settings({ visible, onClose, navigation }) {
 }
 
 const styles = StyleSheet.create({
+    //region page
     page: {
         flex: 1,
         backgroundColor: colors.background
     },
+    //endregion
+    //region header
     header: {
         backgroundColor: colors.container,
         width: "100%",
@@ -217,35 +235,50 @@ const styles = StyleSheet.create({
         paddingBottom: 10,
         marginBottom: 10,
     },
+    //endregion
+    //region title
     title: {
         fontWeight: "bold",
         alignSelf: "center",
     },
+    //endregion
+    //region title2
     title2: {
         fontWeight: "bold",
     },
+    //endregion
+    //region desc
     desc: {
         marginTop: 6,
         alignItems: "center",
         justifyContent: "center"
     },
+    //endregion
+    //region subtitle
     subtitle: {
         fontWeight: "400"
     },
+    //endregion
+    //region setting
     setting: {
         flexDirection: "row",
         justifyContent: "space-between",
         margin: 14,
         alignItems: "center"
     },
+    //endregion
+    //region blocked
     blocked: {
         alignSelf: "flex-start",
         alignItems: "center",
         flexDirection: "row",
     },
+    //endregion
+    //region blockedUsers
     blockedUsers: {
         alignItems: "flex-start",
         justifyContent: "flex-start",
         margin: 12
-    }
-})
+    },
+    //endregion
+});

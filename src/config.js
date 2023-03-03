@@ -1,5 +1,15 @@
-//import {Accuracy} from "expo-location";
+//[FUNC] "example" = function explanation
+//[FUNC ASYNC] "example" = async function explanation
+//[HOOK] "example, [*optional* updateOn]" = hook explanation
+//[DATA] "example" = large data variable explanation
+//[IF], [ELSE], [ELSE IF], [THEN], [AND], [OR], [SO] used to simply if and else statements
+//[REGION_DESC] and [REGION_DEF] used when the region description is too large for one line
+//[DESC] a description of a non collapsing section
+//[COMPONENT] "example" = component explanation
+//[CALL COMP] "example, [updateOn]" = component using the useCallback hook explanation
+//Everything else has no prefix
 
+//region [DATA] "const colors" = the app's colors
 export const colors = {
     background: "#121212", //A dark grey rgba(18, 18, 18,1)
     container: "#1E1E1E", //A dark grey, but less dark than background
@@ -20,7 +30,8 @@ export const colors = {
     errorTransparent: "rgba(255,77,77,0.05)",
     overlayBackground: "rgba(0,0,0,0.5)"
 }
-
+//endregion
+//region [DATA] "const css" = the app's global styles
 export const css = {
     beamShadow: {
         shadowColor: colors.pBeamShadow,
@@ -29,18 +40,19 @@ export const css = {
         shadowOpacity: 1,
     }
 }
-
-export const debug = true; //changes whether or not error messages print
-export const enhancedDebug = false;
-export const footerHeight = 80;
-export const version = "1.0.0";
+//endregion
+//region [DATA] "const strings" = the app's global constants
 export const strings = {
     APPNAME: "MoveMeet"
 }
+//endregion
+//region [DATA] "const storage" = the app's global async storage based constants
 export const storage = {
     UNCONFIRMED: "unconfirmed",
     UNCONFIRMEDUSER: "unconfirmeduser"
 };
+//endregion
+//region [DATA] "const rules" = constants that define rules of the app
 export const rules = {
     nearYouRadius: 500, // in feet
     chatDeletionTime: 48, // in hours
@@ -55,3 +67,8 @@ export const rules = {
         DiscoverPage: 14 //Max number of users per load
     }
 };
+//endregion
+export const debug = true; //changes whether error messages print
+export const enhancedDebug = false;
+export const footerHeight = 80;
+export const version = "1.0.0";

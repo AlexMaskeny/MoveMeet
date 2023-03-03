@@ -1,47 +1,68 @@
+//region 3rd Party Imports
 import React, { useState } from 'react';
-import { StyleSheet, View, TouchableOpacity, Keyboard, Alert, ImageBackground, ActivityIndicator } from 'react-native';
+import {
+    StyleSheet,
+    View,
+    TouchableOpacity,
+    Keyboard,
+    Alert,
+    ImageBackground,
+    ActivityIndicator,
+    Platform
+} from 'react-native';
 import * as Notifications from 'expo-notifications';
 import * as Location from 'expo-location';
 import NetInfo from "@react-native-community/netinfo";
 import uuid from "react-native-uuid";
-
+//endregion
+//region 1st Party Imports
 import Beam from '../comps/Beam';
 import BeamTitle from '../comps/BeamTitle';
 import Screen from '../comps/Screen';
 import SimpleButton from '../comps/SimpleButton';
 import SimpleInput from '../comps/SimpleInput';
 import SubTitle from '../comps/SubTitle';
-import { colors, css, strings } from '../config';
-import * as logger from '../functions/logger'; 
-import * as media from '../functions/media';
 import IconButton from '../comps/IconButton';
 import BackgroundEditor from '../comps/BackgroundEditor';
 import { calls, mmAPI } from '../api/mmAPI';
+import { colors, css, strings } from '../config';
+import * as logger from '../functions/logger'; 
+import * as media from '../functions/media';
+//endregion
 
 export default function SignupPage4({ navigation, route }) {
+    //region useState variables
     const [bio, setBio] = useState("");
     const [profilePicture, setProfilePicture] = useState({});
     const [image, setImage] = useState({});
     const [background, setBackground] = useState({isColor: true, color: colors.background})
     const [loading, setLoading] = useState(false);
     const [showBack, setShowBack] = useState(false);
+    //endregion
 
-    const Submit = async () => {
+    /* =============[ FUNCS ]============ */
+    //region [FUNC ASYNC] "submit = async ()" = Updates the user's dynamodb values and logs them in.
+    const submit = async () => {
         try {
             setLoading(true);
+            //region Ensure the user is connected
             const netInfo = await NetInfo.fetch();
             if (!netInfo.isConnected) {
                 Alert.alert("No Connection", "You must be connected to the internet to signup.");
                 setLoading(false);
                 return;
             }
+            //endregion
+            //region Request access to the user's location
             const result1 = await Location.getForegroundPermissionsAsync();
             if (!result1.granted) await Location.requestForegroundPermissionsAsync();
-            var params = {
+            let params = {
                 id: route.params.userID,
                 allowNotifications: false,
                 loggedOut: false,
             }
+            //endregion
+            //region Request access to send user notifications
             const result2 = await Notifications.getPermissionsAsync();
             if (result2.granted) {
                 const token = await Notifications.getExpoPushTokenAsync();
@@ -50,7 +71,8 @@ export default function SignupPage4({ navigation, route }) {
                     allowNotifications: true,
                     expoToken: token.data
                 }
-            } else {
+            }
+            else {
                 const result = await Notifications.requestPermissionsAsync();
                 if (result.granted) {
                     const token = await Notifications.getExpoPushTokenAsync();
@@ -60,13 +82,15 @@ export default function SignupPage4({ navigation, route }) {
                         expoToken: token.data
                     }
                 }
-
             }
-            
+            //endregion
+
+            //[IF] the user typed in a bio [THEN] change the user's bio to it
             if (bio.length > 0) params = { ...params, bio: bio };
+
+            //region [IF] the user choose a profile picture [THEN] upload it & set the user's profile picture to it
             const id = uuid.v4();
             if (profilePicture) {
-                
                 await mmAPI.store("FULLPROFILEPICTURE" + id + ".jpg", image.full)
                 await mmAPI.store("LOADFULLPROFILEPICTURE" + id + ".jpg", image.loadFull)
                 params = {
@@ -79,6 +103,9 @@ export default function SignupPage4({ navigation, route }) {
                     }
                 }
             }
+            //endregion
+
+            //region [IF] the user chose a background color [THEN] change their background to color mode with that color
             if (background.isColor) {
                 params = {
                     ...params,
@@ -91,7 +118,10 @@ export default function SignupPage4({ navigation, route }) {
                         region: "us-east-2",
                     }
                 }
-            } else {
+            }
+            //endregion
+            //region [ELSE] the user picked a image background [SO] upload it and set the user's background to that image
+            else {
                 await mmAPI.store("FULLBACKGROUND" + id + ".jpg", background.full);
                 await mmAPI.store("LOADFULLBACKGROUND" + id + ".jpg", background.loadFull);
                 params = {
@@ -106,10 +136,14 @@ export default function SignupPage4({ navigation, route }) {
                     }
                 }      
             }
+            //endregion
+
+            //region Submit all user changes to the database
             await mmAPI.mutate({
                 call: calls.UPDATE_USER,
                 input: params
             });
+            //endregion
         } catch (error) {
             logger.warn(error);
         } finally {
@@ -117,24 +151,20 @@ export default function SignupPage4({ navigation, route }) {
             navigation.navigate("LoadingPage");
         }
     }
-
+    //endregion
+    //region [FUNC ASYNC] "changeBackground = async ()" = Opens the menu to change the user's background
     const changeBackground = async () => {
+        const onBackImageSuccess = (uri) => {
+            setBackground({ isColor: false, color: " ", full: uri.full, loadFull: uri.loadFull });
+        }
         Alert.alert("Use a photo or use a color", "Pick one of the options below to change your background", [
             { text: "Open Photos", onPress: () => media.openPhotos(onBackImageSuccess) },
             { text: "Select Color", onPress: () => setShowBack(true)}
         ])
     }
-
-    const onBackImageSuccess = (uri) => {
-        setBackground({ isColor: false, color: " ", full: uri.full, loadFull: uri.loadFull });
-    }
-
-    const onColorSuccess = (color) => {
-        setShowBack(false);
-        setBackground({ isColor: true, color: color, full: " ", loadFull: " " });
-    }
-
-    const selectImage = async () => {
+    //endregion
+    //region [FUNC ASYNC] "selectProfilePicture = async ()" = Called when the user begins selecting a profile picture
+    const selectProfilePicture = async () => {
         try {
             const onSuccess = (uri) => {
                 setImage(uri);
@@ -148,6 +178,57 @@ export default function SignupPage4({ navigation, route }) {
             logger.warn(error);
         }
     }
+    //endregion
+    //region [FUNCTION]   "onColorSuccess = (color)" = Called when the user selects a color for their background
+    const onColorSuccess = (color) => {
+        setShowBack(false);
+        setBackground({ isColor: true, color: color, full: " ", loadFull: " " });
+    }
+    //endregion
+
+    /* =============[ COMPS ]============ */
+    //region [COMPONENT] "Body" = The main body. This is separated because we render this conditionally instead two different containers depending on background type
+    const Body = () => (
+        <View style={styles.body}>
+            {!profilePicture &&
+                <TouchableOpacity style={styles.bigImage} onPress={selectProfilePicture} disabled={loading} >
+                    {!loading && <>
+                        <IconButton color={colors.text1} icon="camera" brand="MaterialCommunityIcons" size={40} disabled={true} />
+                    </>}
+                    {loading && <ActivityIndicator color={colors.pBeamBright} size="large" />}
+                </TouchableOpacity>
+            }
+            {profilePicture &&
+                <TouchableOpacity style={styles.bigImage} onPress={selectProfilePicture} disabled={loading} >
+                    <ImageBackground source={{ uri: image.full }} style={styles.imageBackground} imageStyle={{ borderRadius: 200 }}>
+
+                    </ImageBackground>
+                </TouchableOpacity>
+            }
+            <SimpleInput
+                autoCorrect={true}
+                multiline={true}
+                maxLength={160}
+                cStyle={styles.textInput}
+                tStyle={{ alignSelf: 'flex-start' }}
+                placeholder="Bio"
+                value={bio}
+                onChangeText={(text) => setBio(text)}
+            />
+        </View>
+    );
+    //endregion
+    //region [COMPONENT] "SubmitButton = ({style})" = This is seperated because the submit buttons are essentially the same between color/image background types
+    const SubmitButton = ({style}) => (
+        <SimpleButton
+            disabled={loading}
+            loading={loading}
+            title="Change Background"
+            onPress={changeBackground}
+            outerStyle={style}
+        />
+    )
+    //endregion
 
     return (
         <Screen>
@@ -159,83 +240,19 @@ export default function SignupPage4({ navigation, route }) {
                     <Beam style={{ marginTop: 20 }} />
                     {background.isColor &&
                         <View style={{ backgroundColor: background.color, paddingVertical: 10 }}>
-                            <View style={styles.body}>
-                                {!profilePicture &&
-                                    <TouchableOpacity style={styles.bigImage} onPress={selectImage} disabled={loading} >
-                                        {!loading && <>
-                                            <IconButton color={colors.text1} icon="camera" brand="MaterialCommunityIcons" size={40} disabled={true} />
-                                        </>}
-                                        {loading && <ActivityIndicator color={colors.pBeamBright} size="large" />}
-                                    </TouchableOpacity>
-                                }
-                                {profilePicture &&
-                                    <TouchableOpacity style={styles.bigImage} onPress={selectImage} disabled={loading} >
-                                        <ImageBackground source={{ uri: image.full }} style={styles.imageBackground} imageStyle={{ borderRadius: 200 }}>
-
-                                        </ImageBackground>
-                                    </TouchableOpacity>
-                                }
-                                <SimpleInput
-                                    autoCorrect={true}
-                                    multiline={true}
-                                    maxLength={160}
-                                    cStyle={styles.textInput}
-                                    tStyle={{ alignSelf: 'flex-start' }}
-                                    placeholder="Bio"
-                                    value={bio}
-                                    onChangeText={(text) => setBio(text)}
-                                />
-                            </View>
-                            <SimpleButton
-                                disabled={loading}
-                                loading={loading}
-                                title="Change Background"
-                                onPress={changeBackground}
-                                outerStyle={{ flexDirection: 'row', marginTop: 12, borderColor: colors.text1, shadowColor: colors.text1, backgroundColor: background.isColor ? "rgba(0,0,0,0.2)" : colors.container }}
-                            />
+                            <Body />
+                            <SubmitButton style={[styles.colorSubmit, {backgroundColor: background.isColor ? "rgba(0,0,0,0.2)" : colors.container}]} />
                         </View>
                     }
                     {!background.isColor &&
                         <ImageBackground source={{ uri: background.full }} style={{paddingVertical: 10}}>
-                            <View style={styles.body}>
-                                {!profilePicture &&
-                                    <TouchableOpacity style={styles.bigImage} onPress={selectImage} disabled={loading} >
-                                        {!loading && <>
-                                            <IconButton color={colors.text1} icon="camera" brand="MaterialCommunityIcons" size={40} disabled={true} />
-                                        </>}
-                                        {loading && <ActivityIndicator color={colors.pBeamBright} size="large" />}
-                                    </TouchableOpacity>
-                                }
-                                {profilePicture &&
-                                    <TouchableOpacity style={styles.bigImage} onPress={selectImage} disabled={loading} >
-                                        <ImageBackground source={{ uri: image.full }} style={styles.imageBackground} imageStyle={{ borderRadius: 200 }}>
-
-                                        </ImageBackground>
-                                    </TouchableOpacity>
-                                }
-                                <SimpleInput
-                                    autoCorrect={true}
-                                    multiline={true}
-                                    maxLength={160}
-                                    cStyle={styles.textInput}
-                                    tStyle={{ alignSelf: 'flex-start' }}
-                                    placeholder="Bio"
-                                    value={bio}
-                                    onChangeText={(text) => setBio(text)}
-                                />
-                            </View>
-                            <SimpleButton
-                                disabled={loading}
-                                loading={loading}
-                                title="Change Background"
-                                onPress={changeBackground}
-                                outerStyle={{ flexDirection: 'row', marginTop: 12, borderColor: colors.text1, shadowColor: colors.text1, backgroundColor: colors.background }}
-                            />
+                            <Body />
+                            <SubmitButton style={styles.imageSubmit} />
                         </ImageBackground>
                     }
                     <Beam style={{ marginBottom: 20 }} />
                     <View style={styles.body2}>
-                        <TouchableOpacity style={{ marginTop: 4, flex: 1, alignItems: "center" }} onPress={Submit}>
+                        <TouchableOpacity style={{ marginTop: 4, flex: 1, alignItems: "center" }} onPress={submit}>
                             <BeamTitle size={18} style={{ fontWeight: "500" }}>I'm Done</BeamTitle>
                         </TouchableOpacity>
                     </View>
@@ -247,17 +264,22 @@ export default function SignupPage4({ navigation, route }) {
 }
 
 const styles = StyleSheet.create({
+    //region logo
     logo: {
         height: 80,
         width: "100%"
     },
+    //endregion
+    //region page
     page: {
-        paddingTop: Platform.OS == "android" ? 50 : 20,
+        paddingTop: Platform.OS === "android" ? 50 : 20,
         width: "100%",
         height: "100%",
         alignItems: "center",
         justifyContent: "flex-start"
     },
+    //endregion
+    //region bigImage
     bigImage: {
         backgroundColor: colors.container,
         borderRadius: 200,
@@ -270,6 +292,8 @@ const styles = StyleSheet.create({
         alignItems: "center",
         justifyContent: 'center',
     },
+    //endregion
+    //region bigPlus
     bigPlus: {
         height: 50,
         width: 50,
@@ -280,15 +304,21 @@ const styles = StyleSheet.create({
         borderWidth: 2,
         ...css.beamShadow
     },
+    //endregion
+    //region imageBackground
     imageBackground: {
         flex: 1,
         width: "100%",
         justifyContent: "flex-start",
         alignItems: "flex-end",
     },
+    //endregion
+    //region title
     title: {
         fontWeight: "400",
     },
+    //endregion
+    //region textInput
     textInput: {
         color: colors.text1,
         fontSize: 18,
@@ -301,11 +331,33 @@ const styles = StyleSheet.create({
         alignContent: "flex-start",
         justifyContent: 'flex-start'
     },
+    //endregion
+    //region body
     body: {
         flexDirection: 'row',
     },
+    //endregion
+    //region body2
     body2: {
         flexDirection: 'row',
         justifyContent: "space-between"
-    }
-})
+    },
+    //endregion
+    //region colorSubmit
+    colorSubmit: {
+        flexDirection: 'row',
+        marginTop: 12,
+        borderColor: colors.text1,
+        shadowColor: colors.text1,
+    },
+    //endregion
+    //region imageSubmit
+    imageSubmit: {
+        flexDirection: 'row',
+        marginTop: 12,
+        borderColor: colors.text1,
+        shadowColor: colors.text1,
+        backgroundColor: colors.background
+    },
+    //endregion
+});

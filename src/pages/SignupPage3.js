@@ -1,9 +1,11 @@
+//region 3rd Party Imports
 import AsyncStorage from '@react-native-async-storage/async-storage';
 import { Auth } from 'aws-amplify';
 import React, { useRef, useState } from 'react';
-import { StyleSheet, View, TouchableOpacity, Keyboard, Alert } from 'react-native';
+import {StyleSheet, View, TouchableOpacity, Keyboard, Alert, Platform} from 'react-native';
 import NetInfo from "@react-native-community/netinfo";
-
+//endregion
+//region 1st Party Imports
 import Beam from '../comps/Beam';
 import BeamTitle from '../comps/BeamTitle';
 import Screen from '../comps/Screen';
@@ -11,8 +13,9 @@ import SimpleButton from '../comps/SimpleButton';
 import SimpleInput from '../comps/SimpleInput';
 import SubTitle from '../comps/SubTitle';
 import { colors, storage } from '../config';
-import * as logger from '../functions/logger';
 import { calls, mmAPI } from '../api/mmAPI';
+import * as logger from '../functions/logger';
+//endregion
 
 export default function SignupPage3({ navigation }) {
     const [code, setCode] = useState("");
@@ -21,20 +24,27 @@ export default function SignupPage3({ navigation }) {
 
     const codeRef = useRef();
 
+    //region [FUNC ASYNC] "onNext = async ()" = Confirms the user and navigates to the next page
     const onNext = async () => {
         try {
             setLoading(true);
+
+            //region Ensure the user is connected
             const netInfo = await NetInfo.fetch();
             if (!netInfo.isConnected) {
                 Alert.alert("No Connection", "You must be connected to the internet to login.");
                 setLoading(false);
                 return;
             }
+            //endregion
+            //region Get the unconfirmed user and confirm them
             const unconfirmedUser = await AsyncStorage.getItem(storage.UNCONFIRMEDUSER);
             const user = JSON.parse(unconfirmedUser);
             await Auth.confirmSignUp(user.username, code);
             await AsyncStorage.removeItem(storage.UNCONFIRMED);
             await AsyncStorage.removeItem(storage.UNCONFIRMEDUSER);
+            //endregion
+            //region Sign the newly confirmed user in and create default dynamodb attributes
             await Auth.signIn(user.username, user.password);
             const currentUser = await Auth.currentAuthenticatedUser();
             const result = await mmAPI.mutate({
@@ -64,18 +74,22 @@ export default function SignupPage3({ navigation }) {
                     broadcasts: []
                 }
             });
+            //endregion
+
+            //Navigate to the next signup page
             navigation.navigate("SignupPage4", { cognitoUser: user, userID: result.id });
         } catch (error) {
-            if (error.code == "CodeMismatchException")
+            if (error.code === "CodeMismatchException")
                 Alert.alert("Wrong Code", "You entered the wrong code.", [{ text: "Try Again" }])
             else
-                Alert.alert("Error", "Some error occured", [{ text: "Try Again", onPress: () => logger.warn(error) }])
+                Alert.alert("Error", "Some error occurred", [{ text: "Try Again", onPress: () => logger.warn(error) }])
         } finally {
             setLoading(false);
         }
     }
-
-    const Resend = async () => {
+    //endregion
+    //region [FUNC ASYNC] "resend = async ()" = Resends the confirmation code to the user (only every 10 seconds or alert user they're requesting to fast)
+    const resend = async () => {
         try {
             const unconfirmedUser = await AsyncStorage.getItem(storage.UNCONFIRMEDUSER);
             const user = JSON.parse(unconfirmedUser);
@@ -92,6 +106,7 @@ export default function SignupPage3({ navigation }) {
             logger.warn(error);
         }
     }
+    //endregion
 
     return (
         <Screen>
@@ -100,7 +115,7 @@ export default function SignupPage3({ navigation }) {
                     <BeamTitle>Verify your account</BeamTitle>
                     <SubTitle size={14}>You should have received a one time</SubTitle>
                     <SubTitle size={14}>code via text message. Didn't receive it?</SubTitle>
-                    <TouchableOpacity style={{ marginTop: 4 }} onPress={()=>Resend()}>
+                    <TouchableOpacity style={{ marginTop: 4 }} onPress={()=>resend()}>
                         <BeamTitle size={16} style={{fontWeight: "500"} }>Send Code Again</BeamTitle>
                     </TouchableOpacity>
                     <View style={{ height: 20 }} />
@@ -138,17 +153,22 @@ export default function SignupPage3({ navigation }) {
 }
 
 const styles = StyleSheet.create({
+    //region logo
     logo: {
         height: 80,
         width: "100%"
     },
+    //endregion
+    //region page
     page: {
-        paddingTop: Platform.OS == "android" ? 50 : 20,
+        paddingTop: Platform.OS === "android" ? 50 : 20,
         width: "100%",
         height: "100%",
         alignItems: "center",
         justifyContent: "flex-start"
     },
+    //endregion
+    //region beamContainer
     beamContainer: {
         width: "100%",
         marginTop: -30,
@@ -157,9 +177,11 @@ const styles = StyleSheet.create({
         justifyContent: "space-between",
         alignItems: "center",
     },
+    //endregion
+    //region beam
     beam: {
         width: "25%",
         borderRadius: 10
     },
-
-})
+    //endregion
+});

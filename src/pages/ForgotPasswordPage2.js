@@ -1,45 +1,51 @@
+//region 3rd Party Imports
 import { Auth } from 'aws-amplify';
 import React, {  useRef, useState } from 'react';
-import { StyleSheet, View, TouchableOpacity, Keyboard, Alert } from 'react-native';
+import {StyleSheet, View, TouchableOpacity, Keyboard, Alert, Platform} from 'react-native';
 import BeamTitle from '../comps/BeamTitle';
-
+//endregion
+//region 1st Party Imports
 import Screen from '../comps/Screen';
 import SimpleButton from '../comps/SimpleButton';
 import SimpleInput from '../comps/SimpleInput';
 import SubTitle from '../comps/SubTitle';
 import * as logger from '../functions/logger';
 import * as perms from '../functions/perms';
+//endregion
 
 export default function ForgotPasswordPage2({ navigation, route }) {
     const [code, setCode] = useState("");
-    const [password, setPassword] = useState("");
-    const [confirmPassword, setConfirmPassword] = useState("");
-    const [passwordVisible, setPasswordVisible] = useState(false);
-    const [confirmPasswordVisible, setConfirmPasswordVisible] = useState(false);
-    const [loading, setLoading] = useState(false);
+    const [pass, setPass] = useState("");
+    const [confirmPass, setConfirmPass] = useState("");
+    const [passVisible, setPassVisible] = useState(false);
+    const [confirmPassVisible, setConfirmPassVisible] = useState(false);
     const [allowResend, setAllowResend] = useState(true);
+    const [loading, setLoading] = useState(false);
 
     const codeRef = useRef();
 
+    //region [FUNC ASYNC] "onChange = ()" = [IF] user put in the right code [THEN] update their pass [AND] login [ELSE] alert them
     const onChange = async () => {
         try {
             setLoading(true);
-            await Auth.forgotPasswordSubmit(route.params.username, code, password);
+            await Auth.forgotPasswordSubmit(route.params.username, code, pass);
             Alert.alert("Success", "You successfully changed your password!", [{ text: "Okay" }]);
-            await Auth.signIn(route.params.username, password);
+            //region Sign the user in
+            await Auth.signIn(route.params.username, pass);
             await perms.getLocation();
             await perms.getNotifications();
             await perms.signIn();
             navigation.navigate("LoadingPage");
+            //endregion
         } catch (error) {
             logger.warn(error);
             Alert.alert("Incorrect Code", "The code you entered was either not correct or expired.", [{ text: "Try Again" }]);
         } finally {
             setLoading(false);
-
         }
     }
-
+    //endregion
+    //region [FUNC ASYNC] "resend = ()" = resend code (if used faster than every 10s then alert user to slow down)
     const Resend = async () => {
         try {
             if (allowResend) {
@@ -56,6 +62,7 @@ export default function ForgotPasswordPage2({ navigation, route }) {
 
         }
     }
+    //endregion
 
     return (
         <Screen>
@@ -85,36 +92,36 @@ export default function ForgotPasswordPage2({ navigation, route }) {
                         autocorrect={false}
                         icon="lock"
                         autoCapitalize="none"
-                        text={password.length + "/" + "8"}
+                        text={pass.length + "/" + "8"}
                         showRightButton={true}
                         rightButtonProps={{
-                            icon: passwordVisible ? "eye-off" : "eye",
+                            icon: passVisible ? "eye-off" : "eye",
                             size: 24,
-                            onPress: () => setPasswordVisible(!passwordVisible)
+                            onPress: () => setPassVisible(!passVisible)
                         }}
                         maxLength={20}
-                        secureTextEntry={!passwordVisible}
+                        secureTextEntry={!passVisible}
                         onChangeText={(text) => {
-                            setPassword(text);
+                            setPass(text);
                         }}
                     />
-                    {password.length >= 8 &&
+                    {pass.length >= 8 &&
                         <SimpleInput
                             placeholder="Confirm Password"
                             autocorrect={false}
                             icon="lock"
                             showRightButton={true}
                             rightButtonProps={{
-                                icon: confirmPasswordVisible ? "eye-off" : "eye",
+                                icon: confirmPassVisible ? "eye-off" : "eye",
                                 size: 24,
-                                onPress: () => setConfirmPasswordVisible(!confirmPasswordVisible)
+                                onPress: () => setConfirmPassVisible(!confirmPassVisible)
                             }}
                             autoCapitalize="none"
-                            text={confirmPassword.length + "/" + "8"}
+                            text={confirmPass.length + "/" + "8"}
                             maxLength={20}
-                            secureTextEntry={!confirmPasswordVisible}
+                            secureTextEntry={!confirmPassVisible}
                             onChangeText={(text) => {
-                                setConfirmPassword(text);
+                                setConfirmPass(text);
                             }}
                         />
                     }
@@ -123,7 +130,7 @@ export default function ForgotPasswordPage2({ navigation, route }) {
                         title="Change Password"
                         outerStyle={{ flexDirection: "row" }}
                         onPress={onChange}
-                        disabled={code.length < 6 || password.length < 8 || password!=confirmPassword}
+                        disabled={code.length < 6 || pass.length < 8 || pass!=confirmPass}
                         loading={loading}
                     />
                     <TouchableOpacity onPress={() => navigation.goBack()}>
@@ -136,17 +143,22 @@ export default function ForgotPasswordPage2({ navigation, route }) {
 }
 
 const styles = StyleSheet.create({
+    //region logo
     logo: {
         height: 80,
         width: "100%"
     },
+    //endregion
+    //region page
     page: {
-        paddingTop: Platform.OS == "android" ? 50 : 20,
+        paddingTop: Platform.OS === "android" ? 50 : 20,
         width: "100%",
         height: "100%",
         alignItems: "center",
         justifyContent: "flex-start"
     },
+    //endregion
+    //region beamContainer
     beamContainer: {
         width: "100%",
         marginTop: -20,
@@ -155,9 +167,11 @@ const styles = StyleSheet.create({
         justifyContent: "space-between",
         alignItems: "center",
     },
+    //endregion
+    //region beam
     beam: {
         width: "33%",
         borderRadius: 10
     },
-
-})
+    //endregion
+});

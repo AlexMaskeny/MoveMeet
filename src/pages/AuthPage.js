@@ -1,18 +1,21 @@
+//region 3rd Party Imports
 import React from 'react';
 import { StyleSheet, Image, View, TouchableOpacity } from 'react-native';
 import AsyncStorage from '@react-native-async-storage/async-storage';
-
+//endregion
+//region 1st Party Imports
 import Beam from '../comps/Beam';
 import Screen from '../comps/Screen';
 import SimpleButton from '../comps/SimpleButton';
 import SubTitle from '../comps/SubTitle';
 import { colors, storage } from '../config';
 import * as logger from '../functions/logger';
+//endregion
 
 export default function AuthPage({ navigation }) {
-    const navSignup = async () => {
+    //region [FUNC] "navToSignup" = If the <code>user</code> is unconfirmed, navigate to confirmation page. Otherwise, navigate to first signup page
+    const navToSignup = async () => {
         try {
-            
             const result = await AsyncStorage.getItem(storage.UNCONFIRMED);
             if (result) {
                 const parsed = JSON.parse(result);
@@ -27,6 +30,8 @@ export default function AuthPage({ navigation }) {
             logger.warn(error);
         }
     }
+    //endregion
+
     return (
         <Screen>
             <View style={styles.page}>
@@ -38,7 +43,7 @@ export default function AuthPage({ navigation }) {
                 <View style={{height: 10}} />
                 <SimpleButton
                     title="Create an account"
-                    onPress={navSignup}
+                    onPress={navToSignup}
                 />
                 
                 <View style={styles.beamContainer}>
@@ -55,15 +60,20 @@ export default function AuthPage({ navigation }) {
 }
 
 const styles = StyleSheet.create({
+    //region logo
     logo: {
         height: 60,
         width: "100%"
     },
+    //endregion
+    //region page
     page: {
         width: "100%",
         height: "100%",
         justifyContent: "center",
     },
+    //endregion
+    //region beamContainer
     beamContainer: {
         marginTop: 14,
         marginHorizontal: 14,
@@ -71,8 +81,11 @@ const styles = StyleSheet.create({
         justifyContent: "space-between",
         alignItems: "center"
     },
+    //endregion
+    //region beam
     beam: {
         width: "33%",
         borderRadius: 10
     }
+    //endregion
 })

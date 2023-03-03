@@ -1,10 +1,12 @@
+//region 3rd Party Imports
 import React, { useEffect, useRef, useState } from 'react';
 import { StyleSheet, Modal, View, TouchableWithoutFeedback, Keyboard, Alert} from 'react-native';
 import uuid from "react-native-uuid";
 import NetInfo from "@react-native-community/netinfo";
 import { Auth } from 'aws-amplify';
 import * as Location from 'expo-location';
-
+//endregion
+//region 1st Party Imports
 import { colors, rules, strings } from '../config';
 import IconButton from './IconButton';
 import SimpleButton from './SimpleButton';
@@ -17,22 +19,40 @@ import * as locConversion from '../functions/locConversion';
 import Beam from './Beam';
 import BackgroundEditor from './BackgroundEditor';
 import { calls, mmAPI } from '../api/mmAPI';
-
+//endregion
 
 export default function CreateChat({ visible, onClose, currentUser, navigation }) {
-    const cTitleRef = useRef();
-    const [loading, setLoading] = useState(false);
-    const [loading2, setLoading2] = useState(false);
-    const [enabled, setEnabled] = useState(true);
-    const [showBack, setShowBack] = useState(false);
-    const [cTitle, setcTitle] = useState("");
-    const [cBackground, setCBackground] = useState({ isColor: true, uri: { full: " ", loadFull: " ", disabled: true, fullKey: " " }, color: colors.background});
-    const [members, setMembers] = useState([]);
-    const [ready, setReady] = useState(false);
+    /* =============[ VARS ]============ */
+    //region useRef variables
+    const cTitleRef = useRef(); //used on the title input for the chat of form "ref={cTitleRef}"
+    const id = useRef();        //the ID of the new chat
+    //endregion
+    //region useState variables
+    const [loading, setLoading] = useState(false);   //While waiting for the background selected to load
+    const [loading2, setLoading2] = useState(false); //While waiting to create the chat
+    const [enabled, setEnabled] = useState(true);    //Can the user submit?
+    const [showBack, setShowBack] = useState(false); //Should show the background color select?
+    const [cTitle, setCTitle] = useState("");        //The title of the chat
+    const [members, setMembers] = useState([]);      //The list of members on the chat (only the currentUser
+    const [ready, setReady] = useState(false);       //Should we show the chat preview?
+    const [background, setBackground] = useState({   //The chat's background
+        isColor: true,
+        uri: {
+            full: " ",
+            loadFull: " ",
+            disabled: true,
+            fullKey: " "
+        },
+        color: colors.background
+    });
+    //endregion
 
+    /* =============[ HOOKS ]============ */
+    //region [HOOK] "useEffect, [visible]" = Verifies that the user can still make more chats on open
     useEffect(() => {
-        const initialFunction = async () => {
+        (async function() {
             try {
+                //region Get the chats the user is a member of
                 const result = await mmAPI.query({
                     call: calls.GET_USER,
                     instance: "createChat",
@@ -40,11 +60,13 @@ export default function CreateChat({ visible, onClose, currentUser, navigation }
                         id: currentUser.id
                     }
                 });
-                
-                var count = 0;
-                for (var i = 0; i < result.chats.items.length; i++) {
+                //endregion
+
+                let count = 0;
+                //region Count how many chats the user created & is still part of
+                for (let i = 0; i < result.chats.items.length; i++) {
                     const chat = result.chats.items[i].chat;
-                    if ((chat.creator == currentUser.id) && !chat.private && chat.enabled) {
+                    if ((chat.creator === currentUser.id) && !chat.private && chat.enabled) {
                         const last3 = await mmAPI.query({
                             call: calls.LIST_MESSAGES_BY_TIME,
                             instance: "createChat",
@@ -53,6 +75,7 @@ export default function CreateChat({ visible, onClose, currentUser, navigation }
                                 limit: 3
                             }
                         })
+                        //region to be fair to the user, verify none of their chats are expired when seeing if they have to many active chats. (if this chat is expired then go to next chat)
                         try {
                             if ((Date.now() - Date.parse(last3.items[0].createdAt)) / 1000 > 60 * 60 * rules.chatDeletionTime) { //if enabled and greater than rules.chatDeletionTime hours old then remove
                                 await mmAPI.mutate({
@@ -66,7 +89,7 @@ export default function CreateChat({ visible, onClose, currentUser, navigation }
                             }
                         } catch (error) { }
                         try {
-                            if (last3.items.length == 0 && (Date.now() - Date.parse(chat.createdAt)) / 1000 > 60 * 60 * rules.chatDeletionTime) {
+                            if (last3.items.length === 0 && (Date.now() - Date.parse(chat.createdAt)) / 1000 > 60 * 60 * rules.chatDeletionTime) {
                                 await mmAPI.mutate({
                                     call: calls.UPDATE_CHAT,
                                     input: {
@@ -77,32 +100,31 @@ export default function CreateChat({ visible, onClose, currentUser, navigation }
                                 continue;
                             }
                         } catch (error) { }
+                        //endregion
                         count++;
                     }
                 }
-                
+                //endregion
+
+                //If the count is less than the rule then allow them to create new chats
                 if (count <= rules.maxNumChats) setEnabled(true);
                 else setEnabled(false);
             } catch (error) {
                 logger.eLog("Possible Unnessary Error: "+error);
             }
-        }
-        initialFunction();
+        })();
     }, [visible]);
-    
-    const id = useRef();
+    //endregion
 
-    const close = () => {
-        cTitleRef.current.clear();
-        setcTitle("");
-        setCBackground({ isColor: true, full: " ", loadFull: " ", color: colors.background });
-        onClose();
-        setReady(false);
-    }
-
+    /* =============[ FUNCS ]============ */
+    //region [FUNC ASYNC] "selectImage = async ()" = Prompts user to select the chat background and *locally* adds them as a member
     const selectImage = async () => {
         setLoading(true);
+
+        //create the chatID
         id.current = uuid.v4();
+
+        //add the currentUser as a chat member *locally*
         setMembers([{
             user: {
                 id: currentUser.id,
@@ -110,10 +132,21 @@ export default function CreateChat({ visible, onClose, currentUser, navigation }
                 picture: currentUser.profilePicture.uri,
             }
         }]);
+
+        //prompt user to select a background
         Alert.alert("Use a photo or use a color", "Pick one of the options below to select the background", [
             {
                 text: "Open Photos", onPress: async () => {
-                    await media.openPhotos((image) => { setCBackground({ uri: { ...image, disabled: true }, isColor: false, color: ""}) });
+                    await media.openPhotos((image) => {
+                        setBackground({
+                            uri: {
+                                ...image,
+                                disabled: true
+                            },
+                            isColor: false,
+                            color: ""
+                        });
+                    });
                     setReady(true);
                 }
             },
@@ -126,7 +159,8 @@ export default function CreateChat({ visible, onClose, currentUser, navigation }
         Keyboard.dismiss();
         setLoading(false);
     }
-
+    //endregion
+    //region [FUNC ASYNC] "enableLocation = async ()" = Called when the user wants to enable their location
     const enableLocation = async () => {
         const result = await Location.getForegroundPermissionsAsync();
         if (result.canAskAgain) {
@@ -139,14 +173,19 @@ export default function CreateChat({ visible, onClose, currentUser, navigation }
             Alert.alert("Go to your settings", "In order to enable " + strings.APPNAME + " to access your location, you need to enable it in your settings");
         }
     }
-
-    const CreateChat = async () => {
+    //endregion
+    //region [FUNC ASYNC] "createChat = async ()" = Creates the chat based on the inputs provided (or fails and alerts user)
+    const createChat = async () => {
         try {
+            setLoading2(true);
+            //region Verify that the user CAN create the chat
+            //region Verify the user doesn't have to many chats
             if (!enabled) {
                 Alert.alert("You can't create a chat", "You have to many active chats right now.");
                 throw "Already a chat";
             }
-            setLoading2(true);
+            //endregion
+            //region Verify the user have locations enabled
             const location = await Location.getForegroundPermissionsAsync();
             if (!location.granted) {
                 Alert.alert("Location Needed", "You need to let " + strings.APPNAME + " use your location to create chats. You will have to recreate your chat after giving us access.", [
@@ -155,19 +194,30 @@ export default function CreateChat({ visible, onClose, currentUser, navigation }
                 ]);
                 throw "Location Needed";
             }
-
+            //endregion
+            //region Verify the user is connected to the internet
             const netInfo = await NetInfo.fetch();
             if (!netInfo.isConnected) {
                 Alert.alert("No Connection", "You must be connected to the internet to do this.");
                 throw "No Connection";
             }
+            //endregion
+            //endregion
+
+            //Get the current cognito user (in order to assign the owner of the chat)
             const currentCognitoUser = await Auth.currentAuthenticatedUser();
+
+            //Get the user's location in ft
             const userLocation = await Location.getLastKnownPositionAsync();
             const userLocationConverted = locConversion.toUser(userLocation.coords.latitude, userLocation.coords.longitude);
-            if (!cBackground.isColor) {
-                await mmAPI.store("FULLCHATBACKGROUND" + id.current + ".jpg", cBackground.uri.full);
-                await mmAPI.store("LOADFULLCHATBACKGROUND" + id.current + ".jpg", cBackground.uri.loadFull);
+
+            //region [IF] the background is an image [THEN] upload the image to s3
+            if (!background.isColor) {
+                await mmAPI.store("FULLCHATBACKGROUND" + id.current + ".jpg", background.uri.full);
+                await mmAPI.store("LOADFULLCHATBACKGROUND" + id.current + ".jpg", background.uri.loadFull);
             }
+            //endregion
+            //region Create the chat in the database
             const result2 = await mmAPI.mutate({
                 call: calls.CREATE_CHAT,
                 input: {
@@ -177,8 +227,8 @@ export default function CreateChat({ visible, onClose, currentUser, navigation }
                         full: "FULLCHATBACKGROUND" + id.current + ".jpg",
                         loadFull: "LOADFULLCHATBACKGROUND" + id.current + ".jpg",
                         region: "us-east-2",
-                        enableColor: cBackground.isColor,
-                        color: cBackground.color
+                        enableColor: background.isColor,
+                        color: background.color
                     },
                     name: cTitle,
                     creator: currentUser.id,
@@ -193,6 +243,8 @@ export default function CreateChat({ visible, onClose, currentUser, navigation }
                     longf2: userLocationConverted.longf2,
                 }
             })
+            //endregion
+            //region Add the currentUser as a member to this newly created chat
             const result3 = await mmAPI.mutate({
                 call: calls.CREATE_CHAT_MEMBERS,
                 instance: "background",
@@ -201,6 +253,8 @@ export default function CreateChat({ visible, onClose, currentUser, navigation }
                     chatID: id.current,
                 }
             })
+            //endregion
+            //region Alert the user they successfully created the chat & exit
             if (result2 && result3) {
                 setTimeout(function () {
                     Alert.alert("Success", "Chat Successfully Created.", [
@@ -211,11 +265,28 @@ export default function CreateChat({ visible, onClose, currentUser, navigation }
             } else {
                 throw "API Error"
             }
+            //endregion
+
         } catch (error) {
             logger.warn(error);
             setLoading2(false);
         }
     }
+    //endregion
+    //region [FUNCTION]   "close = ()" = Exits this modal & returns to default state.
+    const close = () => {
+        cTitleRef.current.clear();
+        setCTitle("");
+        setBackground({
+            isColor: true,
+            full: " ",
+            loadFull: " ",
+            color: colors.background
+        });
+        onClose();
+        setReady(false);
+    }
+    //endregion
 
     return (
         <Modal visible={visible} animationType="slide">
@@ -232,20 +303,20 @@ export default function CreateChat({ visible, onClose, currentUser, navigation }
                         icon="rename-box"
                         maxLength={18}
                         text={cTitle.length + "/18"}
-                        onChangeText={(text)=>setcTitle(text)}
+                        onChangeText={(text)=>setCTitle(text)}
                     />
                     <SimpleButton outerStyle={styles.button} title="Select Chat Background" onPress={selectImage} loading={loading} disabled={loading} />
                     <View style={styles.desc}>
                         <SubTitle size={16} style={styles.subtitle}>When you create a chat you cannot</SubTitle>
                         <SubTitle size={16} style={styles.subtitle}>delete it, but it will automatically delete</SubTitle>
                         <SubTitle size={16} style={styles.subtitle}>after {rules.chatDeletionTime} hours of inactivity. You can</SubTitle>
-                        <SubTitle size={16} style={styles.subtitle}>only create {rules.maxNumChats} chats at once.</SubTitle>
+                        <SubTitle size={16} style={styles.subtitle}>only create {rules.maxNumChats} chats in the same area at once.</SubTitle>
                     </View>
                     <Beam style={{ marginTop: 20, marginBottom: 10 }} />
                         {(cTitle.length > 0 && ready) && <>
                         <View style={{ marginHorizontal: 10 }}>
                             <Chat
-                                background={cBackground}
+                                background={background}
                                 members={members}
                                 disabled={true}
                                 last3={[]}
@@ -260,24 +331,27 @@ export default function CreateChat({ visible, onClose, currentUser, navigation }
                             />
                         
                         </View>
-                        <SimpleButton title="Create Chat" onPress={CreateChat} loading={loading2} disabled={loading2} />
+                        <SimpleButton title="Create Chat" onPress={createChat} loading={loading2} disabled={loading2} />
                          </>}
                 </View>
             </TouchableWithoutFeedback>
             <BackgroundEditor
                 visible={showBack}
                 onClose={() => setShowBack(false)}
-                onSuccess={(color) => { setCBackground({ full: " ", loadFull: " ", isColor: true, color: color }); setReady(true) }}
+                onSuccess={(color) => { setBackground({ full: " ", loadFull: " ", isColor: true, color: color }); setReady(true) }}
             />
         </Modal>
     )
 }
 
 const styles = StyleSheet.create({
+    //region page
     page: {
         flex: 1,
         backgroundColor: colors.background
     },
+    //endregion
+    //region header
     header: {
         backgroundColor: colors.container,
         width: "100%",
@@ -289,21 +363,30 @@ const styles = StyleSheet.create({
         paddingBottom: 10,
         marginBottom: 10,
     },
+    //endregion
+    //region title
     title: {
         fontWeight: "bold",
         alignSelf: "center",
     },
+    //endregion
+    //region button
     button: {
         padding: 12,
         shadowRadius: 0,
         borderColor: colors.text4
     },
+    //endregion
+    //region desc
     desc: {
         marginTop: 6,
         alignItems: "center",
         justifyContent: "center"
     },
+    //endregion
+    //region subtitle
     subtitle: {
         fontWeight: "400"
     }
-})
+    //endregion
+});

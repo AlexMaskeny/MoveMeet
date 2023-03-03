@@ -1,19 +1,21 @@
+//region 3rd Party Imports
 import React, { useRef, useState } from 'react';
 import { StyleSheet, Modal, View, Alert, TouchableOpacity, ActivityIndicator, ImageBackground} from 'react-native';
 import uuid from "react-native-uuid";
-import * as Location from 'expo-location';
 import NetInfo from "@react-native-community/netinfo";
-
-import { colors, css, strings } from '../config';
+import * as Location from 'expo-location';
+//endregion
+//region 1st Party Imports
 import IconButton from './IconButton';
 import SimpleButton from './SimpleButton';
 import SubTitle from './SubTitle';
+import Beam from './Beam';
+import { colors, css, strings } from '../config';
+import { calls, mmAPI } from '../api/mmAPI';
 import * as media from '../functions/media';
 import * as logger from '../functions/logger'
 import * as locConversion from '../functions/locConversion';
-import Beam from './Beam';
-import { calls, mmAPI } from '../api/mmAPI';
-
+//endregion
 
 export default function CreatePost({ visible, onClose, currentUser, navigation }) {
     const [loading1, setLoading1] = useState(false);
@@ -24,11 +26,14 @@ export default function CreatePost({ visible, onClose, currentUser, navigation }
 
     const id = useRef();
 
+    //region [FUNCTION]   "close = ()" = Exit this modal
     const close = () => {
         setImage("");
         onClose();
     }
+    //endregion
 
+    //region [FUNC ASYNC] "selectImage = async ()" = Opens the menu to select the post's image
     const selectImage = async () => {
         id.current = uuid.v4();
         const onSuccess = (uri) => {
@@ -40,7 +45,9 @@ export default function CreatePost({ visible, onClose, currentUser, navigation }
             { text: "Open Photos", onPress: () => media.openPhotos(onSuccess) }
         ]);
     }
+    //endregion
 
+    //region [FUNC ASYNC] "enableLocation = async ()" = Called when the user wants to enable their location
     const enableLocation = async () => {
         const result = await Location.getForegroundPermissionsAsync();
         if (result.canAskAgain) {
@@ -53,10 +60,21 @@ export default function CreatePost({ visible, onClose, currentUser, navigation }
             Alert.alert("Go to your settings", "In order to enable " + strings.APPNAME + " to access your location, you need to enable it in your settings");
         }
     }
+    //endregion
 
-    const CreatePost = async () => {
+    //region [FUNC ASYNC] "createPost = async ()" = Trigger when clicking the submit button. Creates the post.
+    const createPost = async () => {
         try {
             setLoading2(true);
+            //region Ensure the user is connected
+            const netInfo = await NetInfo.fetch();
+            if (!netInfo.isConnected) {
+                Alert.alert("No Connection", "You must be connected to the internet to do this.");
+                throw "No Connection";
+            }
+            //endregion
+
+            //region Get the user's location and convert it to ft
             const location = await Location.getForegroundPermissionsAsync();
             if (!location.granted) {
                 Alert.alert("Location Needed", "You need to let " + strings.APPNAME + " use your location to create posts. You will have to recreate your post after giving us access.", [
@@ -65,16 +83,15 @@ export default function CreatePost({ visible, onClose, currentUser, navigation }
                 ]);
                 throw "Location Needed";
             }
-            const netInfo = await NetInfo.fetch();
-            if (!netInfo.isConnected) {
-                Alert.alert("No Connection", "You must be connected to the internet to do this.");
-                throw "No Connection";
-            }
             const userLocation = await Location.getLastKnownPositionAsync();
             const userLocationConverted = locConversion.toUser(userLocation.coords.latitude, userLocation.coords.longitude);
+            //endregion
+
+            //region Upload the image to s3
             await mmAPI.store("FULLPOST" + id.current + ".jpg", image);
             await mmAPI.store("LOADFULLPOST" + id.current + ".jpg", smallImage);
-            
+            //endregion
+            //region Create the post in the database
             const result2 = await mmAPI.mutate({
                 call: calls.CREATE_POST,
                 input: {
@@ -95,21 +112,21 @@ export default function CreatePost({ visible, onClose, currentUser, navigation }
                 }
 
             });
-            if (result2) {
-                setTimeout(function () {
-                    Alert.alert("Success", "Post Successfully Created.", [
-                        { text: "Okay", onPress: ()=>close() },
-                    ])
-                    setLoading2(false);
-                }, 1000);
-            } else {
-                throw ""
-            }
+            //endregion
+            //region Success, exit the modal.
+            setTimeout(function () {
+                Alert.alert("Success", "Post Successfully Created.", [
+                    { text: "Okay", onPress: ()=>close() },
+                ])
+                setLoading2(false);
+            }, 1000);
+            //endregion
         } catch (error) {
             logger.warn(error);
             setLoading2(false);
         }
     }
+    //endregion
 
     return (
         <Modal visible={visible} animationType="slide">
@@ -119,7 +136,7 @@ export default function CreatePost({ visible, onClose, currentUser, navigation }
                     <SubTitle color={colors.pBeamBright} style={styles.title} size={18}>Create Post</SubTitle>
                     <IconButton color={colors.text1} icon="ios-close-circle" brand="Ionicons" size={32} onPress={close} />
                 </View>
-                {image.length == 0 && 
+                {image.length === 0 &&
                     <TouchableOpacity style={styles.bigImage} onPress={selectImage} disabled={loading1} >
                         <View style={styles.bigPlus}>
                             {!loading1 && <IconButton color={colors.pBeamBright} icon="add-circle" brand="Ionicons" size={70} disabled={true} />}
@@ -144,17 +161,20 @@ export default function CreatePost({ visible, onClose, currentUser, navigation }
                 </View>
                 <Beam style={{ marginTop: 20, marginBottom: 10 }} />
 
-                {(image.length > 0) && <SimpleButton title="Create Post" onPress={CreatePost} loading={loading2} disabled={loading2} />}
+                {(image.length > 0) && <SimpleButton title="Create Post" onPress={createPost} loading={loading2} disabled={loading2} />}
             </View>
         </Modal>
     )
 }
 
 const styles = StyleSheet.create({
+    //region page
     page: {
         flex: 1,
         backgroundColor: colors.background
     },
+    //endregion
+    //region header
     header: {
         backgroundColor: colors.container,
         width: "100%",
@@ -166,18 +186,26 @@ const styles = StyleSheet.create({
         paddingBottom: 10,
         marginBottom: 10,
     },
+    //endregion
+    //region title
     title: {
         fontWeight: "bold",
         alignSelf: "center",
     },
+    //endregion
+    //region desc
     desc: {
         marginTop: 6,
         alignItems: "center",
         justifyContent: "center"
     },
+    //endregion
+    //region subtitle
     subtitle: {
         fontWeight: "400"
     },
+    //endregion
+    //region bigImage
     bigImage: {
         backgroundColor: colors.container,
         borderRadius: 20,
@@ -188,6 +216,8 @@ const styles = StyleSheet.create({
         alignItems: "center",
         justifyContent: 'center',
     },
+    //endregion
+    //region bigPlus
     bigPlus: {
         height: 200,
         width: 200,
@@ -198,6 +228,8 @@ const styles = StyleSheet.create({
         borderWidth: 2,
         ...css.beamShadow
     },
+    //endregion
+    //region smallPlus
     smallPlus: {
         height: 70,
         width: 70,
@@ -208,10 +240,13 @@ const styles = StyleSheet.create({
         borderWidth: 2,
         ...css.beamShadow
     },
+    //endregion
+    //region imageBackground
     imageBackground: {
         flex: 1,
         width: "100%",
         justifyContent: "flex-start",
         alignItems: "flex-end",
-    }
-})
+    },
+    //endregion
+});

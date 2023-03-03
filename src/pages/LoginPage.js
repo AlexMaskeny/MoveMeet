@@ -1,9 +1,11 @@
-import React from 'react';
+//region 3rd Party Imports
+import React, {useState, useRef} from 'react';
 import { View, StyleSheet, KeyboardAvoidingView, Keyboard, Image, Alert, TouchableOpacity, TouchableWithoutFeedback, Platform } from 'react-native';
 import { colors } from '../config';
 import { Auth } from 'aws-amplify';
 import NetInfo from "@react-native-community/netinfo";
-
+//endregion
+//region 1st Party Imports
 import Screen from '../comps/Screen';
 import SimpleInput from '../comps/SimpleInput';
 import SimpleButton from '../comps/SimpleButton';
@@ -12,21 +14,17 @@ import SubTitle from '../comps/SubTitle';
 import * as logger from '../functions/logger';
 import * as perms from '../functions/perms';
 import BeamTitle from '../comps/BeamTitle';
-
-
-
-//current potential problems:
-//1. When clicking off of password text input, something occurs that clears
-//the password resulting in text input cleared upon typing.
-
+//endregion
 
 export default function LoginPage({navigation}) {
-    const [username, setUsername] = React.useState("");
-    const [password, setPassword] = React.useState("");
-    const [passwordVisible, setPasswordVisible] = React.useState(false);
-    const usernameRef = React.useRef();
-    const passwordRef = React.useRef();
-    const [submitButtonLoad, setSubmitButtonLoad] = React.useState(false);
+    const [username, setUsername] = useState("");
+    const [password, setPassword] = useState("");
+    const [passwordVisible, setPasswordVisible] = useState(false);
+    const [submitButtonLoad, setSubmitButtonLoad] = useState(false);
+
+    const usernameRef = useRef();
+    const passwordRef = useRef();
+    //region [FUNCTION]   "clear = ()" = Clears all of the inputs
     const clear = () => {
         Keyboard.dismiss();
         setUsername("");
@@ -34,24 +32,35 @@ export default function LoginPage({navigation}) {
         usernameRef.current.clear()
         passwordRef.current.clear();
     }
-
+    //endregion
+    //region [FUNC ASYNC] "forgotPassword = async ()" = Navigates user to forgot password page
     const forgotPassword = async () => {
         navigation.navigate("ForgotPasswordPage1");
     }
+    //endregion
 
     const onSubmit = async () => {
+        //Begin loading
         setSubmitButtonLoad(true);
-        var user = username;
-        var pass = password;
-        clear(); 
+
+        //Save the current username & password values. Clear the actual inputs.
+        let user = username;
+        let pass = password;
+        clear();
+
         try {
+            //region Ensure the user is connected
             const netInfo = await NetInfo.fetch();
-            console.log(netInfo);
             if (!netInfo.isConnected) {
                 Alert.alert("No Connection", "You must be connected to the internet to login.");
                 throw "No Connection";
             }
+            //endregion
+
+            //Attempt to log the user in
             const response = await Auth.signIn(user, pass);
+
+            //region [IF] the user successfully logged in via cognito [THEN] log the user in locally & update their dynamodb values to a logged in state
             if (response) {
                 await perms.getLocation();
                 await perms.getNotifications();
@@ -59,14 +68,19 @@ export default function LoginPage({navigation}) {
                 logger.log("Login Successful")
                 navigation.navigate("LoadingPage") //Actually navigate to loadingpage
             }
+            //endregion
         } catch (error) {
             logger.log(error);
-            if (error.code == "UserNotConfirmedException") navigation.navigate("SignupPage3");
-            else if (error.code == "NotAuthorizedException" || error.code == "UserNotFoundException") {
+            //region [IF] the user is not confirmed [THEN] navigate to the confirmation page
+            if (error.code === "UserNotConfirmedException") navigation.navigate("SignupPage3");
+            //endregion
+            //region [ELSE IF] the username isn't found or the password isn't correct [THEN] alert the user
+            else if (error.code === "NotAuthorizedException" || error.code === "UserNotFoundException") {
                 Alert.alert("Incorrect Username or Password", "The username or password you entered was incorrect.", [
                     { text: "Try Again" },
                 ])
-            } 
+            }
+            //endregion
         }
         setSubmitButtonLoad(false);
     }
@@ -75,9 +89,8 @@ export default function LoginPage({navigation}) {
             <TouchableOpacity activeOpacity={1} onPress={()=>Keyboard.dismiss() }><>
                 <KeyboardAvoidingView
                     style={styles.page}
-                    behavior={Platform.OS == "android" ? "height" : "padding"}
+                    behavior={Platform.OS === "android" ? "height" : "padding"}
                 >
-
                     <Image
                         source={require('../../assets/Logo.png')}
                         style={styles.logo}
@@ -141,18 +154,25 @@ export default function LoginPage({navigation}) {
 }
 
 const styles = StyleSheet.create({
+    //region text
     text: {
         color: colors.text1
     },
+    //endregion
+    //region page
     page: {
         width: "100%",
         height: "100%",
         justifyContent: "center",
     },
+    //endregion
+    //region logo
     logo: {
         height: 60,
         width: "100%"
     },
+    //endregion
+    //region beamContainer
     beamContainer: {
         width: "100%",
         marginTop: -30,
@@ -161,14 +181,19 @@ const styles = StyleSheet.create({
         justifyContent: "space-between",
         alignItems: "center",
     },
+    //endregion
+    //region beam
     beam: {
         width: "26%",
         borderRadius: 10
     },
+    //endregion
+    //region footer
     footer: {
         height: 70,
         alignItems: "flex-end",
         padding: 14,
         paddingRight: 20
     }
-})
+    //endregion
+});

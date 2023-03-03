@@ -21,6 +21,7 @@ import * as timeLogic from '../functions/timeLogic';
 //endregion
 
 export default function PrivateChatsPage({ navigation }) {
+    /* =============[ VARS ]============ */
     //region useRef variables
     const userChatsSub = useRef([]);
     const timeClockSub = useRef();
@@ -40,10 +41,11 @@ export default function PrivateChatsPage({ navigation }) {
     //endregion
     const netInfo = useNetInfo();
 
+    /* =============[ HOOKS ]============ */
+    //region [HOOK] "useEffect, [navigation]" = Header Initialization For Screen Specific Icons
     useEffect(() => {
         navigation.setOptions({
             headerRight: () => (
-                
                 <View style={{ alignItems: "center", justifyContent: "center", marginRight: 10, flex: 1 }}>
                     <IconButton
                         icon="account-search"
@@ -66,13 +68,17 @@ export default function PrivateChatsPage({ navigation }) {
                 </View> 
             )
         })
-    }); //Header Initialization For Screen Specific Icons
+    }, [navigation]);
+    //endregion
+    //region [HOOK] "useFocusEffect, [rerender]" = Get data on open page & on rerender
     useFocusEffect(useCallback(() => {
+        //region Enable the time clock
         if (timeClockSub.current) clearInterval(timeClockSub.current);
         timeClockSub.current = setInterval(updateTime, 10000);
         logger.eLog("[SUBMANAGER] PrivateChatsPage timeClock subscription begun.")
-
-        const initialFunction = async () => {
+        //endregion
+        //region [IF] the user is connected [THEN] store their dynmodb user in currentUser.current and call onRefresh()
+        (async function(){
             try {
                 if (netInfo.isConnected || !ready) {
                     const cognitoUser = await Auth.currentAuthenticatedUser();
@@ -88,44 +94,59 @@ export default function PrivateChatsPage({ navigation }) {
             } catch (error) {
                 logger.warn(error);
             }
-        }
-        initialFunction();
+        })();
+        //endregion
         return () => {
+            //region Unsubscribe from everything
+            //region Remove the SubSafe
             try {
                 subSafeSub.current();
                 logger.eLog("[SUBMANAGER] PrivateChatsPage subSafe subscription closed");
             } catch (error) { }
+            //endregion
+            //region Disable the time clock
             try {
                 clearInterval(timeClockSub.current);
                 logger.eLog("[SUBMANAGER] PrivateChatsPage timeClock subscription closed.");
             } catch (error) { }
+            //endregion
+            //region Unsubscribe from message notifications for the currentUser's chats
             try {
                 unsubscribeChats();
             } catch (error) { }
+            //endregion
+            //endregion
         }
-    }, [rerender])); //Get data on open page & on rerender
+    }, [rerender]));
+    //endregion
 
+    /* =============[ FUNCS ]============ */
+    //region [FUNC ASYNC] "onRefresh = async ()" = Get data and call necessary functions to update the UI and subscriptions
     const onRefresh = async () => {
         try {
+            //only run if connected. If it's the first run, sometimes even connected sections display as disconnected so run always on first run
             if (netInfo.isConnected || !ready) {
                 //Unsubscribe from the previous message subscriptions
                 unsubscribeChats();
 
-                //Remove previous SubSafe
+                //region Remove previous SubSafe
                 try {
                     subSafeSub.current();
                     logger.eLog("[SUBMANAGER] PrivateChatsPage subSafe subscription closed");
                 } catch (error) { }
+                //endregion
 
-                //Get the current user's friends
+                //region Get the current user's friends
                 const userFriendsResponse = await mmAPI.query({
                     call: calls.GET_USER,
                     instance: "friends",
                     input: {
                         id: currentUser.current.id
                     }
-                })
-                if (userFriendsResponse) {
+                });
+                //endregion
+
+                if (userFriendsResponse?.friends) {
                     let userFriends = userFriendsResponse.friends;
                     let chatData = [];
 
@@ -134,7 +155,7 @@ export default function PrivateChatsPage({ navigation }) {
                         //If user blocked, skip user
                         if (userFriends[i].status === "666") continue;
 
-                        //Get the chat of the friendship
+                        //region Get the chat of the friendship
                         let chat = await mmAPI.query({
                             call: calls.GET_CHAT,
                             instance: instances.FULL,
@@ -142,6 +163,7 @@ export default function PrivateChatsPage({ navigation }) {
                                 id: userFriends[i].chatID
                             }
                         });
+                        //endregion
 
                         //Add the current friendship data to the chat
                         chat.friend = userFriends[i];
@@ -159,7 +181,6 @@ export default function PrivateChatsPage({ navigation }) {
                             chat.userChatMembersID = chat.members.items[1].id
                         }
                         //endregion
-
                         //region Get the profile picture associated with the chat
                         const picture = await Storage.get(chat.opposingMember.user.profilePicture.loadFull);
                         chat.profilePicture = {
@@ -196,7 +217,6 @@ export default function PrivateChatsPage({ navigation }) {
                             } //Set the glow and latest chat
                         } else throw "[PRIVATECHATSPAGE] onRefresh failed because of an error getting a chat's last1 messages";
                         //endregion
-
                         //region Handle the glow feature. Things will be different based on friend status
                         if (!chat.glow && (userFriends[i].status === "1" || userFriends[i].status === "3"))
                             chat.glow = false;
@@ -214,7 +234,7 @@ export default function PrivateChatsPage({ navigation }) {
                         }
                         //endregion
 
-                        //Subscribe to updates to that chat
+                        //region Subscribe to updates to that chat
                         userChatsSub.current.push(mmAPI.subscribe({
                             call: calls.ON_RECEIVE_MESSAGE,
                             input: {
@@ -231,7 +251,8 @@ export default function PrivateChatsPage({ navigation }) {
                                 setRerender(!rerender);
                             },
                             sendData: true,
-                        }))
+                        }));
+                        //endregion
                     }
                     //After getting the chatData, sort chats then update the chats state variable
                     sortChats(chatData);
@@ -248,14 +269,9 @@ export default function PrivateChatsPage({ navigation }) {
             subSafeSub.current = mmAPI.subSafe(() => onRefresh());
             logger.eLog("subSafe enabled");
         }
-    } //Get data and call necessary functions to update the UI and subscriptions
-    const unsubscribeChats = () => {
-        for (var i = 0; i < userChatsSub.current.length; i++) {
-            userChatsSub.current[i].unsubscribe();
-        }
-        logger.eLog("[SUBMANAGER] " + userChatsSub.current.length + " PrivateChatsPage userChatsSub subscriptions closed.");
-        userChatsSub.current = [];
-    } //Unsubscribe from updates for all chats receiving messages
+    }
+    //endregion
+    //region [FUNC ASYNC] "messageUpdate = async (data)" = Called when receiving a message from subscription.
     const messageUpdate = async (data) => {
         setChats(existingItems => {
             let Chats = [...existingItems];
@@ -266,13 +282,45 @@ export default function PrivateChatsPage({ navigation }) {
 
             } else {
                 Chats[index].latest = "Now";
-                Chats[index].last1 = [data];  
+                Chats[index].last1 = [data];
                 if (data.user.id !== currentUser.current.id) Chats[index].glow = true;
             }
             return [...Chats];
 
         });
-    } //Called when receiving a message from subscription
+    }
+    //endregion
+    //region [FUNC ASYNC] "navigate = async (chat)" = Navigates the chat passed in. Triggered when opening a chat.
+    const navigate = async (chat) => {
+        try {
+            if (chat.last1.length >= 1) {
+                if (!chat.last1[0].read.includes(currentUser.current.id)) {
+                    chat.last1[0].read.push(currentUser.current.id)
+                    await mmAPI.mutate({
+                        call: calls.UPDATE_MESSAGE,
+                        input: {
+                            id: chat.last1[0].id,
+                            read: chat.last1[0].read
+                        }
+                    })
+                    chat.glow = false
+                }
+            }
+        } catch (error) {
+            logger.error(error);
+        }
+    }
+    //endregion
+    //region [FUNCTION]   "unsubscribeChats = ()" = Unsubscribe from updates for all chats receiving messages
+    const unsubscribeChats = () => {
+        for (var i = 0; i < userChatsSub.current.length; i++) {
+            userChatsSub.current[i].unsubscribe();
+        }
+        logger.eLog("[SUBMANAGER] " + userChatsSub.current.length + " PrivateChatsPage userChatsSub subscriptions closed.");
+        userChatsSub.current = [];
+    }
+    //endregion
+    //region [FUNCTION]   "sortChats = (chatData)" = Put the recent messages on top. If no recent messages, put the most recent friendship on top
     const sortChats = (chatData) => {
         chatData.sort((a, b) => {
             if (a.last1.length > 0 && b.last1.length > 0) {
@@ -289,26 +337,9 @@ export default function PrivateChatsPage({ navigation }) {
                 }
             }
         })
-    } //Put the recent messages on top. If no recent messages, put the most recent friendship on top
-    const navigate = async (item) => {
-        try {
-            if (item.last1.length >= 1) {
-                if (!item.last1[0].read.includes(currentUser.current.id)) {
-                    item.last1[0].read.push(currentUser.current.id)
-                    await mmAPI.mutate({
-                        call: calls.UPDATE_MESSAGE,
-                        input: {
-                            id: item.last1[0].id,
-                            read: item.last1[0].read
-                        }
-                    })
-                    item.glow = false
-                }
-            }
-        } catch (error) {
-            logger.error(error);
-        }
-    } //TRIGGERED UPON "OPEN CHAT". NAVIGATES TO THAT CHAT AFTER THIS.
+    }
+    //endregion
+    //region [FUNCTION]   "updateTime = ()" = Triggered every 10 seconds by the time clock to update times
     const updateTime = () => {
         setChats(existingItems => {
             let Chats = [...existingItems];
@@ -320,29 +351,42 @@ export default function PrivateChatsPage({ navigation }) {
             return [...Chats];
         });
         logger.eLog("PrivateChatsPage TimeClock activated.");
-    } //Trigger every 10 seconds by the time clock to update times
+    }
+    //endregion
+    //region [FUNCTION]   "openSettings = (item)" = Opens a user settings modal
     const openSettings = (item) => {
         setSettingsChat(item);
         setShowSettings(true);
-    } //Opens a user settings modal
+    }
+    //endregion
+    //region [FUNCTION]   "closeSettings = ()" = Closes a user settings modal
     const closeSettings = () => {
         setShowSettings(false);
         setSettingsChat({});
         setRefresh(true);
         onRefresh();
-    } //Closes a user settings modal
+    }
+    //endregion
+    //region [FUNCTION]   "closeSearch = ()" = Closes the search modal
     const closeSearch = () => {
         setShowSearch(false);
-    } //Closes the search modal
+    }
+    //endregion
 
-    const keyExtractor = React.useCallback((item) => item.id, []); //Tell the list what field to uniquely identify chats
+    /* =============[ LIST ]============ */
+    const keyExtractor = React.useCallback((item) => item.id, []);
+    //region [CALL COMP] "ListEmptyComponent, [ready]" = Displays an alert when no private chats
     const ListEmptyComponent = React.useCallback(() => {
         if (ready) return <NoChatsAlert isPrivate={true} />
-    }, [ready]); //Displays an alert when no private chats
+    }, [ready]);
+    //endregion
+    //region [CALL COMP] "ListFooterComponent, [ready]" = Displays a spacer when ready, activity indicator when not ready
     const ListFooterComponent = React.useCallback(() => {
         if (ready) return <View style={{ height: 30 }} />
         else return <ActivityIndicator color={colors.pBeam} size="large" style={{ marginTop: 10 }} />
-    }, [ready]); //Displays a spacer when ready, activity indicator when not ready
+    }, [ready]);
+    //endregion
+    //region [CALL COMP] "RenderItem, [chats, ready]" = Render the private chat component for each chat
     const RenderItem = React.useCallback(({ item }) => {
             if (ready) {
                 return (
@@ -365,7 +409,11 @@ export default function PrivateChatsPage({ navigation }) {
             } else {
                 return (<></>);
             }
-        }, [chats, ready]) //Render the private chat component for each chat
+        }, [chats, ready])
+    //endregion
+
+    /* =============[ COMPS ]============ */
+    //region [COMPONENT] "Modals" = Renders modals implicitly on top of the screen
     const Modals = () => <>
         <SettingsChat
             item={settingsChat}
@@ -392,7 +440,8 @@ export default function PrivateChatsPage({ navigation }) {
             onClose={() => setShowBug(false)}
             currentUser={currentUser.current}
         />
-    </> //These modals display conditionally
+    </>
+    //endregion
 
     return <>
         <Screen>
@@ -418,11 +467,13 @@ export default function PrivateChatsPage({ navigation }) {
             />
         </Screen>
         <Modals />
-    </> //Return the list of chats in a screen and the modals implicitly on top of them
+    </>
 }
 
 const styles = StyleSheet.create({
+    //region page
     page: {
         marginVertical: 10,
     },
+    //endregion
 });
