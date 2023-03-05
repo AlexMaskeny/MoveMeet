@@ -133,7 +133,10 @@ export default function Settings({ visible, onClose, navigation }) {
                     const result1 = await Notifications.getPermissionsAsync();
                     if (!result1.granted) {
                         const result2 = await Notifications.requestPermissionsAsync();
-                        if (!result2.granted) throw "Didn't enable Notifications";
+                        if (!result2.granted) {
+                            Alert.alert("You must give us permission", "You have disabled notifications in your settings. Go to them to enable notifications.");
+                            throw "Didn't enable Notifications";
+                        }
                     }
                     const expoToken = await Notifications.getExpoPushTokenAsync();
                     await mmAPI.mutate({

@@ -3,7 +3,7 @@
     "jsEngine": "hermes",
     "name": "MoveMeet",
     "slug": "ProxyChat",
-    "version": "1.0.0",
+    "version": "1.0.1",
     "orientation": "portrait",
     "icon": "./assets/icon.png",
     "userInterfaceStyle": "dark",
@@ -19,7 +19,7 @@
       "**/*"
     ],
     "ios": {
-      "buildNumber": "8",
+      "buildNumber": "0",
       "bundleIdentifier": "com.alexmaskeny.ProxyChat",
       "supportsTablet": false,
       "infoPlist": {

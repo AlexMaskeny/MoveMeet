@@ -194,11 +194,32 @@ export default function LoadingPage({navigation, route}) {
                                     });
                                     //endregion
                                     //region Find the ID of the chat membership between the user and the chat that sent the notification
-                                    const userChatMembersID = chat.members.items[chat.members.items.findIndex((el) => el.user.current.id === user.current.id)].id;
+                                    const userChatMembersID = chat.members.items[chat.members.items.findIndex((el) => el.user.id === user.current.id)].id;
                                     //endregion
 
-                                    //region [IF] the chat that sent the notification was private [THEN] navigate to the private chat navigator's chat page
+                                    //region [IF] the chat that sent the notification was private [THEN] navigate to the private chat navigator's chat page (also update friend status if necessary)
                                     if (notification.notification.request.content.data.privateChat) {
+                                        //region Update friend status (if needed)
+                                        let friendships = (await mmAPI.query({
+                                            call: calls.GET_USER,
+                                            instance: "friends",
+                                            input: {
+                                                id: user.current.id
+                                            }
+                                        })).friends;
+                                        const friendshipIndex = friendships.findIndex(el => el.chatID === notification.notification.request.content.data.chatID);
+                                        if (friendshipIndex !== -1) { //It should never be equal to -1
+                                            if (friendships[friendshipIndex].status === "1") friendships[friendshipIndex].status = "0";
+                                            if (friendships[friendshipIndex].status === "3") friendships[friendshipIndex].status = "2";
+                                            await mmAPI.mutate({
+                                                call: calls.UPDATE_USER,
+                                                input: {
+                                                    id: user.current.id,
+                                                    friends: friendships
+                                                }
+                                            })
+                                        }
+                                        //endregion
                                         navigation.navigate("PChatNav", {
                                             screen: "ChatPage",
                                             key: chat.id,
@@ -208,6 +229,7 @@ export default function LoadingPage({navigation, route}) {
                                                 id: chat.id,
                                                 userChatMembersID,
                                                 user: user.current,
+                                                jump: true,
                                                 private: true,
                                             }
                                         });
@@ -222,6 +244,7 @@ export default function LoadingPage({navigation, route}) {
                                                 name: notification.notification.request.content.title,
                                                 created: chat.createdAt,
                                                 id: chat.id,
+                                                jump: true,
                                                 userChatMembersID,
                                                 user: user.current,
                                             }

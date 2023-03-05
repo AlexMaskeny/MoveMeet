@@ -68,7 +68,7 @@ export const rules = {
     }
 };
 //endregion
-export const debug = true; //changes whether error messages print
+export const debug = false; //changes whether error messages print
 export const enhancedDebug = false;
 export const footerHeight = 80;
-export const version = "1.0.0";
+export const version = "1.0.1";

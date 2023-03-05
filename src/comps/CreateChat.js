@@ -181,7 +181,7 @@ export default function CreateChat({ visible, onClose, currentUser, navigation }
             //region Verify that the user CAN create the chat
             //region Verify the user doesn't have to many chats
             if (!enabled) {
-                Alert.alert("You can't create a chat", "You have to many active chats right now.");
+                Alert.alert("You can't create a chat", "You have to many active chats in this area right now.");
                 throw "Already a chat";
             }
             //endregion

@@ -23,7 +23,7 @@ function ImageMessage({ children, ppic, username, userId, opposingUserId, source
     const menuRef = useRef();
 
     const onView = async () => {
-        if (opposingUserId != userId) {
+        if (opposingUserId !== userId) {
             navigation.dispatch(CommonActions.navigate({
                 name: "OProfilePage",
                 key: opposingUserId,

@@ -14,9 +14,9 @@ function ProfileCircle({
     return (
         <View style={[styles.container, style]}>
             <Image
-                source={ppic.full}
-                defaultSource={ppic.loadFull}
-                cacheKey={ppic.fullKey}
+                source={ppic ? ppic.full : " "}
+                defaultSource={ppic ? ppic.loadFull : " "}
+                cacheKey={ppic ? ppic.fullKey : "ErrorKey"}
                 disabled={disabled}
                 style={[styles.image, innerStyle]}
                 resizeMode="cover"

@@ -35,7 +35,7 @@ export default function SettingsChat({ item, onClose, visible, navigate, current
     //region [FUNC ASYNC] "clearChat = async ()" = Removes the opposing user from the current user's PrivateChatsPage (And closes the modal)
     const clearChat = async () => {
         if (item.friend.status === "0") await updateStatus("1");
-        if (item.friend.status === "2") await updateStatus("3");
+        else if (item.friend.status === "2") await updateStatus("3");
         close();
     }
     //endregion
@@ -73,17 +73,16 @@ export default function SettingsChat({ item, onClose, visible, navigate, current
                         limit: 1
                     }
                 });
-
                 let newRead = userMessagesResult.items[0].read;
                 if (!newRead.includes(currentUser.id)) {
                     newRead.push(currentUser.id);
                     await mmAPI.mutate({
-                        calls: calls.UPDATE_MESSAGE,
+                        call: calls.UPDATE_MESSAGE,
                         input: {
                             id: userMessagesResult.items[0].id,
                             read: newRead
                         }
-                    })
+                    });
                 }
                 //endregion
             }

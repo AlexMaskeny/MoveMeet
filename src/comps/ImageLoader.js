@@ -3,7 +3,6 @@ import { ImageBackground, Image } from 'react-native';
 import * as FileSystem from "expo-file-system";
 
 import * as logger from '../functions/logger';
-import {setDisabled} from "react-native/Libraries/LogBox/Data/LogBoxData";
 
 function ImageLoader({
     source = " ", //URI
@@ -24,6 +23,9 @@ function ImageLoader({
     const LoadImageBackground = useCallback(() => (
         <ImageBackground source={{ uri: defaultSource }} {...otherProps}>{children}</ImageBackground>
     ), []);
+    const onLoadEnd = () => {
+        setImageReady(true)
+    }
     useEffect(() => {
         const initializeCache = async () => {
             try {
@@ -58,16 +60,16 @@ function ImageLoader({
     //Remotes use the URI state variable as source
     if (!isBackground && !lDisabled) return (<>
         {(!cacheReady) && <LoadImage />}
-        {(cacheReady) && <Image onLoadEnd={()=>setImageReady(true)} source={{ uri: imageReady ? uri : defaultSource }}  {...otherProps} />}
+        {(cacheReady) && <Image onLoadEnd={onLoadEnd} source={{ uri: imageReady ? uri : defaultSource }}  {...otherProps} />}
     </>);
     if (isBackground && !lDisabled) return (<>
         {(!cacheReady) && <LoadImageBackground />}
-        {(cacheReady) && <ImageBackground onLoadEnd={()=>setImageReady(true)} source={{ uri: imageReady ? uri : defaultSource }} {...otherProps}>{children}</ImageBackground>}
+        {(cacheReady) && <ImageBackground onLoadEnd={onLoadEnd} source={{ uri: imageReady ? uri : defaultSource }} {...otherProps}>{children}</ImageBackground>}
     </>);
 
     //Locals use the source parameter as source
-    if (!isBackground && lDisabled) return <Image onLoadEnd={()=>setImageReady(true)} source={{ uri: imageReady ? source : defaultSource }}  {...otherProps} />
-    if (isBackground && lDisabled) return <ImageBackground onLoadEnd={()=>setImageReady(true)} source={{ uri: imageReady ? source : defaultSource }}  {...otherProps}>{children}</ImageBackground>
+    if (!isBackground && lDisabled) return <Image onLoadEnd={onLoadEnd} source={{ uri: imageReady ? source : defaultSource }}  {...otherProps} />
+    if (isBackground && lDisabled) return <ImageBackground onLoadEnd={onLoadEnd} source={{ uri: imageReady ? source : defaultSource }}  {...otherProps}>{children}</ImageBackground>
 }
 
 export default ImageLoader;

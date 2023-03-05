@@ -1,8 +1,9 @@
 import React from 'react';
-import { Text, View, StyleSheet, Image } from 'react-native';
-
-import { colors, css } from '../config';
+import { Text, View, StyleSheet } from 'react-native';
 import LottieView from 'lottie-react-native';
+
+import Image from './ImageLoader';
+import { colors, css } from '../config';
 
 function SpinningProfileCircle({
     ppic,
@@ -14,7 +15,9 @@ function SpinningProfileCircle({
         <View style={styles.hoContainer}>
             <View style={[styles.container, style]}>
                 <Image
-                    source={{ uri: ppic.loadImage ? ppic.loadImage : ppic.uri }}
+                    source={ppic ? ppic.full : " "}
+                    defaultSource={ppic ? ppic.loadFull : " "}
+                    cacheKey={ppic ? ppic.fullKey : "ErrorKey"}
                     style={styles.image}
                     resizeMode="cover"
                 />

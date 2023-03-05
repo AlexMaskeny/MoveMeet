@@ -46,8 +46,8 @@ export default function ChatPage({ route, navigation }) {
     const [data, setData] = useState([]);                             //The list of messages in the chat
     const [showPreviewImage, setShowPreviewImage] = useState(false);  //Should we display an image preview for the previewImage state variable's URI?
     const [previewImage, setPreviewImage] = useState("");             //The URI of the image we are previewing
-    const [selectedImage, setSelectedImage] = useState("");           //The image selected when creating an image message. Displays in image input
-    const [selectedSmallImage, setSelectedSmallImage] = useState(""); //The loadFull version of the image selected when creating an image message
+    const [selectedImage, setSelectedImage] = useState(" ");           //The image selected when creating an image message. Displays in image input
+    const [selectedSmallImage, setSelectedSmallImage] = useState(" "); //The loadFull version of the image selected when creating an image message
     const [msgIsImage, setMsgIsImage] = useState(false);              //Should the input be an image input using the selectedImage?
     const [rerender, setRerender] = useState(false);                  //A placeholder state variable. Only utilized to run useFocusEffect again by setRerender(!rerender)
     const [members, setMembers] = useState([]);                       //The list of members that are currently typing in format {id: *user_id*, picture: *downloaded user profile picture*}
@@ -67,13 +67,25 @@ export default function ChatPage({ route, navigation }) {
                     color={colors.pBeamBright}
                     brand="Ionicons"
                     size={36}
-                    onPress={() => navigation.goBack()}
+                    onPress={() => {
+                        //After we navigate we will go back verify that jump is false to avoid weird back button functionality
+                        const initialJumpVal = route.params.jump;
+
+                        if (initialJumpVal) {
+                            let params = route.params;
+                            params.jump = false;
+                            navigation.setParams(params);
+                            if (!route.params.private) navigation.navigate("TChatNav", {screen: "ChatsPage"});
+                            else navigation.navigate("PChatNav", {screen: "PrivateChatsPage"});
+
+                        } else navigation.goBack();
+                    }}
                 />
             )
         })
     }, [navigation, route])
     //endregion
-    //region [HOOK] "useFocusEffect, [rerender, navigation, route]" = Get data on open page & on rerender
+    //region [HOOK] "useFocusEffect, [rerender]" = Get data on open page & on rerender
     useFocusEffect(useCallback(() => {
         //Disable receiving notifications for this chat while in it
         Notifications.setNotificationHandler({
@@ -136,24 +148,23 @@ export default function ChatPage({ route, navigation }) {
             instance: "full",
             input: { chatID: route.params.id },
             sendData: true,
-            onReceive: (data) => {
+            onReceive: async (data) => {
                 //[IF] the user typing isn't from a blocked user [AND] isn't the current user [THEN] display the typing alert
                 if (data.user.id !== route.params.user.id && data.status === 4) {
-                    setMembers(existingData => {
-                        //Find the member who is typing
+                    //Find the member who is typing
+                    let member = data;
+                    await getProfilePicture(member);
+
+                    setMembers((existingData) => {
                         const existingMember = existingData.findIndex((el) => el.id === data.user.id);
-                        let member = data;
-
-                        //Download the typing member's profile picture
-                        getProfilePicture(member);
-
-                        //region [IF] the typing member isn't already displayed as typing [THEN] display it
+                        //region [IF] the member isn't yet typing [THEN] display them
                         if (existingMember === -1) {
                             existingData = [...existingData, { id: member.user.id, picture: member.picture }];
                             memberStatusTracker.current.set(member.user.id, setTimeout(() => {
                                 setMembers(existingMembers => {
                                     memberStatusTracker.current.delete(member.user.id);
-                                    return existingMembers.filter(Member => Member.id !== member.user.id)
+                                    console.log(existingMembers._j);
+                                    return existingMembers.filter(Member => Member.id !== member.user.id);
                                 })
                             }, 4000));
                             return [...existingData];
@@ -267,7 +278,7 @@ export default function ChatPage({ route, navigation }) {
             //endregion
             //endregion
         }
-    }, [rerender, navigation, route]));
+    }, [rerender]));
     //endregion
 
     /* =============[ FUNCS ]============ */
@@ -297,9 +308,17 @@ export default function ChatPage({ route, navigation }) {
         if (!tokenExists({initial})) return;
         //endregion
 
+        //region [IF] it's the first time (AKA not a nexttoken load) [THEN] make sure the data is empty first & nextTokens are back to initial values
+        if (initial) {
+            setNextToken("i2");
+            lastToken.current = "i1";
+        }
+        //endregion
         const token = initial ? null : nextToken;
+
         try {
             //region Get the messages from the database (possibly offset by the nextToken)
+
             const messagesResponse = await mmAPI.query({
                 call: calls.LIST_MESSAGES_BY_TIME,
                 instance: "full",
@@ -308,16 +327,16 @@ export default function ChatPage({ route, navigation }) {
                     nextToken: token,
                     limit: 18
                 }
-            })
+            });
+            //Update the next token
+            lastToken.current = nextToken;
+            setNextToken(messagesResponse.nextToken);
+
             //endregion
             //[IF] there is at least one message [THEN] display them [ELSE] do nothing.
             if (messagesResponse.items.length > 0) {
                 //Create a mutable messages array
                 let messages = [...messagesResponse.items];
-
-                //Update the next token
-                lastToken.current = nextToken;
-                setNextToken(messagesResponse.nextToken);
 
                 //Read the latest message. No need to read previous ones.
                 if (initial) readMessage(messages[0]);
@@ -331,6 +350,7 @@ export default function ChatPage({ route, navigation }) {
                     if (messages[i].type === "Image") await getMessageImage(messages[i]);
                 }
                 setData((existingData) => {
+                    if (initial) existingData = [];
                     //Iterate through each message and decide whether to merge them or not.
                     //Once decided, update the data state variable with them
                     for (let i = 0; i < messages.length; i++) {
@@ -598,6 +618,33 @@ export default function ChatPage({ route, navigation }) {
         logger.eLog("ChatPage TimeClock activated.");
     }
     //endregion
+    //region [FUNCTION]   "openCamera" = () = Opens camera to take image
+    const openCamera = () => {
+        try {
+            media.openCamera((item) => {
+                setMsgIsImage(true);
+                setSelectedImage(item.full);
+                setSelectedSmallImage(item.loadFull);
+            });
+        } catch (error) {
+            logger.log(error);
+        }
+    }
+
+    //endregion
+    //region [FUNCTION]   "openPhotos" = () = Opens the camera roll
+    const openPhotos = () => {
+        try {
+            media.openPhotos((item) => {
+                setMsgIsImage(true);
+                setSelectedImage(item.full);
+                setSelectedSmallImage(item.loadFull);
+            });
+        } catch (error) {
+            logger.log(error);
+        }
+    }
+    //endregion
 
     /* =============[ LIST ]============ */
     //region [CALL COMP] "ListFooterComponent, [data, nextToken]" = [IF] no messages [AND] token exists [THEN] display activity indicator [ELSE IF] token doesn't exist [THEN] display beggining of chat
@@ -697,11 +744,7 @@ export default function ChatPage({ route, navigation }) {
             color={colors.text3}
             style={{ marginBottom: 6 }}
             size={34}
-            onPress={() => media.openCamera((item) => {
-                setSelectedImage(item.full);
-                setMsgIsImage(true);
-                setSelectedSmallImage(item.loadFull);
-            })}
+            onPress={openCamera}
         />
         <View style={{ width: 10 }} />
         <IconButton
@@ -710,11 +753,7 @@ export default function ChatPage({ route, navigation }) {
             color={colors.text3}
             size={34}
             style={{ marginBottom: 6, }}
-            onPress={() => media.openPhotos((item) => {
-                setSelectedImage(item.full);
-                setMsgIsImage(true);
-                setSelectedSmallImage(item.loadFull)
-            })}
+            onPress={openPhotos}
         />
         <View style={{ width: 10 }} />
         <IconButton
@@ -761,17 +800,6 @@ export default function ChatPage({ route, navigation }) {
             onPress={send}
         />
     //endregion
-    //region [COMPONENT] "IconRender" = All icons are rendered by the icon render
-    const IconRender = useCallback(() => (
-        <View style={[styles.textBox, { alignItems: msgIsImage ? "flex-start" : "flex-end" }]}>
-            {!(buttonsMinimized || msgIsImage) && <RenderButtons />}
-            {buttonsMinimized && <RenderButtonsMinimized />}
-            {!msgIsImage && <RenderTextInput />}
-            {msgIsImage && <ImageInput uri={{full: selectedImage, loadFull: selectedSmallImage}} onDisable={() => { setMsgIsImage(false); setSelectedImage("") } } /> }
-            <SendButton />
-        </View>
-    ),[buttonsMinimized,msgIsImage,selectedImage]);
-    //endregion
     //region [CALL COMP] "RenderTextInput, []" = Renders the typing field input
     const RenderTextInput = useCallback(() => (
         <SimpleInput
@@ -810,7 +838,26 @@ export default function ChatPage({ route, navigation }) {
                         keyboardShouldPersistTaps="always"
                     />
                 </View>
-                <IconRender />
+
+                {/*region Renders the icons & text input */}
+                <View style={[styles.textBox, { alignItems: msgIsImage ? "flex-start" : "flex-end" }]}>
+                    {!(buttonsMinimized || msgIsImage) && <RenderButtons />}
+                    {buttonsMinimized && <RenderButtonsMinimized />}
+                    {!msgIsImage && <RenderTextInput />}
+                    {msgIsImage &&
+                        <ImageInput
+                            uri={{full: selectedImage, loadFull: selectedSmallImage}}
+                            onDisable={() => {
+                                setMsgIsImage(false);
+                                setSelectedImage(" ");
+                                setSelectedSmallImage(" ");
+                            }}
+                        />
+                    }
+                    <SendButton />
+                </View>
+                {/*endregion*/}
+
             </KeyboardAvoidingView>
             <ImageViewModal />
         </Screen>

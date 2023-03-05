@@ -1,5 +1,5 @@
 //region 3rd Party Imports
-import React, { useState } from 'react';
+import React, {useCallback, useState} from 'react';
 import {
     StyleSheet,
     View,
@@ -33,7 +33,7 @@ import * as media from '../functions/media';
 export default function SignupPage4({ navigation, route }) {
     //region useState variables
     const [bio, setBio] = useState("");
-    const [profilePicture, setProfilePicture] = useState({});
+    const [profilePicture, setProfilePicture] = useState(false);
     const [image, setImage] = useState({});
     const [background, setBackground] = useState({isColor: true, color: colors.background})
     const [loading, setLoading] = useState(false);
@@ -187,36 +187,34 @@ export default function SignupPage4({ navigation, route }) {
     //endregion
 
     /* =============[ COMPS ]============ */
-    //region [COMPONENT] "Body" = The main body. This is separated because we render this conditionally instead two different containers depending on background type
-    const Body = () => (
-        <View style={styles.body}>
-            {!profilePicture &&
-                <TouchableOpacity style={styles.bigImage} onPress={selectProfilePicture} disabled={loading} >
-                    {!loading && <>
-                        <IconButton color={colors.text1} icon="camera" brand="MaterialCommunityIcons" size={40} disabled={true} />
-                    </>}
-                    {loading && <ActivityIndicator color={colors.pBeamBright} size="large" />}
-                </TouchableOpacity>
-            }
-            {profilePicture &&
-                <TouchableOpacity style={styles.bigImage} onPress={selectProfilePicture} disabled={loading} >
-                    <ImageBackground source={{ uri: image.full }} style={styles.imageBackground} imageStyle={{ borderRadius: 200 }}>
+    //region [COMPONENT] "ProfileInput" = The preview for the user's new profile picture (click to select)
+    const ProfileInput = useCallback(()=><>
+        {!profilePicture &&
+            <TouchableOpacity style={styles.bigImage} onPress={selectProfilePicture} disabled={loading} >
+                <IconButton color={colors.text1} icon="camera" brand="MaterialCommunityIcons" size={40} disabled={true} />
+            </TouchableOpacity>
+        }
+        {profilePicture &&
+            <TouchableOpacity style={styles.bigImage} onPress={selectProfilePicture} disabled={loading} >
+                <ImageBackground source={{ uri: image.full }} style={styles.imageBackground} imageStyle={{ borderRadius: 200 }}>
 
-                    </ImageBackground>
-                </TouchableOpacity>
-            }
-            <SimpleInput
-                autoCorrect={true}
-                multiline={true}
-                maxLength={160}
-                cStyle={styles.textInput}
-                tStyle={{ alignSelf: 'flex-start' }}
-                placeholder="Bio"
-                value={bio}
-                onChangeText={(text) => setBio(text)}
-            />
-        </View>
-    );
+                </ImageBackground>
+            </TouchableOpacity>
+        }
+    </>,[profilePicture,image.full]);
+    //endregion
+    //region [COMPONENT] "BioInput" = The text input for the user's new bio
+    const BioInput = useCallback(()=>
+        <SimpleInput
+            autoCorrect={true}
+            multiline={true}
+            maxLength={160}
+            cStyle={styles.textInput}
+            tStyle={{ alignSelf: 'flex-start' }}
+            placeholder="Bio"
+            onChangeText={(text) => setBio(text)}
+        />
+    ,[]);
     //endregion
     //region [COMPONENT] "SubmitButton = ({style})" = This is seperated because the submit buttons are essentially the same between color/image background types
     const SubmitButton = ({style}) => (
@@ -240,13 +238,19 @@ export default function SignupPage4({ navigation, route }) {
                     <Beam style={{ marginTop: 20 }} />
                     {background.isColor &&
                         <View style={{ backgroundColor: background.color, paddingVertical: 10 }}>
-                            <Body />
+                            <View style={styles.body}>
+                                <ProfileInput />
+                                <BioInput />
+                            </View>
                             <SubmitButton style={[styles.colorSubmit, {backgroundColor: background.isColor ? "rgba(0,0,0,0.2)" : colors.container}]} />
                         </View>
                     }
                     {!background.isColor &&
                         <ImageBackground source={{ uri: background.full }} style={{paddingVertical: 10}}>
-                            <Body />
+                            <View style={styles.body}>
+                                <ProfileInput />
+                                <BioInput />
+                            </View>
                             <SubmitButton style={styles.imageSubmit} />
                         </ImageBackground>
                     }

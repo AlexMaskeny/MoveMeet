@@ -1,15 +1,17 @@
-import React from 'react';
-import { View, StyleSheet } from 'react-native';
-
+//region 3rd Party Imports
+import React, {useState} from 'react';
+import {View, StyleSheet, ActivityIndicator} from 'react-native';
+//endregion
+//region 1st Party Imports
 import { colors } from '../config';
 import IconButton from './IconButton';
 import ImageLoader from './ImageLoader';
+//endregion
 
-function ImageInput({
+export default function ImageInput({
     uri,
     onDisable,
     style
-
 }) {
     return (
         <View style={[styles.container, style]}>
@@ -21,11 +23,13 @@ function ImageInput({
                 style={styles.image}
             />
             <IconButton brand="Ionicons" icon="close-circle" size={34} color={colors.text1} style={styles.removeButton} onPress={() => onDisable()} />
+
         </View>
     );
 }
 
 const styles = StyleSheet.create({
+    //region container
     container: {
         backgroundColor: colors.container,
         flex: 1,
@@ -38,6 +42,8 @@ const styles = StyleSheet.create({
         padding: 10,
         borderRadius: 30,
     },
+    //endregion
+    //region image
     image: {
         width: 200,
         height: 280,
@@ -45,10 +51,18 @@ const styles = StyleSheet.create({
         overflow: 'hidden',
         alignItems: "flex-end",
     },
+    //endregion
+    //region removeButton
     removeButton: {
         margin: 4,
-    }
-
+    },
+    //endregion
+    //region loading
+    loading: {
+        height: 280,
+        width: "100%",
+        alignItems: "center",
+        justifyContent: "center"
+    },
+    //endregion
 });
-
-export default ImageInput;

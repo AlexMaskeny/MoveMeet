@@ -259,7 +259,6 @@ export default function ChatsPage({ navigation }) {
                             //region Download the profile pictures of the users who sent the last 3 messages. [the warning is okay]
                             if (last3?.items) {
                                 chat.last3 = last3.items;
-
                                 //If there is at least one message in the chat, set the "last message time" value to the latest message's creation time
                                 //AND If the user hasn't read the latest message, then make the chat glow
                                 if (last3.items.length > 0) {
@@ -398,18 +397,28 @@ export default function ChatsPage({ navigation }) {
     //endregion
     //region [ASYNC FUNC] "messageUpdate = async (data)" = Called when receiving a message from subscription. Updates the chat locally to reflect the new message.
     const messageUpdate = async (data) => {
+        let newMessage = data;
+        //region Download the new last3's picture
+        const newMessageLoadFull = await Storage.get(newMessage.user.profilePicture.loadFull);
+        newMessage.picture = {
+            loadFull: newMessageLoadFull,
+            full: newMessageLoadFull,
+            fullKey: newMessage.user.profilePicture.loadFull
+        }
+        //endregion
+
         setChats(existingItems => {
             let Chats = [...existingItems];
 
             //Find the index of the chat that received a message
-            const index = Chats.findIndex(el => el.id === data.chatMessagesId);
+            const index = Chats.findIndex(el => el.id === newMessage.chatMessagesId);
 
             //Update that chat's last3
             if (Chats[index]?.last3) {
-                Chats[index].last3.unshift(data);
+                Chats[index].last3.unshift(newMessage);
                 if (Chats[index].last3.length > 3) Chats[index].last3.splice(-1);
                 Chats[index].latest = "Now";
-                if (data.user.id !== currentUser.current.id) Chats[index].glow = true;
+                if (newMessage.user.id !== currentUser.current.id) Chats[index].glow = true;
             }
 
             //Put that chat to the top
@@ -523,7 +532,7 @@ export default function ChatsPage({ navigation }) {
 
     /* =============[ COMPS ]============ */
     //region [COMPONENT] "Modals" = Renders modals implicitly on top of the screen
-    const Modals = () => <>
+    const Modals = useCallback(() => <>
         <CheckingForUsers visible={checkingForUsers} />
         <CreateChat
             visible={showCreate}
@@ -542,7 +551,7 @@ export default function ChatsPage({ navigation }) {
             onClose={() => setShowBug(false)}
             currentUser={currentUser.current}
         />
-    </>
+    </>,[showCreate,showBug,showHelp]);
     //endregion
 
     return <>

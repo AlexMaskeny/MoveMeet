@@ -24,7 +24,7 @@ const openPhotos = async (onSuccess) => {
         } else {
             const result = await ImagePicker.launchImageLibraryAsync();
             if (result) {
-                if (result.canceled) return
+                if (result.canceled) return;
                 else {
                     const full = await manipulateAsync(result.assets[0].uri, [{ resize: { width: 1080 } }]);
                     const loadFull = await manipulateAsync(result.assets[0].uri, [{ resize: { width: 80 } }]);

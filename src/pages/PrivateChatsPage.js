@@ -75,9 +75,10 @@ export default function PrivateChatsPage({ navigation }) {
         //region Enable the time clock
         if (timeClockSub.current) clearInterval(timeClockSub.current);
         timeClockSub.current = setInterval(updateTime, 10000);
-        logger.eLog("[SUBMANAGER] PrivateChatsPage timeClock subscription begun.")
+        logger.eLog("[SUBMANAGER] PrivateChatsPage timeClock subscription begun.");
         //endregion
         //region [IF] the user is connected [THEN] store their dynmodb user in currentUser.current and call onRefresh()
+
         (async function(){
             try {
                 if (netInfo.isConnected || !ready) {
@@ -89,7 +90,7 @@ export default function PrivateChatsPage({ navigation }) {
                             id: cognitoUser.attributes.sub
                         }
                     });
-                    onRefresh();
+                    await onRefresh();
                 }
             } catch (error) {
                 logger.warn(error);
@@ -224,7 +225,7 @@ export default function PrivateChatsPage({ navigation }) {
                         if (chat.glow) {
                             if (userFriends[i].status === "1") userFriends[i].status = "0";
                             if (userFriends[i].status === "3") userFriends[i].status = "2";
-                            await mmAPI.mutate({
+                            mmAPI.mutate({
                                 call: calls.UPDATE_USER,
                                 input: {
                                     id: currentUser.current.id,
@@ -304,6 +305,11 @@ export default function PrivateChatsPage({ navigation }) {
                         }
                     })
                     chat.glow = false
+                    setChats(existingData => {
+                       let chatIndex = existingData.findIndex(el => el.id === chat.id);
+                       existingData[chatIndex].glow = false;
+                       return [...existingData];
+                    });
                 }
             }
         } catch (error) {
@@ -313,7 +319,7 @@ export default function PrivateChatsPage({ navigation }) {
     //endregion
     //region [FUNCTION]   "unsubscribeChats = ()" = Unsubscribe from updates for all chats receiving messages
     const unsubscribeChats = () => {
-        for (var i = 0; i < userChatsSub.current.length; i++) {
+        for (let i = 0; i < userChatsSub.current.length; i++) {
             userChatsSub.current[i].unsubscribe();
         }
         logger.eLog("[SUBMANAGER] " + userChatsSub.current.length + " PrivateChatsPage userChatsSub subscriptions closed.");
@@ -329,14 +335,27 @@ export default function PrivateChatsPage({ navigation }) {
                 } else {
                     return 1;
                 }
-            } else {
+            } else if (a.last1.length > 0 && b.last1.length <= 0) {
+                if (Date.parse(a.last1[0].createdAt) > Date.parse(b.createdAt)) {
+                    return -1;
+                } else {
+                    return 1;
+                }
+            } else if (a.last1.length <= 0 && b.last1.length > 0) {
+                if (Date.parse(a.createdAt) > Date.parse(b.last1[0].createdAt)) {
+                    return -1;
+                } else {
+                    return 1;
+                }
+            }
+            else {
                 if (Date.parse(a.createdAt) > Date.parse(b.createdAt)) {
                     return -1;
                 } else {
                     return 1;
                 }
             }
-        })
+        });
     }
     //endregion
     //region [FUNCTION]   "updateTime = ()" = Triggered every 10 seconds by the time clock to update times
@@ -414,7 +433,7 @@ export default function PrivateChatsPage({ navigation }) {
 
     /* =============[ COMPS ]============ */
     //region [COMPONENT] "Modals" = Renders modals implicitly on top of the screen
-    const Modals = () => <>
+    const Modals = useCallback(() => <>
         <SettingsChat
             item={settingsChat}
             onClose={closeSettings}
@@ -440,7 +459,7 @@ export default function PrivateChatsPage({ navigation }) {
             onClose={() => setShowBug(false)}
             currentUser={currentUser.current}
         />
-    </>
+    </>, [showSettings,showHelp,showSearch,showBug]);
     //endregion
 
     return <>

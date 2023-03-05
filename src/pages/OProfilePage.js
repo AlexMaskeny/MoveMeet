@@ -316,7 +316,7 @@ export default function OProfilePage({ navigation, route }) {
                     call: calls.UPDATE_USER,
                     input: {
                         id: opposingUser.current.id,
-                        friends: opposingUserFriends
+                        friends: opposingUser.current.friends
                     }
                 });
                 //endregion

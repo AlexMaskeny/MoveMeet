@@ -11,8 +11,6 @@ import SubTitle from './SubTitle';
 import { CommonActions } from '@react-navigation/native';
 import { calls, instances, mmAPI } from '../api/mmAPI';
 
-
-
 export default function UserSearch({ visible, onClose, navigation, currentUser }) {
     const [search, setSearch] = useState("");
     const [foundUsers, setFoundUsers] = useState([]);
