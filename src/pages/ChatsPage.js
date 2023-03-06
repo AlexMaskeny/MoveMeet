@@ -17,7 +17,7 @@ import BugReport from '../comps/BugReport';
 import CheckingForUsers from '../comps/CheckingForUsers';
 import NoChatsAlert from '../comps/NoChatsAlert';
 import { calls, instances, mmAPI } from '../api/mmAPI';
-import { colors, rules } from '../config';
+import { dark_colors, rules } from '../config';
 import * as logger from '../functions/logger';
 import * as locConversion from '../functions/locConversion';
 import * as timeLogic from '../functions/timeLogic';
@@ -54,7 +54,7 @@ export default function ChatsPage({ navigation }) {
                     <IconButton
                         icon="add-circle"
                         brand="Ionicons"
-                        color={colors.text1}
+                        color={dark_colors.text1}
                         size={32}
                         onPress={() => setShowCreate(true)}
                     />
@@ -65,7 +65,7 @@ export default function ChatsPage({ navigation }) {
                     <IconButton
                         icon="help-circle"
                         brand="Ionicons"
-                        color={colors.text1}
+                        color={dark_colors.text1}
                         size={32}
                         onPress={() => setShowHelp(true)}
                     />
@@ -500,7 +500,7 @@ export default function ChatsPage({ navigation }) {
     //region [CALL COMP] "ListFooterComponent, [ready]" = Displays a spacer when ready. When not ready, displays an activity indicator.
     const ListFooterComponent = React.useCallback(() => {
         if (ready) return <View style={{ height: 30 }} />;
-        else return <ActivityIndicator color={colors.pBeam} size="large" style={{marginTop: 10} } />
+        else return <ActivityIndicator color={dark_colors.pBeam} size="large" style={{marginTop: 10} } />
     }, [ready]);
     //endregion
     //region [CALL COMP] "RenderItem, [chats, ready, checkingForUsers, locEnabled]" = Render the chat component for each chat
@@ -569,7 +569,7 @@ export default function ChatsPage({ navigation }) {
                             setRefresh(true);
                             onRefresh();
                         }}
-                        tintColor={colors.pBeam}
+                        tintColor={dark_colors.pBeam}
                     />
                 }
                 ListFooterComponent={ListFooterComponent}
@@ -594,7 +594,7 @@ const styles = StyleSheet.create({
     //endregion
     //region header
     header: {
-        backgroundColor: colors.container,
+        backgroundColor: dark_colors.container,
         height: 100,
     },
     //endregion

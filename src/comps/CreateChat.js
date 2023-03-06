@@ -7,7 +7,7 @@ import { Auth } from 'aws-amplify';
 import * as Location from 'expo-location';
 //endregion
 //region 1st Party Imports
-import { colors, rules, strings } from '../config';
+import { dark_colors, rules, strings } from '../config';
 import IconButton from './IconButton';
 import SimpleButton from './SimpleButton';
 import SimpleInput from './SimpleInput';
@@ -43,7 +43,7 @@ export default function CreateChat({ visible, onClose, currentUser, navigation }
             disabled: true,
             fullKey: " "
         },
-        color: colors.background
+        color: dark_colors.background
     });
     //endregion
 
@@ -281,7 +281,7 @@ export default function CreateChat({ visible, onClose, currentUser, navigation }
             isColor: true,
             full: " ",
             loadFull: " ",
-            color: colors.background
+            color: dark_colors.background
         });
         onClose();
         setReady(false);
@@ -293,9 +293,9 @@ export default function CreateChat({ visible, onClose, currentUser, navigation }
             <TouchableWithoutFeedback onPress={() => Keyboard.dismiss()}>
                 <View style={styles.page}>
                     <View style={styles.header}>
-                        <IconButton color={colors.container} icon="ios-close-circle" brand="Ionicons" size={32} />
-                        <SubTitle color={colors.pBeamBright} style={styles.title} size={18}>Create Chat</SubTitle>
-                        <IconButton color={colors.text1} icon="ios-close-circle" brand="Ionicons" size={32} onPress={close} />
+                        <IconButton color={dark_colors.container} icon="ios-close-circle" brand="Ionicons" size={32} />
+                        <SubTitle color={dark_colors.pBeamBright} style={styles.title} size={18}>Create Chat</SubTitle>
+                        <IconButton color={dark_colors.text1} icon="ios-close-circle" brand="Ionicons" size={32} onPress={close} />
                     </View>
                     <SimpleInput
                         reference={cTitleRef}
@@ -348,12 +348,12 @@ const styles = StyleSheet.create({
     //region page
     page: {
         flex: 1,
-        backgroundColor: colors.background
+        backgroundColor: dark_colors.background
     },
     //endregion
     //region header
     header: {
-        backgroundColor: colors.container,
+        backgroundColor: dark_colors.container,
         width: "100%",
         justifyContent: "space-between",
         alignItems: "center",
@@ -374,7 +374,7 @@ const styles = StyleSheet.create({
     button: {
         padding: 12,
         shadowRadius: 0,
-        borderColor: colors.text4
+        borderColor: dark_colors.text4
     },
     //endregion
     //region desc

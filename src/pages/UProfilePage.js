@@ -20,7 +20,7 @@ import Settings from '../comps/Settings';
 import BackgroundEditor from '../comps/BackgroundEditor';
 import ImageLoader from '../comps/ImageLoader';
 import { calls, instances, mmAPI } from '../api/mmAPI';
-import { colors } from '../config';
+import { dark_colors } from '../config';
 import * as logger from '../functions/logger';
 import * as timeLogic from '../functions/timeLogic';
 import * as distance from '../functions/distance';
@@ -64,7 +64,7 @@ export default function UProfilePage({ navigation }) {
                         <IconButton
                             icon="add-circle"
                             brand="Ionicons"
-                            color={colors.text1}
+                            color={dark_colors.text1}
                             size={32}
                             onPress={() => setShowCreate(true)}
                         />
@@ -75,7 +75,7 @@ export default function UProfilePage({ navigation }) {
                         <IconButton
                             icon="square-edit-outline"
                             brand="MaterialCommunityIcons"
-                            color={colors.text1}
+                            color={dark_colors.text1}
                             size={32}
                             onPress={() => setEditing(true)}
                         />
@@ -83,7 +83,7 @@ export default function UProfilePage({ navigation }) {
                         <IconButton
                             icon="settings-sharp"
                             brand="Ionicons"
-                            color={colors.text1}
+                            color={dark_colors.text1}
                             size={30}
                             onPress={() => setShowSettings(true)}
                         />
@@ -488,13 +488,13 @@ export default function UProfilePage({ navigation }) {
         }
         {editing &&
             <View style={{ position: 'absolute', alignSelf: "flex-end", padding: 4, zIndex: 4 }}>
-                <IconButton icon="square-edit-outline" brand="MaterialCommunityIcons" size={40} color={colors.text1} onPress={changeBackground} />
+                <IconButton icon="square-edit-outline" brand="MaterialCommunityIcons" size={40} color={dark_colors.text1} onPress={changeBackground} />
             </View>
         }
         {!background.isColor &&
             <LinearGradient
                 // Background Linear Gradient
-                colors={['rgba(18, 18, 18,0.4)', colors.background]}
+                colors={['rgba(18, 18, 18,0.4)', dark_colors.background]}
                 style={{ height: 120, width: "100%", marginTop: -120 }}
             />
         }
@@ -504,7 +504,7 @@ export default function UProfilePage({ navigation }) {
                 <TouchableOpacity onPress={changePpic} style={{ justifyContent: "center" }}>
                     <ProfileCircle ppic={profilePicture} style={styles.ppicEditing} innerStyle={styles.innerPpicEditing} />
                     <View style={styles.changePpic}>
-                        <IconButton icon="square-edit-outline" brand="MaterialCommunityIcons" size={40} color={colors.text1} onPress={changePpic} />
+                        <IconButton icon="square-edit-outline" brand="MaterialCommunityIcons" size={40} color={dark_colors.text1} onPress={changePpic} />
                     </View>
                 </TouchableOpacity>
             }
@@ -518,7 +518,7 @@ export default function UProfilePage({ navigation }) {
         <View style={styles.body}>
             <View style={styles.upperBody}>
                 <View>
-                    <SubTitle style={styles.title2} size={18} color={colors.background} selectable={true}>@{username}</SubTitle>
+                    <SubTitle style={styles.title2} size={18} color={dark_colors.background} selectable={true}>@{username}</SubTitle>
 
                 </View>
             </View>
@@ -526,7 +526,7 @@ export default function UProfilePage({ navigation }) {
                 <SimpleInput
                     autoCorrect={true}
                     reference={bioEditRef}
-                    cStyle={{ backgroundColor: colors.background }}
+                    cStyle={{ backgroundColor: dark_colors.background }}
                     editable={editing}
                     multiline={true}
                     maxLength={160}
@@ -537,11 +537,11 @@ export default function UProfilePage({ navigation }) {
                 {editing && <>
                     <View style={{ height: 10 }} />
                     {!bioEdit &&
-                        <IconButton icon="square-edit-outline" brand="MaterialCommunityIcons" size={30} color={colors.pBeamBright} onPress={changeBio} />
+                        <IconButton icon="square-edit-outline" brand="MaterialCommunityIcons" size={30} color={dark_colors.pBeamBright} onPress={changeBio} />
                     }
                     {bioEdit &&
                         <TouchableOpacity onPress={() => { Keyboard.dismiss(); setBioEdit(false) }}>
-                            <SubTitle style={styles.title2} size={18} color={colors.pBeamBright}>Done</SubTitle>
+                            <SubTitle style={styles.title2} size={18} color={dark_colors.pBeamBright}>Done</SubTitle>
                         </TouchableOpacity>
                     }
                 </>}
@@ -594,7 +594,7 @@ export default function UProfilePage({ navigation }) {
                                 setRefresh(true);
                                 setRerender(!rerender);
                             }}
-                            tintColor={colors.pBeam}
+                            tintColor={dark_colors.pBeam}
                         />
                     }
                     ListHeaderComponent={ListHeaderComponent}
@@ -658,7 +658,7 @@ const styles = StyleSheet.create({
         padding: 10,
         flexDirection: "row",
         justifyContent: "space-between",
-        backgroundColor: colors.background
+        backgroundColor: dark_colors.background
     },
     //endregion
     //region midBody
@@ -669,7 +669,7 @@ const styles = StyleSheet.create({
         minHeight: 70,
         alignItems: "center",
         justifyContent: "flex-end",
-        backgroundColor: colors.background
+        backgroundColor: dark_colors.background
     },
     //endregion
     //region title
@@ -684,7 +684,7 @@ const styles = StyleSheet.create({
     //endregion
     //region textInput
     textInput: {
-        color: colors.text1,
+        color: dark_colors.text1,
         fontSize: 18,
         maxHeight: 140,
     },
@@ -701,7 +701,7 @@ const styles = StyleSheet.create({
     //endregion
     //region body
     body: {
-        backgroundColor: colors.background
+        backgroundColor: dark_colors.background
     }
     //endregion
 })

@@ -2,7 +2,7 @@ import React from 'react';
 import { View, StyleSheet, FlatList, ImageBackground, TouchableOpacity } from 'react-native';
 import { CommonActions } from '@react-navigation/native';
 
-import { colors, css } from '../config';
+import { dark_colors, css } from '../config';
 import BeamTitle from './BeamTitle';
 import IconTitle from './IconTitle';
 import PCircleAndTitle from './PCircleAndTitle';
@@ -80,7 +80,7 @@ function Chat({
             return ({
                 ...css.beamShadow,
                 borderWidth: 2,
-                borderColor: colors.pBeam
+                borderColor: dark_colors.pBeam
             })
         } else {
             return ({})
@@ -174,7 +174,7 @@ function Chat({
                     {last3.length > 0 &&
                         <LinearGradient
                             // Background Linear Gradient
-                            colors={[colors.transContainer+"0.4)", colors.background]}
+                            colors={[dark_colors.transContainer+"0.4)", dark_colors.background]}
                             style={{ flex: 1, marginTop: -156 } }
                         />
                     }
@@ -198,7 +198,7 @@ const styles = StyleSheet.create({
         maxWidth: "100%",
         height: 340,
         borderRadius: 20,
-        backgroundColor: colors.passiveImg,
+        backgroundColor: dark_colors.passiveImg,
         shadowOffset: { width: 0, height: 1 },
         shadowRadius: 2,
         shadowOpacity: 0.3,
@@ -207,10 +207,10 @@ const styles = StyleSheet.create({
     },
     sub1: {
         flex: 1,
-        backgroundColor: colors.container,
+        backgroundColor: dark_colors.container,
         borderBottomEndRadius: 18,
         borderBottomStartRadius: 18,
-        borderTopColor: colors.pBeam,
+        borderTopColor: dark_colors.pBeam,
         borderTopWidth: 2,
         
     },
@@ -240,7 +240,7 @@ const styles = StyleSheet.create({
         textShadowColor: "black",
         textShadowRadius: 1,
         shadowRadius: 2,
-        color: colors.pBeamBright,
+        color: dark_colors.pBeamBright,
         shadowColor: "black"
 
     },
@@ -254,7 +254,7 @@ const styles = StyleSheet.create({
 
     },
     chat: {
-        backgroundColor: colors.background,
+        backgroundColor: dark_colors.background,
         margin: 10,
         marginTop: 14,
         height: 156,

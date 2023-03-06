@@ -9,7 +9,7 @@ import Screen from '../comps/Screen';
 import SimpleButton from '../comps/SimpleButton';
 import SimpleInput from '../comps/SimpleInput';
 import SubTitle from '../comps/SubTitle';
-import { colors } from '../config';
+import { dark_colors } from '../config';
 //endregion
 
 export default function SignupPage1({ navigation }) {
@@ -108,11 +108,11 @@ export default function SignupPage1({ navigation }) {
                         <SubTitle size={14} style={{ alignContent: "center" }}>By clicking next you agree to our</SubTitle>
                         <View style={{ flexDirection: 'row' }}>
                             <TouchableOpacity onPress={()=>Linking.openURL("https://movemeet.com/terms")}>
-                                <SubTitle size={14} style={{ alignContent: "center" }} color={colors.pBeam}>Terms & Conditions</SubTitle>
+                                <SubTitle size={14} style={{ alignContent: "center" }} color={dark_colors.pBeam}>Terms & Conditions</SubTitle>
                             </TouchableOpacity>
                             <SubTitle size={14} style={{ alignContent: "center" }}> and </SubTitle>
                             <TouchableOpacity onPress={() => Linking.openURL("https://movemeet.com/privacy-policy")}>
-                                <SubTitle size={14} style={{ alignContent: "center" }} color={colors.pBeam}>Privacy Policy</SubTitle>
+                                <SubTitle size={14} style={{ alignContent: "center" }} color={dark_colors.pBeam}>Privacy Policy</SubTitle>
                             </TouchableOpacity>
                         </View>
                     </View>
@@ -121,7 +121,7 @@ export default function SignupPage1({ navigation }) {
             <View style={styles.beamContainer}>
                 <Beam style={styles.beam} />
                 <TouchableOpacity onPress={() => navigation.navigate("LoginPage")}>
-                    <SubTitle size={16} style={{ fontWeight: "400" }} color={colors.text2}>Or Login</SubTitle>
+                    <SubTitle size={16} style={{ fontWeight: "400" }} color={dark_colors.text2}>Or Login</SubTitle>
                 </TouchableOpacity>
                 <Beam style={styles.beam} />
             </View>

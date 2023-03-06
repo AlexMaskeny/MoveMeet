@@ -1,7 +1,7 @@
 import React from 'react';
 import { View, StyleSheet, ActivityIndicator } from 'react-native';
 
-import { colors, css } from '../config';
+import { dark_colors, css } from '../config';
 import BeamTitle from './BeamTitle';
 import SubTitle from './SubTitle';
 import Screen from './Screen';
@@ -22,7 +22,7 @@ export default function CheckingForUsers({
                     <SubTitle size={16}>Sometimes this takes some time. If</SubTitle>
                     <SubTitle size={16}>you find a bug please report it!</SubTitle>
                     <View height={20} />
-                    <ActivityIndicator size="large" color={colors.text1} />
+                    <ActivityIndicator size="large" color={dark_colors.text1} />
                     <View height={20} />
                 </View>
             </Screen>

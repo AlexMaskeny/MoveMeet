@@ -9,7 +9,7 @@ import Loading from './Loading';
 import ProfileCircle from './ProfileCircle';
 import IconButton from './IconButton';
 import SubTitle from './SubTitle';
-import { colors, css } from '../config';
+import { dark_colors, css } from '../config';
 import { calls, mmAPI } from '../api/mmAPI';
 import * as logger from '../functions/logger';
 //endregion
@@ -175,12 +175,12 @@ export default function SettingsChat({ item, onClose, visible, navigate, current
             <View style={styles.page}>
                 {ready && <>                
                     <View style={styles.header}>
-                        <IconButton color={colors.pBeamBright} icon="md-chatbubble-ellipses" brand="Ionicons" size={32} style={{
+                        <IconButton color={dark_colors.pBeamBright} icon="md-chatbubble-ellipses" brand="Ionicons" size={32} style={{
                             ...css.beamShadow,
-                            shadowColor: colors.pBeam,
+                            shadowColor: dark_colors.pBeam,
                         }} onPress={message} />
-                        <SubTitle color={colors.text2} style={styles.titlePrimary} size={20}>{item.opposingMember.user.username}</SubTitle>
-                        <IconButton color={colors.text1} icon="ios-close-circle" brand="Ionicons" size={32} onPress={close} />
+                        <SubTitle color={dark_colors.text2} style={styles.titlePrimary} size={20}>{item.opposingMember.user.username}</SubTitle>
+                        <IconButton color={dark_colors.text1} icon="ios-close-circle" brand="Ionicons" size={32} onPress={close} />
                     </View>
                     <View style={styles.body}>
                         <View style={styles.container1}>
@@ -192,8 +192,8 @@ export default function SettingsChat({ item, onClose, visible, navigate, current
                                         <SubTitle style={styles.subTitlePrimary} size={16}>View</SubTitle>
                                     </TouchableOpacity>
                                 </View>
-                                <SubTitle style={styles.subTitle} color={colors.text2} size={16}>You last spoke {item.latest}</SubTitle>
-                                <SubTitle style={styles.subTitle} color={colors.text2} size={16}>You first spoke on {(new Date(Date.parse(item.createdAt))).toLocaleDateString()}</SubTitle>
+                                <SubTitle style={styles.subTitle} color={dark_colors.text2} size={16}>You last spoke {item.latest}</SubTitle>
+                                <SubTitle style={styles.subTitle} color={dark_colors.text2} size={16}>You first spoke on {(new Date(Date.parse(item.createdAt))).toLocaleDateString()}</SubTitle>
                             </View>
                         </View>
                         <View style={styles.container2}>
@@ -214,7 +214,7 @@ const styles = StyleSheet.create({
     page: {
         alignItems: "center",
         flex: 1,
-        backgroundColor: colors.background,
+        backgroundColor: dark_colors.background,
     },
     //endregion
     //region profilePicture
@@ -232,7 +232,7 @@ const styles = StyleSheet.create({
     //endregion
     //region header
     header: {
-        backgroundColor: colors.container,
+        backgroundColor: dark_colors.container,
         width: "100%",
         justifyContent: "space-between",
         flexDirection: "row",
@@ -251,7 +251,7 @@ const styles = StyleSheet.create({
     //endregion
     //region container1
     container1: {
-        backgroundColor: colors.container,
+        backgroundColor: dark_colors.container,
         borderRadius: 30,
         padding: 10,
         margin: 8,
@@ -267,7 +267,7 @@ const styles = StyleSheet.create({
     //endregion
     //region container2
     container2: {
-        backgroundColor: colors.container,
+        backgroundColor: dark_colors.container,
         borderRadius: 30,
         padding: 10,
         margin: 8,
@@ -282,19 +282,19 @@ const styles = StyleSheet.create({
     //region titlePrimary
     titlePrimary: {
         fontWeight: "500",
-        colors: colors.pBeamBright
+        colors: dark_colors.pBeamBright
     },
     //endregion
     //region clearChat
     clearChat: {
-        backgroundColor: colors.container
+        backgroundColor: dark_colors.container
     },
     //endregion
     //region block
     block: {
-        backgroundColor: colors.errorTransparent,
-        borderColor: colors.error,
-        shadowColor: colors.error,
+        backgroundColor: dark_colors.errorTransparent,
+        borderColor: dark_colors.error,
+        shadowColor: dark_colors.error,
     },
     //endregion
     //region username
@@ -305,7 +305,7 @@ const styles = StyleSheet.create({
     //endregion
     //region subTitlePrimary
     subTitlePrimary: {
-        color: colors.pBeamBright
+        color: dark_colors.pBeamBright
     },
     //endregion
 });

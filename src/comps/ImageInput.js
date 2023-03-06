@@ -3,7 +3,7 @@ import React, {useState} from 'react';
 import {View, StyleSheet, ActivityIndicator} from 'react-native';
 //endregion
 //region 1st Party Imports
-import { colors } from '../config';
+import { dark_colors } from '../config';
 import IconButton from './IconButton';
 import ImageLoader from './ImageLoader';
 //endregion
@@ -22,7 +22,7 @@ export default function ImageInput({
                 disabled={true}
                 style={styles.image}
             />
-            <IconButton brand="Ionicons" icon="close-circle" size={34} color={colors.text1} style={styles.removeButton} onPress={() => onDisable()} />
+            <IconButton brand="Ionicons" icon="close-circle" size={34} color={dark_colors.text1} style={styles.removeButton} onPress={() => onDisable()} />
 
         </View>
     );
@@ -31,7 +31,7 @@ export default function ImageInput({
 const styles = StyleSheet.create({
     //region container
     container: {
-        backgroundColor: colors.container,
+        backgroundColor: dark_colors.container,
         flex: 1,
         flexDirection: "row",
         alignItems: "flex-start",

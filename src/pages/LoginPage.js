@@ -1,7 +1,7 @@
 //region 3rd Party Imports
 import React, {useState, useRef} from 'react';
 import { View, StyleSheet, KeyboardAvoidingView, Keyboard, Image, Alert, TouchableOpacity, TouchableWithoutFeedback, Platform } from 'react-native';
-import { colors } from '../config';
+import { dark_colors } from '../config';
 import { Auth } from 'aws-amplify';
 import NetInfo from "@react-native-community/netinfo";
 //endregion
@@ -145,7 +145,7 @@ export default function LoginPage({navigation}) {
             <View style={styles.beamContainer}>
                 <Beam style={styles.beam} />
                 <TouchableOpacity onPress={() => navigation.navigate("AuthPage")}>
-                    <SubTitle size={16} style={{ fontWeight: "400" }} color={colors.text2}>Or Create Account</SubTitle>
+                    <SubTitle size={16} style={{ fontWeight: "400" }} color={dark_colors.text2}>Or Create Account</SubTitle>
                 </TouchableOpacity>
                 <Beam style={styles.beam} />
             </View>
@@ -156,7 +156,7 @@ export default function LoginPage({navigation}) {
 const styles = StyleSheet.create({
     //region text
     text: {
-        color: colors.text1
+        color: dark_colors.text1
     },
     //endregion
     //region page

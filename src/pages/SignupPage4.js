@@ -25,7 +25,7 @@ import SubTitle from '../comps/SubTitle';
 import IconButton from '../comps/IconButton';
 import BackgroundEditor from '../comps/BackgroundEditor';
 import { calls, mmAPI } from '../api/mmAPI';
-import { colors, css, strings } from '../config';
+import { dark_colors, css, strings } from '../config';
 import * as logger from '../functions/logger'; 
 import * as media from '../functions/media';
 //endregion
@@ -35,7 +35,7 @@ export default function SignupPage4({ navigation, route }) {
     const [bio, setBio] = useState("");
     const [profilePicture, setProfilePicture] = useState(false);
     const [image, setImage] = useState({});
-    const [background, setBackground] = useState({isColor: true, color: colors.background})
+    const [background, setBackground] = useState({isColor: true, color: dark_colors.background})
     const [loading, setLoading] = useState(false);
     const [showBack, setShowBack] = useState(false);
     //endregion
@@ -191,7 +191,7 @@ export default function SignupPage4({ navigation, route }) {
     const ProfileInput = useCallback(()=><>
         {!profilePicture &&
             <TouchableOpacity style={styles.bigImage} onPress={selectProfilePicture} disabled={loading} >
-                <IconButton color={colors.text1} icon="camera" brand="MaterialCommunityIcons" size={40} disabled={true} />
+                <IconButton color={dark_colors.text1} icon="camera" brand="MaterialCommunityIcons" size={40} disabled={true} />
             </TouchableOpacity>
         }
         {profilePicture &&
@@ -242,7 +242,7 @@ export default function SignupPage4({ navigation, route }) {
                                 <ProfileInput />
                                 <BioInput />
                             </View>
-                            <SubmitButton style={[styles.colorSubmit, {backgroundColor: background.isColor ? "rgba(0,0,0,0.2)" : colors.container}]} />
+                            <SubmitButton style={[styles.colorSubmit, {backgroundColor: background.isColor ? "rgba(0,0,0,0.2)" : dark_colors.container}]} />
                         </View>
                     }
                     {!background.isColor &&
@@ -285,13 +285,13 @@ const styles = StyleSheet.create({
     //endregion
     //region bigImage
     bigImage: {
-        backgroundColor: colors.container,
+        backgroundColor: dark_colors.container,
         borderRadius: 200,
         height: 100,
         width: 100,
         margin: 10,
         borderWidth: 2,
-        borderColor: colors.pBeam,
+        borderColor: dark_colors.pBeam,
         ...css.beamShadow,
         alignItems: "center",
         justifyContent: 'center',
@@ -304,7 +304,7 @@ const styles = StyleSheet.create({
         justifyContent: "center",
         alignItems: "center",
         borderRadius: 100,
-        borderColor: colors.pBeamBright,
+        borderColor: dark_colors.pBeamBright,
         borderWidth: 2,
         ...css.beamShadow
     },
@@ -324,7 +324,7 @@ const styles = StyleSheet.create({
     //endregion
     //region textInput
     textInput: {
-        color: colors.text1,
+        color: dark_colors.text1,
         fontSize: 18,
         height: 100,
         width: "64%",
@@ -351,17 +351,17 @@ const styles = StyleSheet.create({
     colorSubmit: {
         flexDirection: 'row',
         marginTop: 12,
-        borderColor: colors.text1,
-        shadowColor: colors.text1,
+        borderColor: dark_colors.text1,
+        shadowColor: dark_colors.text1,
     },
     //endregion
     //region imageSubmit
     imageSubmit: {
         flexDirection: 'row',
         marginTop: 12,
-        borderColor: colors.text1,
-        shadowColor: colors.text1,
-        backgroundColor: colors.background
+        borderColor: dark_colors.text1,
+        shadowColor: dark_colors.text1,
+        backgroundColor: dark_colors.background
     },
     //endregion
 });

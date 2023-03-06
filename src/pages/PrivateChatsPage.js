@@ -15,7 +15,7 @@ import UserSearch from '../comps/UserSearch';
 import HelpPrivateChatsPage from '../comps/HelpPrivateChatsPage';
 import BugReport from '../comps/BugReport';
 import { calls, instances, mmAPI } from '../api/mmAPI';
-import { colors } from '../config';
+import { dark_colors } from '../config';
 import * as logger from '../functions/logger';
 import * as timeLogic from '../functions/timeLogic';
 //endregion
@@ -50,7 +50,7 @@ export default function PrivateChatsPage({ navigation }) {
                     <IconButton
                         icon="account-search"
                         brand="MaterialCommunityIcons"
-                        color={colors.text1}
+                        color={dark_colors.text1}
                         size={32}
                         onPress={() => setShowSearch(true)}
                     />
@@ -61,7 +61,7 @@ export default function PrivateChatsPage({ navigation }) {
                     <IconButton
                         icon="help-circle"
                         brand="Ionicons"
-                        color={colors.text1}
+                        color={dark_colors.text1}
                         size={32}
                         onPress={() => setShowHelp(true)}
                     />
@@ -402,7 +402,7 @@ export default function PrivateChatsPage({ navigation }) {
     //region [CALL COMP] "ListFooterComponent, [ready]" = Displays a spacer when ready, activity indicator when not ready
     const ListFooterComponent = React.useCallback(() => {
         if (ready) return <View style={{ height: 30 }} />
-        else return <ActivityIndicator color={colors.pBeam} size="large" style={{ marginTop: 10 }} />
+        else return <ActivityIndicator color={dark_colors.pBeam} size="large" style={{ marginTop: 10 }} />
     }, [ready]);
     //endregion
     //region [CALL COMP] "RenderItem, [chats, ready]" = Render the private chat component for each chat
@@ -478,7 +478,7 @@ export default function PrivateChatsPage({ navigation }) {
                             setRefresh(true);
                             onRefresh();
                         }}
-                        tintColor={colors.pBeam}
+                        tintColor={dark_colors.pBeam}
                     />
                 }
                 ListFooterComponent={ListFooterComponent}

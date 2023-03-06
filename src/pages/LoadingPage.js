@@ -12,7 +12,7 @@ import * as Notifications from 'expo-notifications';
 import * as logger from '../functions/logger';
 import * as locConversion from '../functions/locConversion';
 import Screen from '../comps/Screen';
-import { storage, colors, rules, version } from '../config';
+import { storage, dark_colors, rules, version } from '../config';
 import Broadcast from '../comps/Broadcast';
 import { calls, instances, mmAPI } from '../api/mmAPI';
 //endregion
@@ -498,7 +498,7 @@ export default function LoadingPage({navigation, route}) {
                 resizeMode="contain"
             />
             <View height={20}/>
-            <ActivityIndicator size='large' color={colors.pBeam} />
+            <ActivityIndicator size='large' color={dark_colors.pBeam} />
             <Broadcast visible={showBroadcast} broadcast={broadcastData} onClose={closeBroadcast} />
         </Screen>
     );

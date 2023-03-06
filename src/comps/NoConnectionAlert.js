@@ -2,7 +2,7 @@ import React from 'react';
 import { View, StyleSheet, Modal } from 'react-native';
 import { MaterialCommunityIcons } from '@expo/vector-icons';
 
-import { colors, css } from '../config';
+import { dark_colors, css } from '../config';
 import BeamTitle from './BeamTitle';
 import SubTitle from './SubTitle';
 
@@ -22,7 +22,7 @@ function NoConnectionAlert({
                     <SubTitle size={16}>Once you're internet comes</SubTitle>
                     <SubTitle size={16}>back, the app will reactive.</SubTitle>
                     <View height={20} />
-                    <MaterialCommunityIcons name="transit-connection-variant" size={140} color={colors.text3} />
+                    <MaterialCommunityIcons name="transit-connection-variant" size={140} color={dark_colors.text3} />
                     <View height={20} />
                 </View>
             </View>
@@ -42,11 +42,11 @@ const styles = StyleSheet.create({
         width: 280,
         alignItems: "center",
         borderRadius: 14,
-        borderColor: colors.pBeam,
+        borderColor: dark_colors.pBeam,
         borderWidth: 2,
-        backgroundColor: colors.container,
+        backgroundColor: dark_colors.container,
         ...css.beamShadow,
-        shadowColor: colors.background,
+        shadowColor: dark_colors.background,
         padding: 14,
     },
 });

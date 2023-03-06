@@ -3,7 +3,7 @@ import { Text, View, StyleSheet } from 'react-native';
 import LottieView from 'lottie-react-native';
 
 import Image from './ImageLoader';
-import { colors, css } from '../config';
+import { dark_colors, css } from '../config';
 
 function SpinningProfileCircle({
     ppic,
@@ -18,6 +18,7 @@ function SpinningProfileCircle({
                     source={ppic ? ppic.full : " "}
                     defaultSource={ppic ? ppic.loadFull : " "}
                     cacheKey={ppic ? ppic.fullKey : "ErrorKey"}
+                    disabled={true}
                     style={styles.image}
                     resizeMode="cover"
                 />
@@ -31,15 +32,15 @@ function SpinningProfileCircle({
                     colorFilters={[
                         {
                             keypath: 'Dot_1',
-                            color: colors.text3,
+                            color: dark_colors.text3,
                         },
                         {
                             keypath: 'Dot_2',
-                            color: colors.text3,
+                            color: dark_colors.text3,
                         },
                         {
                             keypath: 'Dot_3',
-                            color: colors.text3,
+                            color: dark_colors.text3,
                         },
 
                     ]}
@@ -57,7 +58,7 @@ const styles = StyleSheet.create({
         height: 44,
         borderRadius: 30,
         borderWidth: 2,
-        borderColor: colors.pBeam,
+        borderColor: dark_colors.pBeam,
         ...css.beamShadow,
     },
     image: {
@@ -72,7 +73,7 @@ const styles = StyleSheet.create({
         alignItems: "center"
     },
     msg: {
-        backgroundColor: colors.container,
+        backgroundColor: dark_colors.container,
         borderRadius: 10,
         width: 50,
         height: 36,

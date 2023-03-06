@@ -1,6 +1,6 @@
 import React, { useCallback } from 'react';
 import { StyleSheet, Modal, View, TouchableOpacity, FlatList, Dimensions } from 'react-native';
-import { colors, css } from '../config';
+import { dark_colors, css } from '../config';
 import IconButton from './IconButton';
 import SubTitle from './SubTitle';
 
@@ -28,9 +28,9 @@ export default function BackgroundEditor({ visible, onClose, onSuccess }) {
         <Modal visible={visible} animationType="slide">
             <View style={styles.page}>
                 <View style={styles.header}>
-                    <IconButton color={colors.container} icon="ios-close-circle" brand="Ionicons" size={32} />
-                    <SubTitle color={colors.pBeamBright} style={styles.title} size={18}>Select Color</SubTitle>
-                    <IconButton color={colors.text1} icon="ios-close-circle" brand="Ionicons" size={32} onPress={onClose} />
+                    <IconButton color={dark_colors.container} icon="ios-close-circle" brand="Ionicons" size={32} />
+                    <SubTitle color={dark_colors.pBeamBright} style={styles.title} size={18}>Select Color</SubTitle>
+                    <IconButton color={dark_colors.text1} icon="ios-close-circle" brand="Ionicons" size={32} onPress={onClose} />
                 </View>
                 <FlatList
                     renderItem={({ item }) => (
@@ -60,10 +60,10 @@ export default function BackgroundEditor({ visible, onClose, onSuccess }) {
 const styles = StyleSheet.create({
     page: {
         flex: 1,
-        backgroundColor: colors.background
+        backgroundColor: dark_colors.background
     },
     header: {
-        backgroundColor: colors.container,
+        backgroundColor: dark_colors.container,
         width: "100%",
         justifyContent: "space-between",
         alignItems: "center",

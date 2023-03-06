@@ -12,7 +12,7 @@ import * as MediaLibrary from 'expo-media-library';
 import { CommonActions } from '@react-navigation/native';
 import { MaterialIcons } from '@expo/vector-icons';
 
-import { colors, css } from '../config';
+import { dark_colors, css } from '../config';
 import ProfileCircle from './ProfileCircle';
 import SubTitle from './SubTitle';
 import ImageLoader from './ImageLoader';
@@ -59,12 +59,18 @@ function ImageMessage({ children, ppic, username, userId, opposingUserId, source
             <View style={{ width: 6 }} />
             <View style={{ flex: 1, marginRight: 10 }}>
                 <View style={{ flexDirection: 'row', flex: 1, justifyContent: "space-between" }}>
-                    <SubTitle size={16} color={colors.text4}>{username}</SubTitle>
-                    <SubTitle size={14} color={colors.text4}>{time}</SubTitle>
+                    <SubTitle size={16} color={dark_colors.text4}>{username}</SubTitle>
+                    <SubTitle size={14} color={dark_colors.text4}>{time}</SubTitle>
                 </View>
                 <View style={{ height: 4 }} />
                 <TouchableOpacity activeOpacity={1} onPress={onPress} onLongPress={() => menuRef.current.open()} style={styles.iContainer}>          
-                    <ImageLoader style={styles.image} disabled={source.disabled} source={source.full} defaultSource={source.loadFull} cacheKey={source.fullKey} />
+                    <ImageLoader
+                        style={styles.image}
+                        disabled={source.disabled}
+                        source={source.full}
+                        defaultSource={source.loadFull}
+                        cacheKey={source.fullKey}
+                    />
                     <Menu onOpen={() => Haptics.impactAsync(Haptics.ImpactFeedbackStyle.Heavy)} ref={menuRef}>
                         <MenuTrigger triggerOnLongPress={true} />
                         <MenuOptions customStyles={{ optionsContainer: styles.menu }}>
@@ -73,8 +79,8 @@ function ImageMessage({ children, ppic, username, userId, opposingUserId, source
                                     <ProfileCircle ppic={ppic} style={styles.pCircle} />
                                     <View style={{ width: 6 }} />
                                     <View style={{ flexDirection: 'row', flex: 1, justifyContent: "space-between" }}>
-                                        <SubTitle size={16} color={colors.text4}>{username}</SubTitle>
-                                        <SubTitle size={14} color={colors.text4}>{time}</SubTitle>
+                                        <SubTitle size={16} color={dark_colors.text4}>{username}</SubTitle>
+                                        <SubTitle size={14} color={dark_colors.text4}>{time}</SubTitle>
                                     </View>
                                 </View>
                                 <View style={{marginTop: 10}} />
@@ -84,14 +90,14 @@ function ImageMessage({ children, ppic, username, userId, opposingUserId, source
                             <View style={styles.innerMenu}>
                                 {opposingUserId != userId && <>
                                     <MenuOption style={styles.optionContainer} onSelect={onView}>
-                                        <MaterialIcons name="account-box" size={26} color={colors.pBeamBright} />
+                                        <MaterialIcons name="account-box" size={26} color={dark_colors.pBeamBright} />
                                         <View style={{ width: 10 }} />
                                         <SubTitle style={styles.title} size={18}>View User Profile</SubTitle>
                                     </MenuOption>
                                     <DarkBeam style={styles.seperator} />
                                 </>}
                                 <MenuOption style={styles.optionContainer} onSelect={onSave}>
-                                    <MaterialIcons name="save-alt" size={26} color={colors.pBeamBright} />
+                                    <MaterialIcons name="save-alt" size={26} color={dark_colors.pBeamBright} />
                                     <View style={{ width: 10 }} />
                                     <SubTitle style={styles.title} size={18}>Save Image</SubTitle>
                                 </MenuOption>
@@ -112,7 +118,7 @@ const styles = StyleSheet.create({
 
     },
     tStyle: {
-        color: colors.text3,
+        color: dark_colors.text3,
         fontSize: 16,
         flex: 2,
 
@@ -122,7 +128,7 @@ const styles = StyleSheet.create({
         height: 44,
         borderWidth: 1,
         shadowOpacity: 0,
-        borderColor: colors.text3
+        borderColor: dark_colors.text3
     }, 
     image: {
         width: 200,
@@ -144,9 +150,9 @@ const styles = StyleSheet.create({
     innerMenu: {
         borderRadius: 26,
         padding: 16,
-        backgroundColor: colors.container,
+        backgroundColor: dark_colors.container,
         width: Dimensions.get('screen').width * 0.9,
-        borderColor: colors.pBeamBright,
+        borderColor: dark_colors.pBeamBright,
         borderWidth: 2,
         ...css.beamShadow,
     },
@@ -156,11 +162,11 @@ const styles = StyleSheet.create({
     },
     title: {
         fontWeight: "bold",
-        color: colors.text2
+        color: dark_colors.text2
     },
     seperator: {
         marginVertical: 8,
-        backgroundColor: colors.text4,
+        backgroundColor: dark_colors.text4,
         height: 1,
     }
 })

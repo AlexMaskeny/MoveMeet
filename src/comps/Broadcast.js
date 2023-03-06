@@ -1,7 +1,7 @@
 import React from 'react';
 import { StyleSheet, Modal, View, TouchableOpacity, Linking } from 'react-native';
 
-import { colors, css, strings } from '../config';
+import { dark_colors, css, strings } from '../config';
 import IconButton from './IconButton';
 import SubTitle from './SubTitle';
 import * as logger from '../functions/logger';
@@ -27,21 +27,21 @@ export default function Broadcast({ visible, onClose, broadcast }) {
         <Modal visible={visible} animationType="slide">
             <View style={styles.page}>
                 <View style={styles.header}>
-                    <IconButton color={colors.container} icon="ios-close-circle" brand="Ionicons" size={32} />
-                    <SubTitle color={colors.pBeamBright} style={styles.title} size={18}>{strings.APPNAME} Reminders</SubTitle>
-                    <IconButton color={colors.text1} icon="ios-close-circle" brand="Ionicons" size={32} onPress={onClose} />
+                    <IconButton color={dark_colors.container} icon="ios-close-circle" brand="Ionicons" size={32} />
+                    <SubTitle color={dark_colors.pBeamBright} style={styles.title} size={18}>{strings.APPNAME} Reminders</SubTitle>
+                    <IconButton color={dark_colors.text1} icon="ios-close-circle" brand="Ionicons" size={32} onPress={onClose} />
                 </View>
                 <View style={styles.body}>
-                    <MaterialCommunityIcons name="hand-wave" size={60} color={colors.pBeamBright} />
-                    <SubTitle color={colors.pBeamBright} style={styles.title} size={18}>{broadcast.title}</SubTitle>
+                    <MaterialCommunityIcons name="hand-wave" size={60} color={dark_colors.pBeamBright} />
+                    <SubTitle color={dark_colors.pBeamBright} style={styles.title} size={18}>{broadcast.title}</SubTitle>
                     <View style={styles.content}>
-                        <SubTitle color={colors.text2} style={styles.subtitle} size={16} numberOfLines={10}>{broadcast.content}</SubTitle>
+                        <SubTitle color={dark_colors.text2} style={styles.subtitle} size={16} numberOfLines={10}>{broadcast.content}</SubTitle>
                     </View>
                     {broadcast.button1text && <>
                         <View style={{ height: 10 }} />
                         <SimpleButton
                             title={broadcast.button1text}
-                            outerStyle={{ width: "100%", backgroundColor: colors.container, borderColor: colors.text1, shadowColor: "transparent" }}
+                            outerStyle={{ width: "100%", backgroundColor: dark_colors.container, borderColor: dark_colors.text1, shadowColor: "transparent" }}
                             onPress={onButton1}
                         />                
                     </>}
@@ -49,13 +49,13 @@ export default function Broadcast({ visible, onClose, broadcast }) {
                         <View style={{ height: 10 }} />
                         <SimpleButton
                             title={broadcast.button2text}
-                            outerStyle={{width: "100%", backgroundColor: colors.container} }
+                            outerStyle={{width: "100%", backgroundColor: dark_colors.container} }
                             onPress={onButton2}
                         />
                     </>}
                 </View>
                 <TouchableOpacity onPress={onClose}>
-                    <SubTitle color={colors.pBeamBright} style={styles.title} size={16}>Dismiss</SubTitle>
+                    <SubTitle color={dark_colors.pBeamBright} style={styles.title} size={16}>Dismiss</SubTitle>
                 </TouchableOpacity>
             </View>
         </Modal>
@@ -65,10 +65,10 @@ export default function Broadcast({ visible, onClose, broadcast }) {
 const styles = StyleSheet.create({
     page: {
         flex: 1,
-        backgroundColor: colors.background
+        backgroundColor: dark_colors.background
     },
     header: {
-        backgroundColor: colors.container,
+        backgroundColor: dark_colors.container,
         width: "100%",
         justifyContent: "space-between",
         alignItems: "center",
@@ -77,7 +77,7 @@ const styles = StyleSheet.create({
         paddingTop: 50,
         paddingBottom: 10,
         marginBottom: 10,
-        borderBottomColor: colors.pBeamBright,
+        borderBottomColor: dark_colors.pBeamBright,
         borderBottomWidth: 2,
         zIndex: 5,
         ...css.beamShadow
@@ -89,14 +89,14 @@ const styles = StyleSheet.create({
 
     subtitle: {
         fontWeight: "400",
-        color: colors.text2,
+        color: dark_colors.text2,
         alignContent: "center"
     },
     body: {
         padding: 10,
         paddingVertical: 20,
         alignItems: "center",
-        backgroundColor: colors.container,
+        backgroundColor: dark_colors.container,
         margin: 20,
         borderRadius: 20,
     },

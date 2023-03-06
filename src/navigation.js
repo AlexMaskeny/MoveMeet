@@ -1,10 +1,15 @@
+//region 3rd Party Imports
 import React from 'react';
 import { StyleSheet} from 'react-native';
 import { NavigationContainer, getFocusedRouteNameFromRoute } from '@react-navigation/native';
 import { createBottomTabNavigator } from '@react-navigation/bottom-tabs';
 import { createStackNavigator } from '@react-navigation/stack';
-
-import { colors, footerHeight, css } from './config';
+//endregion
+//region 1st Party imports
+import { dark_colors, footerHeight, css } from './config';
+import * as logger from './functions/logger';
+//endregion
+//region Page Imports
 import LoadingPage from './pages/LoadingPage';
 import LoginPage from './pages/LoginPage';
 import ChatsPage from './pages/ChatsPage';
@@ -14,7 +19,6 @@ import IconButton from './comps/IconButton';
 import UProfilePage from './pages/UProfilePage';
 import OProfilePage from './pages/OProfilePage';
 import DiscoverPage from './pages/DiscoverPage';
-import * as logger from './functions/logger';
 import AuthPage from './pages/AuthPage';
 import SignupPage1 from './pages/SignupPage1';
 import SignupPage2 from './pages/SignupPage2';
@@ -22,12 +26,15 @@ import SignupPage3 from './pages/SignupPage3';
 import SignupPage4 from './pages/SignupPage4';
 import ForgotPasswordPage1 from './pages/ForgotPasswordPage1';
 import ForgotPasswordPage2 from './pages/ForgotPasswordPage2';
+import ExplorePage from './pages/ExplorePage';
+//endregion
 
 //The navigation screen starts on the loading screen which uses
 //the useEffect hook immediately calling an inner async function
 //that attains data and redirects user to appropriate page.
 
 function navigation() {
+    //region [STACK NAVIGATOR] "PrimaryNav" = The primary stack navigator of the app (includes auth pages on same level as secondary nav)
     const Primary = createStackNavigator();
     const PrimaryNav = () => (
         <Primary.Navigator
@@ -48,28 +55,49 @@ function navigation() {
             <Primary.Screen name="SecondaryNav" component={SecondaryNav} />
         </Primary.Navigator>
     );
+    //endregion
+
+    //region [TAB NAVIGATOR] "SecondaryNav" = The tab navigator of the app which includes all main screens used regularly
+    //region Style the tab bar
     const SecondNavStyle = StyleSheet.create({
         tabBarStyle: {
             height: footerHeight,
-            borderTopColor: colors.pBeam,
+            borderTopColor: dark_colors.pBeam,
             borderTopWidth: 2,
-            backgroundColor: colors.background,
+            backgroundColor: dark_colors.background,
             ...css.beamShadow,
 
         }
     });
+    //endregion
     const Secondary = createBottomTabNavigator();
     const SecondaryNav = () => (
         <Secondary.Navigator
             screenOptions={{
                 headerShown: false,
-                tabBarActiveTintColor: colors.pBeamBright,
-                inactiveTintColor: colors.text2,
+                tabBarActiveTintColor: dark_colors.pBeamBright,
+                inactiveTintColor: dark_colors.text2,
                 lazy: true,
                 tabBarShowLabel: false,
                 tabBarStyle: SecondNavStyle.tabBarStyle,
             }}
         >
+            {/*<Secondary.Screen*/}
+            {/*    name="ExploreNav"*/}
+            {/*    component={ExploreNav}*/}
+            {/*    options={({ navigation }) => (*/}
+            {/*        {*/}
+            {/*            tabBarIcon: ({ color }) =>*/}
+            {/*                <IconButton*/}
+            {/*                    icon="rocket"*/}
+            {/*                    brand="Ionicons"*/}
+            {/*                    color={color}*/}
+            {/*                    size={36}*/}
+            {/*                    onPress={() => navigation.navigate("ExploreNav")}*/}
+            {/*                />*/}
+            {/*        }*/}
+            {/*    )}*/}
+            {/*/>*/}
             <Secondary.Screen
                 name="TChatNav"
                 component={TChatNav}
@@ -171,18 +199,23 @@ function navigation() {
             />
         </Secondary.Navigator>
     );
+    //endregion
+
+    //region Default header options for the primary pages
     const chatNavOptions = {
         headerShown: true,
         gestureEnabled: false,
         headerStyle: {
-            backgroundColor: colors.background,
-            borderBottomColor: colors.pBeam,
+            backgroundColor: dark_colors.background,
+            borderBottomColor: dark_colors.pBeam,
             borderBottomWidth: 2,
             ...css.beamShadow
         },
-        headerTintColor: colors.pBeamBright,
+        headerTintColor: dark_colors.pBeamBright,
         headerLeft: () => <></>,
     }
+    //endregion
+    //region TChatNav (The public chats)
     const TChat = createStackNavigator();
     const TChatNav = () => (
         <TChat.Navigator screenOptions={chatNavOptions}>
@@ -193,6 +226,8 @@ function navigation() {
             <TChat.Screen name="OProfilePage" component={OProfilePage} />
         </TChat.Navigator>
     );
+    //endregion
+    //region PChatNav (the private chats)
     const PChat = createStackNavigator();
     const PChatNav = () => (
         <PChat.Navigator screenOptions={chatNavOptions}>
@@ -201,6 +236,8 @@ function navigation() {
             <PChat.Screen name="OProfilePage" component={OProfilePage} />
         </PChat.Navigator>
     );
+    //endregion
+    //region UProfileNav
     const UProfile = createStackNavigator();
     const UProfileNav = () => (
         <UProfile.Navigator screenOptions={chatNavOptions}>
@@ -208,6 +245,8 @@ function navigation() {
             <UProfile.Screen name="OtherPage" component={UProfilePage} options={{ title: "Other Page" }} />
         </UProfile.Navigator>
     );
+    //endregion
+    //region DiscoverNav
     const Discover = createStackNavigator();
     const DiscoverNav = () => (
         <Discover.Navigator screenOptions={chatNavOptions}>
@@ -216,6 +255,18 @@ function navigation() {
             <Discover.Screen name="ChatPage" component={ChatPage} />
         </Discover.Navigator>
     );
+    //endregion
+
+    //TESTING
+    //region ExploreNav
+    const Explore = createStackNavigator();
+    const ExploreNav = () => (
+        <Explore.Navigator screenOptions={chatNavOptions}>
+            <Explore.Screen name="ExplorePage" component={ExplorePage} options={{ title: "Explore" }} />
+            <Explore.Screen name="OtherPage" component={ExplorePage} options={{ title: "Other Page" }} />
+        </Explore.Navigator>
+    );
+    //endregion
     return (
         <NavigationContainer>
                 <PrimaryNav />

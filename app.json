@@ -3,7 +3,7 @@
     "jsEngine": "hermes",
     "name": "MoveMeet",
     "slug": "ProxyChat",
-    "version": "1.0.1",
+    "version": "1.0.2",
     "orientation": "portrait",
     "icon": "./assets/icon.png",
     "userInterfaceStyle": "dark",
@@ -34,7 +34,7 @@
         "backgroundColor": "#0D0D0D"
       },
       "package": "com.alexmaskeny.ProxyChat",
-      "versionCode": 3
+      "versionCode": 5
     },
     "web": {
       "favicon": "./assets/favicon.png"

@@ -12,7 +12,7 @@ import Screen from '../comps/Screen';
 import SimpleButton from '../comps/SimpleButton';
 import SimpleInput from '../comps/SimpleInput';
 import SubTitle from '../comps/SubTitle';
-import { colors, storage } from '../config';
+import { dark_colors, storage } from '../config';
 import * as logger from '../functions/logger';
 //endregion
 
@@ -107,7 +107,7 @@ export default function SignupPage2({ navigation, route }) {
             <View style={styles.beamContainer}>
                 <Beam style={styles.beam} />
                 <TouchableOpacity onPress={() => navigation.navigate("AuthPage")}>
-                    <SubTitle size={16} style={{ fontWeight: "400" }} color={colors.text2}>Or Login</SubTitle>
+                    <SubTitle size={16} style={{ fontWeight: "400" }} color={dark_colors.text2}>Or Login</SubTitle>
                 </TouchableOpacity>
                 <Beam style={styles.beam} />
             </View>

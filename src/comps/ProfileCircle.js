@@ -1,7 +1,7 @@
 import React from 'react';
 import { View, StyleSheet } from 'react-native';
 
-import { colors, css } from '../config';
+import { dark_colors, css } from '../config';
 import Image from './ImageLoader';
 
 function ProfileCircle({
@@ -17,7 +17,7 @@ function ProfileCircle({
                 source={ppic ? ppic.full : " "}
                 defaultSource={ppic ? ppic.loadFull : " "}
                 cacheKey={ppic ? ppic.fullKey : "ErrorKey"}
-                disabled={disabled}
+                disabled={true}
                 style={[styles.image, innerStyle]}
                 resizeMode="cover"
             />
@@ -31,8 +31,8 @@ const styles = StyleSheet.create({
         height: 50,
         borderRadius: 30,
         borderWidth: 2,
-        borderColor: colors.pBeam,
-        backgroundColor: colors.background,
+        borderColor: dark_colors.pBeam,
+        backgroundColor: dark_colors.background,
         ...css.beamShadow,
     },
     image: {

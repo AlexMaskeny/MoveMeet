@@ -1,7 +1,7 @@
 import React from 'react';
 import { Text } from 'react-native';
 
-import { colors, css } from '../config';
+import { dark_colors, css } from '../config';
 
 //DESCRIPTION: A title comp with the text color of the
 //             pBeam set in config file. Also has shadow.
@@ -9,8 +9,8 @@ import { colors, css } from '../config';
 //             the far right in the container.
 
 function BeamTitle({
-    color = colors.pBeam,
-    shadowColor = colors.pBeamShadow,
+    color = dark_colors.pBeam,
+    shadowColor = dark_colors.pBeamShadow,
     size = 22,
     style,
     children,

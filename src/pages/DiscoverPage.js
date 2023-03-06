@@ -14,7 +14,7 @@ import IconButton from '../comps/IconButton';
 import HelpDiscoverPage from '../comps/HelpDiscoverPage';
 import BugReport from '../comps/BugReport';
 import { calls, instances, mmAPI } from '../api/mmAPI';
-import { colors, css, rules } from '../config';
+import { dark_colors, css, rules } from '../config';
 import * as logger from '../functions/logger';
 import * as distance from '../functions/distance';
 import * as locConversion from '../functions/locConversion';
@@ -46,7 +46,7 @@ export default function DiscoverPage({ navigation}) {
                     <IconButton
                         icon="help-circle"
                         brand="Ionicons"
-                        color={colors.text1}
+                        color={dark_colors.text1}
                         size={32}
                         onPress={() => setShowHelp(true)}
                     />
@@ -219,7 +219,7 @@ export default function DiscoverPage({ navigation}) {
     //endregion
     //region [CALL COMP] "ListHeaderComponent, [ready]" = Displays an activity indicator during initial load.
     const ListHeaderComponent = useCallback(() => {
-        if (!ready) return <ActivityIndicator color={colors.pBeam} size="large" style={{ marginTop: 10 }} />
+        if (!ready) return <ActivityIndicator color={dark_colors.pBeam} size="large" style={{ marginTop: 10 }} />
     }, [ready]);
     //endregion
     //region [CALL COMP] "RenderItem, [users, ready]" = Displays a nearby user's usersquare
@@ -254,7 +254,7 @@ export default function DiscoverPage({ navigation}) {
                             setRefresh(true);
                             setRerender(!rerender);
                         }}
-                        tintColor={colors.pBeam}
+                        tintColor={dark_colors.pBeam}
                     />
                 }
                 renderItem={RenderItem}
@@ -279,7 +279,7 @@ const styles = StyleSheet.create({
         height: 38,
         alignItems: "center",
         justifyContent: "center",
-        backgroundColor: colors.container,
+        backgroundColor: dark_colors.container,
         ...css.beamShadow,
         shadowColor: "black",
         shadowRadius: 2,
@@ -296,9 +296,9 @@ const styles = StyleSheet.create({
         height: 38,
         alignItems: "center",
         justifyContent: "center",
-        backgroundColor: colors.container,
+        backgroundColor: dark_colors.container,
         ...css.beamShadow,
-        borderColor: colors.pBeam,
+        borderColor: dark_colors.pBeam,
         borderWidth: 1,
         marginBottom: 14,
         marginTop: 6,

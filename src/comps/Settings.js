@@ -11,7 +11,7 @@ import SimpleButton from './SimpleButton';
 import SubTitle from './SubTitle';
 import DarkBeam from './DarkBeam';
 import { calls, mmAPI } from '../api/mmAPI';
-import { colors } from '../config';
+import { dark_colors } from '../config';
 import * as logger from '../functions/logger'
 //endregion
 
@@ -175,28 +175,28 @@ export default function Settings({ visible, onClose, navigation }) {
             <View style={styles.page}>
                 <View style={styles.header}>
                     <TouchableOpacity onPress={close}>
-                        <SubTitle color={colors.text1} style={styles.title} size={16}>Cancel</SubTitle>
+                        <SubTitle color={dark_colors.text1} style={styles.title} size={16}>Cancel</SubTitle>
                     </TouchableOpacity>
-                    <SubTitle color={colors.pBeamBright} style={styles.title} size={18}>Settings </SubTitle>
+                    <SubTitle color={dark_colors.pBeamBright} style={styles.title} size={18}>Settings </SubTitle>
                     <TouchableOpacity onPress={save}>
-                        <SubTitle color={colors.text1} style={styles.title} size={16}>Done</SubTitle>
+                        <SubTitle color={dark_colors.text1} style={styles.title} size={16}>Done</SubTitle>
                     </TouchableOpacity>
                 </View>
                 <View style={styles.setting}>
-                    <SubTitle color={colors.text1} style={styles.title} size={18}>Allow Notifications</SubTitle>
+                    <SubTitle color={dark_colors.text1} style={styles.title} size={18}>Allow Notifications</SubTitle>
                     <Switch
                         trackColor={{
-                            true: colors.pBeamBright,
-                            false: colors.container
+                            true: dark_colors.pBeamBright,
+                            false: dark_colors.container
                         }}
                         value={allowNotifications}
                         onValueChange={()=>setAllowNotifications(!allowNotifications)}
                     />
                 </View>
-                <DarkBeam style={{ backgroundColor: colors.container, height: 1, marginVertical: 7 }} />
+                <DarkBeam style={{ backgroundColor: dark_colors.container, height: 1, marginVertical: 7 }} />
                 {blocked.length > 0 && <>
                     <View style={styles.blockedUsers}>
-                        <SubTitle color={colors.text1} style={styles.title2} size={18}>Blocked</SubTitle>
+                        <SubTitle color={dark_colors.text1} style={styles.title2} size={18}>Blocked</SubTitle>
                         <View style={{ height: 10 }} />
                         <FlatList
                             data={blocked}
@@ -204,14 +204,14 @@ export default function Settings({ visible, onClose, navigation }) {
                             ItemSeparatorComponent={<View style={{height: 10}} /> }
                             renderItem={({ item }) => (
                                 <View style={styles.blocked}>
-                                    <IconButton icon="remove-circle" brand="Ionicons" size={28} color={colors.pBeam} onPress={()=>removeBlocked(item) } />
+                                    <IconButton icon="remove-circle" brand="Ionicons" size={28} color={dark_colors.pBeam} onPress={()=>removeBlocked(item) } />
                                     <View style={{width: 10}} />
-                                    <SubTitle color={colors.text1} size={18}>{item.username}</SubTitle>
+                                    <SubTitle color={dark_colors.text1} size={18}>{item.username}</SubTitle>
                                 </View>
                             ) }
                         />
                     </View>
-                    <DarkBeam style={{ backgroundColor: colors.container, height: 1, marginVertical: 7 }} />                
+                    <DarkBeam style={{ backgroundColor: dark_colors.container, height: 1, marginVertical: 7 }} />
                 </>}
                 <SimpleButton title="Logout" onPress={() => logout()} />
             </View>
@@ -223,12 +223,12 @@ const styles = StyleSheet.create({
     //region page
     page: {
         flex: 1,
-        backgroundColor: colors.background
+        backgroundColor: dark_colors.background
     },
     //endregion
     //region header
     header: {
-        backgroundColor: colors.container,
+        backgroundColor: dark_colors.container,
         width: "100%",
         justifyContent: "space-between",
         alignItems: "center",

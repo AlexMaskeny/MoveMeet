@@ -2,7 +2,7 @@ import React, { useState } from 'react';
 import { StyleSheet, Modal, View, TouchableOpacity, KeyboardAvoidingView, Keyboard, Alert, Linking} from 'react-native';
 import uuid from "react-native-uuid";
 
-import { colors, css } from '../config';
+import { dark_colors, css } from '../config';
 import IconButton from './IconButton';
 import SubTitle from './SubTitle';
 import { MaterialIcons } from '@expo/vector-icons'; 
@@ -53,13 +53,13 @@ export default function ContentReport({ visible, onClose, currentUserId, opposin
         <Modal visible={visible} animationType="slide">
             <TouchableOpacity onPress={() => Keyboard.dismiss()} activeOpacity={1} style={styles.page}>
                 <View style={styles.header}>
-                    <IconButton color={colors.container} icon="ios-close-circle" brand="Ionicons" size={32} />
-                    <SubTitle color={colors.pBeamBright} style={styles.title} size={18}>Report Content</SubTitle>
-                    <IconButton color={colors.text1} icon="ios-close-circle" brand="Ionicons" size={32} onPress={onClose} />
+                    <IconButton color={dark_colors.container} icon="ios-close-circle" brand="Ionicons" size={32} />
+                    <SubTitle color={dark_colors.pBeamBright} style={styles.title} size={18}>Report Content</SubTitle>
+                    <IconButton color={dark_colors.text1} icon="ios-close-circle" brand="Ionicons" size={32} onPress={onClose} />
                 </View>
                 <KeyboardAvoidingView behavior="position">
                     <View style={styles.body}>
-                        <MaterialIcons name="report" size={44} color={colors.text1} />
+                        <MaterialIcons name="report" size={44} color={dark_colors.text1} />
                         <View style={{height: 10}} />
                         <SubTitle style={styles.subtitle} size={16}>Did you see a user breaking a rule?</SubTitle>
                         <SubTitle style={styles.subtitle} size={16}>We would greatly appreciate it if</SubTitle>
@@ -67,7 +67,7 @@ export default function ContentReport({ visible, onClose, currentUserId, opposin
                         <View style={{ flexDirection: 'row' }}>
                             <SubTitle style={styles.subtitle} size={16}>which </SubTitle>
                             <TouchableOpacity onPress={()=>Linking.openURL("https://movemeet.com/rules")}>
-                                <SubTitle style={[styles.subtitle, {color: colors.pBeam}]} size={16}>rule</SubTitle>
+                                <SubTitle style={[styles.subtitle, {color: dark_colors.pBeam}]} size={16}>rule</SubTitle>
                             </TouchableOpacity>
                             <SubTitle style={styles.subtitle} size={16}> they violated. Thank you!</SubTitle> 
                         </View>
@@ -100,10 +100,10 @@ export default function ContentReport({ visible, onClose, currentUserId, opposin
 const styles = StyleSheet.create({
     page: {
         flex: 1,
-        backgroundColor: colors.background
+        backgroundColor: dark_colors.background
     },
     header: {
-        backgroundColor: colors.container,
+        backgroundColor: dark_colors.container,
         width: "100%",
         justifyContent: "space-between",
         alignItems: "center",
@@ -112,7 +112,7 @@ const styles = StyleSheet.create({
         paddingTop: 50,
         paddingBottom: 10,
         marginBottom: 10,
-        borderBottomColor: colors.pBeamBright,
+        borderBottomColor: dark_colors.pBeamBright,
         borderBottomWidth: 2,
         zIndex: 5,
         ...css.beamShadow
@@ -128,14 +128,14 @@ const styles = StyleSheet.create({
     },
     subtitle: {
         fontWeight: "400",
-        color: colors.text2
+        color: dark_colors.text2
     },
     body: {
         padding: 10,
         alignItems: "center"
     },
     textInput: {
-        color: colors.text1,
+        color: dark_colors.text1,
         fontSize: 18,
         height: 180,
         padding: 0,
@@ -145,7 +145,7 @@ const styles = StyleSheet.create({
         justifyContent: 'flex-start'
     },
     content: {
-        color: colors.text1,
+        color: dark_colors.text1,
         height: 260,
         width: "100%",
         marginTop: 10,
@@ -153,7 +153,7 @@ const styles = StyleSheet.create({
         paddingHorizontal: 0,
         ...css.beamShadow,
         shadowColor: "black",
-        backgroundColor: colors.container,
+        backgroundColor: dark_colors.container,
         borderRadius: 20,
         alignContent: "flex-start",
         justifyContent: 'flex-start'

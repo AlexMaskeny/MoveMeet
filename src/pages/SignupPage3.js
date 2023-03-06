@@ -12,7 +12,7 @@ import Screen from '../comps/Screen';
 import SimpleButton from '../comps/SimpleButton';
 import SimpleInput from '../comps/SimpleInput';
 import SubTitle from '../comps/SubTitle';
-import { colors, storage } from '../config';
+import { dark_colors, storage } from '../config';
 import { calls, mmAPI } from '../api/mmAPI';
 import * as logger from '../functions/logger';
 //endregion
@@ -144,7 +144,7 @@ export default function SignupPage3({ navigation }) {
             <View style={styles.beamContainer}>
                 <Beam style={styles.beam} />
                 <TouchableOpacity onPress={() => navigation.navigate("LoginPage")}>
-                    <SubTitle size={16} style={{ fontWeight: "400" }} color={colors.text2}>Login / Signup Again</SubTitle>
+                    <SubTitle size={16} style={{ fontWeight: "400" }} color={dark_colors.text2}>Login / Signup Again</SubTitle>
                 </TouchableOpacity>
                 <Beam style={styles.beam} />
             </View>

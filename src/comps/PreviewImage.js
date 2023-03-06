@@ -1,7 +1,7 @@
 import React from 'react';
 import { Text, View, StyleSheet, ImageBackground, Modal } from 'react-native';
 
-import { colors, css } from '../config';
+import { dark_colors, css } from '../config';
 
 import Screen from './Screen';
 import IconButton from './IconButton';
@@ -22,7 +22,7 @@ function PreviewImage({
                     style={styles.image}
                     resizeMode="cover"
                 >
-                    <IconButton brand="Ionicons" icon="close-circle" size={34} color={colors.background} style={styles.removeButton} onPress={() => onDisable()} />
+                    <IconButton brand="Ionicons" icon="close-circle" size={34} color={dark_colors.background} style={styles.removeButton} onPress={() => onDisable()} />
                 </ImageBackground>
             </Screen>
         </Modal>

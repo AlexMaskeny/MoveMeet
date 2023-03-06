@@ -1,7 +1,7 @@
 import React from 'react';
 import { StyleSheet, View, TouchableOpacity } from 'react-native';
 
-import { colors, css } from '../config';
+import { dark_colors, css } from '../config';
 import SubTitle from './SubTitle';
 import ProfileCircle from './ProfileCircle';
 import IconButton from './IconButton';
@@ -65,7 +65,7 @@ const styles = StyleSheet.create({
         flexDirection: "row",
         alignItems: "center",
         justifyContent: "space-between",
-        backgroundColor: colors.container,
+        backgroundColor: dark_colors.container,
         marginHorizontal: 10,
         marginVertical: 6,
         borderRadius: 100,
@@ -85,18 +85,18 @@ const styles = StyleSheet.create({
         fontWeight: "500",
     },
     message: {
-        color: colors.text2
+        color: dark_colors.text2
     },
     timeClock: {
-        color: colors.text4,
+        color: dark_colors.text4,
     },
     topLine: {
         flexDirection: 'row',
         alignItems: "center",
     },
     beam: {
-        shadowColor: colors.pBeam,
-        borderColor: colors.pBeam,
+        shadowColor: dark_colors.pBeam,
+        borderColor: dark_colors.pBeam,
         borderWidth: 2
     },
     settings: {

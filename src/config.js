@@ -10,7 +10,7 @@
 //Everything else has no prefix
 
 //region [DATA] "const colors" = the app's colors
-export const colors = {
+export const dark_colors = {
     background: "#121212", //A dark grey rgba(18, 18, 18,1)
     container: "#1E1E1E", //A dark grey, but less dark than background
     dark: "#0D0D0D",
@@ -34,7 +34,7 @@ export const colors = {
 //region [DATA] "const css" = the app's global styles
 export const css = {
     beamShadow: {
-        shadowColor: colors.pBeamShadow,
+        shadowColor: dark_colors.pBeamShadow,
         shadowOffset: { width: 0, height: 0 },
         shadowRadius: 3,
         shadowOpacity: 1,
@@ -71,4 +71,4 @@ export const rules = {
 export const debug = false; //changes whether error messages print
 export const enhancedDebug = false;
 export const footerHeight = 80;
-export const version = "1.0.1";
+export const version = "1.0.2";

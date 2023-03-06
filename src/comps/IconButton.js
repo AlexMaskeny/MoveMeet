@@ -1,7 +1,7 @@
 import React from 'react';
 import { StyleSheet, TouchableOpacity } from 'react-native';
 import { MaterialCommunityIcons, Ionicons, MaterialIcons } from "@expo/vector-icons";
-import { colors, css } from '../config';
+import { dark_colors, css } from '../config';
 
 //DESCRIPTION: An icon of 3 types imported above that is clickable
 //             acts as a button
@@ -13,7 +13,7 @@ function IconButton({
     size,
     onPress,
     brand = "MaterialCommunityIcons",
-    color = colors.text2,
+    color = dark_colors.text2,
     disabled = false,
     style,
 }) {

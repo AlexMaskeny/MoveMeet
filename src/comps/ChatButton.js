@@ -1,7 +1,7 @@
 import React from 'react';
 import { StyleSheet, Text, TouchableOpacity, ActivityIndicator, View } from 'react-native';
 
-import { colors, css } from '../config';
+import { dark_colors, css } from '../config';
 
 //DESCRIPTION: A button component which is 100% with and cicular radius
 //             It posses loading and disabled support.
@@ -22,7 +22,7 @@ function ChatButton({
                     <Text style={styles.text}>{title}</Text>
                 }
                 {loading &&
-                    <ActivityIndicator size="small" color={colors.text1} />
+                    <ActivityIndicator size="small" color={dark_colors.text1} />
                 }
             </View>
         </TouchableOpacity>
@@ -33,7 +33,7 @@ const styles = StyleSheet.create({
     bContainer: {
         width: 160,
         justifyContent: "center",
-        backgroundColor: colors.transContainer+"0)",
+        backgroundColor: dark_colors.transContainer+"0)",
         alignItems: "center",
         padding: 10,
         marginHorizontal: 10,
@@ -44,7 +44,7 @@ const styles = StyleSheet.create({
     text: {
         fontSize: 16,
         fontWeight: 'bold',
-        color: colors.text2,
+        color: dark_colors.text2,
     },
     innerContainer: {
         width: "100%",

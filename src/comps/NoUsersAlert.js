@@ -2,7 +2,7 @@ import React from 'react';
 import { View, StyleSheet } from 'react-native';
 import { MaterialIcons } from '@expo/vector-icons';
 
-import { colors, css } from '../config';
+import { dark_colors, css } from '../config';
 import BeamTitle from './BeamTitle';
 import SubTitle from './SubTitle';
 
@@ -17,7 +17,7 @@ export default function NoUsersAlert({
             <SubTitle size={16}>to start chatting with</SubTitle>
             <SubTitle size={16}>people near you.</SubTitle>
             <View height={20} />
-            <MaterialIcons name="group" size={100} color={colors.text3} />
+            <MaterialIcons name="group" size={100} color={dark_colors.text3} />
         </View>
     )
 }
@@ -28,11 +28,11 @@ const styles = StyleSheet.create({
         width: 280,
         alignItems: "center",
         borderRadius: 40,
-        borderColor: colors.pBeam,
+        borderColor: dark_colors.pBeam,
         borderWidth: 2,
-        backgroundColor: colors.container,
+        backgroundColor: dark_colors.container,
         ...css.beamShadow,
-        shadowColor: colors.background,
+        shadowColor: dark_colors.background,
         padding: 14,
         marginTop: 20,
         alignSelf: "center"

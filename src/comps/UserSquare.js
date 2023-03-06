@@ -4,7 +4,7 @@ import { LinearGradient } from 'expo-linear-gradient';
 import { CommonActions } from '@react-navigation/native';
 
 import ImageLoader from './ImageLoader';
-import { colors, css } from '../config';
+import { dark_colors, css } from '../config';
 import SubTitle from './SubTitle';
 
 const borderRadius = 16;
@@ -22,8 +22,8 @@ export default function UserSquare({
         }))
     }
     if (user.noImage) return (
-        <TouchableHighlight style={styles.touchable} onPress={navigate} underlayColor={colors.dark} activeOpacity={0.5}>
-            <View style={[styles.container, {backgroundColor: colors.container}]}>
+        <TouchableHighlight style={styles.touchable} onPress={navigate} underlayColor={dark_colors.dark} activeOpacity={0.5}>
+            <View style={[styles.container, {backgroundColor: dark_colors.container}]}>
                 <View style={styles.subContainer}>
                     <LinearGradient
                         // Background Linear Gradient
@@ -37,9 +37,9 @@ export default function UserSquare({
                         style={{ height: 80, width: "100%", borderBottomRightRadius: borderRadius, borderBottomLeftRadius: borderRadius }}
                     >
                         <View style={styles.footer}>
-                            <SubTitle style={styles.title} color={colors.text6} size={18}>{user.username}</SubTitle>
-                            <SubTitle style={styles.title} color={colors.text1} size={14}>{user.distance}</SubTitle>
-                            <SubTitle style={styles.title} color={colors.text1} size={14} numberOfLines={1}>{user.bio}</SubTitle>
+                            <SubTitle style={styles.title} color={dark_colors.text6} size={18}>{user.username}</SubTitle>
+                            <SubTitle style={styles.title} color={dark_colors.text1} size={14}>{user.distance}</SubTitle>
+                            <SubTitle style={styles.title} color={dark_colors.text1} size={14} numberOfLines={1}>{user.bio}</SubTitle>
                         </View>
                     </LinearGradient>
                 </View>
@@ -47,7 +47,7 @@ export default function UserSquare({
         </TouchableHighlight>
     )
     else return (
-        <TouchableHighlight style={styles.touchable} onPress={navigate} underlayColor={colors.dark} activeOpacity={0.5}>
+        <TouchableHighlight style={styles.touchable} onPress={navigate} underlayColor={dark_colors.dark} activeOpacity={0.5}>
             <ImageLoader
                 style={styles.container}
                 imageStyle={styles.image}
@@ -69,9 +69,9 @@ export default function UserSquare({
                         style={{ height: 80, width: "100%", borderBottomRightRadius: borderRadius, borderBottomLeftRadius: borderRadius}}
                     >
                         <View style={styles.footer}>
-                            <SubTitle style={styles.title} color={colors.text6} size={18}>{user.username}</SubTitle>
-                            <SubTitle style={styles.title} color={colors.text1} size={14}>{user.distance}</SubTitle>
-                            <SubTitle style={styles.title2} color={colors.text1} size={14} numberOfLines={1}>{user.bio}</SubTitle>
+                            <SubTitle style={styles.title} color={dark_colors.text6} size={18}>{user.username}</SubTitle>
+                            <SubTitle style={styles.title} color={dark_colors.text1} size={14}>{user.distance}</SubTitle>
+                            <SubTitle style={styles.title2} color={dark_colors.text1} size={14} numberOfLines={1}>{user.bio}</SubTitle>
                         </View>
                     </LinearGradient>
                 </View>
@@ -89,7 +89,7 @@ const styles = StyleSheet.create({
         ...css.beamShadow,
         shadowColor: "black",
         borderWidth: 1,
-        borderColor: colors.text4,
+        borderColor: dark_colors.text4,
     }, 
     touchable: {
         flex: 1,

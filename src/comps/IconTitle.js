@@ -2,7 +2,7 @@ import React from 'react';
 import { StyleSheet, Text, View } from 'react-native';
 import { MaterialCommunityIcons, Ionicons } from "@expo/vector-icons"
 
-import { colors } from '../config';
+import { dark_colors } from '../config';
 
 function IconTitle({ brand = "MaterialCommunityIcons", icon, children, style, ...props }) {
     if (brand == "MaterialCommunityIcons") {
@@ -11,7 +11,7 @@ function IconTitle({ brand = "MaterialCommunityIcons", icon, children, style, ..
                 <MaterialCommunityIcons
                     name={icon}
                     size={20}
-                    color={colors.text1}
+                    color={dark_colors.text1}
                     style={styles.icon}
                 />
                 <Text
@@ -26,7 +26,7 @@ function IconTitle({ brand = "MaterialCommunityIcons", icon, children, style, ..
                 <Ionicons
                     name={icon}
                     size={20}
-                    color={colors.text1}
+                    color={dark_colors.text1}
                     style={styles.icon}
                 />
                 <Text
@@ -47,7 +47,7 @@ const styles = StyleSheet.create({
         borderRadius: 30,
     },
     tStyle: {
-        color: colors.text2,
+        color: dark_colors.text2,
         fontSize: 16,
         
     },

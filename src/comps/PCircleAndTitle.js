@@ -1,7 +1,7 @@
 import React from 'react';
 import { Text, View, StyleSheet, Image } from 'react-native';
 
-import { colors, css } from '../config';
+import { dark_colors, css } from '../config';
 import ProfileCircle from './ProfileCircle';
 import SubTitle from './SubTitle';
 

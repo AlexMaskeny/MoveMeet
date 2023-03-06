@@ -12,7 +12,7 @@ import {
 } from 'react-native-popup-menu';
 
 
-import { colors, css } from '../config';
+import { dark_colors, css } from '../config';
 import ProfileCircle from './ProfileCircle';
 import SubTitle from './SubTitle';
 import DarkBeam from './DarkBeam';
@@ -46,9 +46,9 @@ function ComplexMessage({ navigation, opposingUserId, userId, children, ppic, us
             <View style={{ flex: 1, marginRight: 10 }}>
                 <View style={{ flexDirection: 'row', flex: 1, justifyContent: "space-between" }}>
                     <View>
-                        <SubTitle size={16} color={colors.text4}>{username}</SubTitle>
+                        <SubTitle size={16} color={dark_colors.text4}>{username}</SubTitle>
                     </View>
-                    <SubTitle size={14} color={colors.text4}>{time}</SubTitle>
+                    <SubTitle size={14} color={dark_colors.text4}>{time}</SubTitle>
                 </View>
                 <Text
                     style={[styles.tStyle, style]}
@@ -73,21 +73,21 @@ function ComplexMessage({ navigation, opposingUserId, userId, children, ppic, us
                 <View style={styles.innerMenu}>
                     {opposingUserId != userId && <>
                         <MenuOption style={styles.optionContainer} onSelect={onView}>
-                            <MaterialIcons name="account-box" size={26} color={colors.pBeamBright} />
+                            <MaterialIcons name="account-box" size={26} color={dark_colors.pBeamBright} />
                             <View style={{ width: 10 }} />
                             <SubTitle style={styles.title} size={18}>View User Profile</SubTitle>
                         </MenuOption>
                         <DarkBeam style={styles.seperator} />
                     </>}
                     <MenuOption style={styles.optionContainer} onSelect={onCopy}>
-                        <MaterialIcons name="content-copy" size={26} color={colors.pBeamBright} />
+                        <MaterialIcons name="content-copy" size={26} color={dark_colors.pBeamBright} />
                         <View style={{ width: 10 }} />
                         <SubTitle style={styles.title} size={18}>Copy Message</SubTitle>
                     </MenuOption>
                     {opposingUserId != userId && <>
                     <DarkBeam style={styles.seperator} />
                     <MenuOption style={styles.optionContainer} onSelect={onReport}>
-                        <MaterialIcons name="report" size={26} color={colors.pBeamBright} />
+                        <MaterialIcons name="report" size={26} color={dark_colors.pBeamBright} />
                         <View style={{ width: 10 }} />
                         <SubTitle style={styles.title} size={18}>Report Content</SubTitle>
                     </MenuOption>
@@ -108,7 +108,7 @@ const styles = StyleSheet.create({
 
     },
     tStyle: {
-        color: colors.text3,
+        color: dark_colors.text3,
         fontSize: 16,
         flex: 2,
     },
@@ -117,13 +117,13 @@ const styles = StyleSheet.create({
         height: 44,
         borderWidth: 1,
         shadowOpacity: 0,
-        borderColor: colors.text3
+        borderColor: dark_colors.text3
     },
     iconBox: {
         width: 50,
         height: 50,
         borderRadius: 8,
-        backgroundColor: colors.container,
+        backgroundColor: dark_colors.container,
         alignItems: "center",
         justifyContent: "center"
     },
@@ -135,9 +135,9 @@ const styles = StyleSheet.create({
     innerMenu: {
         borderRadius: 26,
         padding: 16,
-        backgroundColor: colors.container,
+        backgroundColor: dark_colors.container,
         width: Dimensions.get('screen').width * 0.9,
-        borderColor: colors.pBeamBright,
+        borderColor: dark_colors.pBeamBright,
         borderWidth: 2,
         ...css.beamShadow,
     },
@@ -147,11 +147,11 @@ const styles = StyleSheet.create({
     },
     title: {
         fontWeight: "bold",
-        color: colors.text2
+        color: dark_colors.text2
     },
     seperator: {
         marginVertical: 8,
-        backgroundColor: colors.text4,
+        backgroundColor: dark_colors.text4,
         height: 1,
     }
 })

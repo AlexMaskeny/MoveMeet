@@ -10,7 +10,7 @@ import IconButton from './IconButton';
 import SimpleButton from './SimpleButton';
 import SubTitle from './SubTitle';
 import Beam from './Beam';
-import { colors, css, strings } from '../config';
+import { dark_colors, css, strings } from '../config';
 import { calls, mmAPI } from '../api/mmAPI';
 import * as media from '../functions/media';
 import * as logger from '../functions/logger'
@@ -132,24 +132,24 @@ export default function CreatePost({ visible, onClose, currentUser, navigation }
         <Modal visible={visible} animationType="slide">
             <View style={styles.page}>
                 <View style={styles.header}>
-                    <IconButton color={colors.container} icon="ios-close-circle" brand="Ionicons" size={32} />
-                    <SubTitle color={colors.pBeamBright} style={styles.title} size={18}>Create Post</SubTitle>
-                    <IconButton color={colors.text1} icon="ios-close-circle" brand="Ionicons" size={32} onPress={close} />
+                    <IconButton color={dark_colors.container} icon="ios-close-circle" brand="Ionicons" size={32} />
+                    <SubTitle color={dark_colors.pBeamBright} style={styles.title} size={18}>Create Post</SubTitle>
+                    <IconButton color={dark_colors.text1} icon="ios-close-circle" brand="Ionicons" size={32} onPress={close} />
                 </View>
                 {image.length === 0 &&
                     <TouchableOpacity style={styles.bigImage} onPress={selectImage} disabled={loading1} >
                         <View style={styles.bigPlus}>
-                            {!loading1 && <IconButton color={colors.pBeamBright} icon="add-circle" brand="Ionicons" size={70} disabled={true} />}
-                            {loading1 && <ActivityIndicator color={colors.pBeamBright} size="large" /> }
+                            {!loading1 && <IconButton color={dark_colors.pBeamBright} icon="add-circle" brand="Ionicons" size={70} disabled={true} />}
+                            {loading1 && <ActivityIndicator color={dark_colors.pBeamBright} size="large" /> }
                         </View>
                     </TouchableOpacity>
                 }
                 {image.length > 0 &&
                     <TouchableOpacity style={styles.bigImage} onPress={selectImage} disabled={loading1} >
                         <ImageBackground source={{ uri: image }} style={styles.imageBackground} imageStyle={{borderRadius: 20}}>
-                            <View style={[styles.smallPlus, {backgroundColor: colors.container, margin: 10}]}>
-                                {!loading1 && <IconButton color={colors.pBeamBright} icon="add-circle" brand="Ionicons" size={34} disabled={true} />}
-                                {loading1 && <ActivityIndicator color={colors.pBeamBright} size="small" />}
+                            <View style={[styles.smallPlus, {backgroundColor: dark_colors.container, margin: 10}]}>
+                                {!loading1 && <IconButton color={dark_colors.pBeamBright} icon="add-circle" brand="Ionicons" size={34} disabled={true} />}
+                                {loading1 && <ActivityIndicator color={dark_colors.pBeamBright} size="small" />}
                             </View>
                         </ImageBackground>
                     </TouchableOpacity>
@@ -171,12 +171,12 @@ const styles = StyleSheet.create({
     //region page
     page: {
         flex: 1,
-        backgroundColor: colors.background
+        backgroundColor: dark_colors.background
     },
     //endregion
     //region header
     header: {
-        backgroundColor: colors.container,
+        backgroundColor: dark_colors.container,
         width: "100%",
         justifyContent: "space-between",
         alignItems: "center",
@@ -207,7 +207,7 @@ const styles = StyleSheet.create({
     //endregion
     //region bigImage
     bigImage: {
-        backgroundColor: colors.container,
+        backgroundColor: dark_colors.container,
         borderRadius: 20,
         height: 400,
         margin: 10,
@@ -224,7 +224,7 @@ const styles = StyleSheet.create({
         justifyContent: "center",
         alignItems: "center",
         borderRadius: 20,
-        borderColor: colors.pBeamBright,
+        borderColor: dark_colors.pBeamBright,
         borderWidth: 2,
         ...css.beamShadow
     },
@@ -236,7 +236,7 @@ const styles = StyleSheet.create({
         justifyContent: "center",
         alignItems: "center",
         borderRadius: 20,
-        borderColor: colors.pBeamBright,
+        borderColor: dark_colors.pBeamBright,
         borderWidth: 2,
         ...css.beamShadow
     },

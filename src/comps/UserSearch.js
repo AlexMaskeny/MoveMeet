@@ -3,7 +3,7 @@ import { StyleSheet, Modal, View, TouchableOpacity, FlatList, Dimensions, Activi
 import { Storage } from 'aws-amplify';
 
 import * as logger from '../functions/logger';
-import { colors, css, strings } from '../config';
+import { dark_colors, css, strings } from '../config';
 import BeamTitle from './BeamTitle';
 import IconButton from './IconButton';
 import SimpleInput from './SimpleInput';
@@ -47,9 +47,9 @@ export default function UserSearch({ visible, onClose, navigation, currentUser }
                 <View style={styles.userRight}>
                     <TouchableOpacity onPress={()=>navigateProfile(item.id)} style={{flexDirection: "row", alignItems: "center", justifyContent: "space-between"} }>
                         <SubTitle style={styles.title} size={20}>{item.username}</SubTitle>
-                        <SubTitle size={16} color={colors.pBeamBright} style={{ fontWeight: "500" }}>View</SubTitle>
+                        <SubTitle size={16} color={dark_colors.pBeamBright} style={{ fontWeight: "500" }}>View</SubTitle>
                     </TouchableOpacity>
-                    <SubTitle style={styles.subtitle} size={16} color={colors.text2}>{item.bio}</SubTitle>
+                    <SubTitle style={styles.subtitle} size={16} color={dark_colors.text2}>{item.bio}</SubTitle>
                 </View>
             </View>    
         )
@@ -58,7 +58,7 @@ export default function UserSearch({ visible, onClose, navigation, currentUser }
     const ListEmptyComponent = useCallback(() => {
         if (!loading) return (
             <View style={styles.listEmptyComponent}>
-                <IconButton disabled={true} color={colors.text1} icon="sad" brand="Ionicons" size={60} />
+                <IconButton disabled={true} color={dark_colors.text1} icon="sad" brand="Ionicons" size={60} />
                 <BeamTitle>No Users Found</BeamTitle>
                 {search.length >= 4 && <>
                     <SubTitle size={16}>We couldn't find any users named</SubTitle>
@@ -71,7 +71,7 @@ export default function UserSearch({ visible, onClose, navigation, currentUser }
                 <View style={styles.suggestion}>
                     <SubTitle size={16}>Find users on the </SubTitle>
                     <TouchableOpacity onPress={navigateDiscoverPage}>
-                        <SubTitle size={16} color={colors.pBeamBright} style={{ fontWeight: "500" }}>Discover Page</SubTitle>
+                        <SubTitle size={16} color={dark_colors.pBeamBright} style={{ fontWeight: "500" }}>Discover Page</SubTitle>
                     </TouchableOpacity>
                 </View>
             </View>
@@ -79,7 +79,7 @@ export default function UserSearch({ visible, onClose, navigation, currentUser }
         else {
             return (
                 <View style={styles.listEmptyComponent}>
-                    <ActivityIndicator size="large" color={colors.text1} style={{marginTop: 20}} />
+                    <ActivityIndicator size="large" color={dark_colors.text1} style={{marginTop: 20}} />
                 </View>
             );
         }
@@ -88,9 +88,9 @@ export default function UserSearch({ visible, onClose, navigation, currentUser }
         <Modal visible={visible} animationType="slide">
             <View style={styles.page}>
                 <View style={styles.header}>
-                    <IconButton color={colors.container} icon="ios-close-circle" brand="Ionicons" size={32} />
-                    <SubTitle color={colors.pBeamBright} style={styles.title} size={18}>Search For Users</SubTitle>
-                    <IconButton color={colors.text1} icon="ios-close-circle" brand="Ionicons" size={32} onPress={onClose} />
+                    <IconButton color={dark_colors.container} icon="ios-close-circle" brand="Ionicons" size={32} />
+                    <SubTitle color={dark_colors.pBeamBright} style={styles.title} size={18}>Search For Users</SubTitle>
+                    <IconButton color={dark_colors.text1} icon="ios-close-circle" brand="Ionicons" size={32} onPress={onClose} />
                 </View>
                 <SimpleInput
                     placeholder="Type a username"
@@ -154,10 +154,10 @@ export default function UserSearch({ visible, onClose, navigation, currentUser }
 const styles = StyleSheet.create({
     page: {
         flex: 1,
-        backgroundColor: colors.background
+        backgroundColor: dark_colors.background
     },
     header: {
-        backgroundColor: colors.container,
+        backgroundColor: dark_colors.container,
         width: "100%",
         justifyContent: "space-between",
         alignItems: "center",
@@ -194,7 +194,7 @@ const styles = StyleSheet.create({
     },
     user: {
         height: 140,
-        backgroundColor: colors.container,
+        backgroundColor: dark_colors.container,
         flex: 1,
         margin: 10,
         borderRadius: 40,
@@ -210,14 +210,14 @@ const styles = StyleSheet.create({
         height: 120,
         borderRadius: 60,
         ...css.beamShadow,
-        borderColor: colors.pBeam,
+        borderColor: dark_colors.pBeam,
         borderWidth: 2,
         overflow: 'hidden',
         alignItems: "flex-end",
     },
     button: {
         padding: 8,
-        backgroundColor: colors.container,
+        backgroundColor: dark_colors.container,
         borderRadius: 30,
     }
 

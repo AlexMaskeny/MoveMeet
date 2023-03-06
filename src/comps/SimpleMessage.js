@@ -1,7 +1,7 @@
 import React from 'react';
 import { StyleSheet, Text, View } from 'react-native';
 
-import { colors } from '../config';
+import { dark_colors } from '../config';
 import ProfileCircle from './ProfileCircle';
 
 function SimpleMessage({ children, ppic, username, ppOuterStyle, ppInnerStyle, bottomLine, message, style, ...props }) {
@@ -34,12 +34,12 @@ const styles = StyleSheet.create({
 
     },
     tStyle: {
-        color: colors.text2,
+        color: dark_colors.text2,
         fontSize: 16,
 
     },
     btStyle: {
-        color: colors.text4,
+        color: dark_colors.text4,
         fontSize: 14,
     },
     text: {

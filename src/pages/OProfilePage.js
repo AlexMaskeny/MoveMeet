@@ -16,7 +16,7 @@ import SubTitle from '../comps/SubTitle';
 import Post from '../comps/Post';
 import SimpleInput from '../comps/SimpleInput';
 import IconButton from '../comps/IconButton';
-import { colors } from '../config';
+import { dark_colors } from '../config';
 import { calls, instances, mmAPI } from '../api/mmAPI';
 import * as logger from '../functions/logger';
 import * as timeLogic from '../functions/timeLogic';
@@ -53,7 +53,7 @@ export default function OProfilePage({ navigation, route }) {
                     <IconButton
                         icon="chevron-back"
                         brand="Ionicons"
-                        color={colors.pBeamBright}
+                        color={dark_colors.pBeamBright}
                         size={34}
                         onPress={() => navigation.goBack()}
                     />
@@ -399,7 +399,7 @@ export default function OProfilePage({ navigation, route }) {
                         cacheKey={background.fullKey }
                     />
                     <LinearGradient
-                    colors={['rgba(18, 18, 18,0.4)', colors.background]}
+                    colors={['rgba(18, 18, 18,0.4)', dark_colors.background]}
                     style={{ height: 120, width: "100%", marginTop: -120}}
                     />
                 </>
@@ -420,16 +420,16 @@ export default function OProfilePage({ navigation, route }) {
             {/*=========[USERNAME & MESSAGE BUTTON]=========*/}
             <View style={styles.upperBody}>
                 <View>
-                    <SubTitle style={styles.title2} size={Platform.OS === "android" ? 18 : 16} color={colors.background}>@{username}</SubTitle>
+                    <SubTitle style={styles.title2} size={Platform.OS === "android" ? 18 : 16} color={dark_colors.background}>@{username}</SubTitle>
                 </View>
                 {loading &&
                     <View>
-                        <ActivityIndicator color={colors.text1} size="small" />
+                        <ActivityIndicator color={dark_colors.text1} size="small" />
                     </View>
                 }
                 {!loading &&
                     <TouchableOpacity onPress={message} style={{zIndex: 8}}>
-                        <SubTitle style={styles.title2} size={18} color={colors.text1}>Message</SubTitle>
+                        <SubTitle style={styles.title2} size={18} color={dark_colors.text1}>Message</SubTitle>
                     </TouchableOpacity>
                 }
             </View>
@@ -439,7 +439,7 @@ export default function OProfilePage({ navigation, route }) {
                 <SimpleInput
                     autoCorrect={true}
                     editable={false}
-                    cStyle={{backgroundColor: colors.background} }
+                    cStyle={{backgroundColor: dark_colors.background} }
                     multiline={true}
                     maxLength={160}
                     style={styles.textInput}
@@ -472,7 +472,7 @@ export default function OProfilePage({ navigation, route }) {
                                 setRefresh(true);
                                 setRerender(!rerender);
                             }}
-                            tintColor={colors.pBeam}
+                            tintColor={dark_colors.pBeam}
                         />
                     }
                     ListHeaderComponent={ListHeaderComponent}
@@ -539,7 +539,7 @@ const styles = StyleSheet.create({
     //endregion
     //region textInput
     textInput: {
-        color: colors.text1,
+        color: dark_colors.text1,
         fontSize: 18,
         maxHeight: 140,
     },
@@ -551,7 +551,7 @@ const styles = StyleSheet.create({
     //endregion
     //region body
     body: {
-        backgroundColor: colors.background
+        backgroundColor: dark_colors.background
     }
     //endregion
 });

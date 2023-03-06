@@ -1,7 +1,7 @@
 import React from 'react';
 import { View, StyleSheet, TouchableOpacity } from 'react-native';
 
-import { colors, css } from '../config';
+import { dark_colors, css } from '../config';
 import Beam from './Beam';
 import ImageLoader from './ImageLoader';
 import SimpleMessage from './SimpleMessage';
@@ -45,10 +45,10 @@ export default function Post({ user, profilePicture, post, edit, onDelete }) {
                         <View style={styles.time}>
                             {edit &&
                                 <TouchableOpacity onPress={onDelete}>
-                                    <SubTitle style={styles.delete} size={18} color={colors.error}>Delete</SubTitle>
+                                    <SubTitle style={styles.delete} size={18} color={dark_colors.error}>Delete</SubTitle>
                                 </TouchableOpacity>
                             }
-                            <SubTitle color={colors.text4}>{post.time}</SubTitle>
+                            <SubTitle color={dark_colors.text4}>{post.time}</SubTitle>
                         </View>
                     </View>
                 </View>
@@ -64,7 +64,7 @@ const styles = StyleSheet.create({
     },
     header: {
         height: 64,
-        backgroundColor: colors.background,
+        backgroundColor: dark_colors.background,
         shadowRadius: 8,
         shadowOpacity: 1,
         shadowOffset: {

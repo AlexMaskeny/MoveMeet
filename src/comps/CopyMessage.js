@@ -3,7 +3,7 @@ import { View, StyleSheet, Modal, TouchableOpacity } from 'react-native';
 import { MaterialCommunityIcons } from '@expo/vector-icons';
 import * as Clipboard from 'expo-clipboard';
 
-import { colors, css } from '../config';
+import { dark_colors, css } from '../config';
 import BeamTitle from './BeamTitle';
 import SubTitle from './SubTitle';
 import SimpleButton from './SimpleButton';
@@ -45,11 +45,11 @@ const styles = StyleSheet.create({
         //backgroundColor: "rgba(0,0,0,0.3)",
     },
     messageContainer: {
-        backgroundColor: colors.container,
+        backgroundColor: dark_colors.container,
         padding: 10,
         margin: 10,
         borderRadius: 20,
-        borderColor: colors.pBeam,
+        borderColor: dark_colors.pBeam,
         borderWidth: 1,
         ...css.beamShadow,
     },
@@ -59,12 +59,12 @@ const styles = StyleSheet.create({
         justifyContent: "flex-start",
     },
     belowContainer: {
-        backgroundColor: colors.container,
+        backgroundColor: dark_colors.container,
         paddingHorizontal: 10,
         paddingVertical: 14,
         marginHorizontal: 10,
         borderRadius: 20,
-        borderColor: colors.pBeam,
+        borderColor: dark_colors.pBeam,
         borderWidth: 1,
         ...css.beamShadow,
 

@@ -1,6 +1,6 @@
 import React from 'react';
 import { ImageBackground, SafeAreaView, StyleSheet, View} from 'react-native';
-import { colors } from '../config';
+import { dark_colors } from '../config';
 
 //DESCRIPTION: A screen comp which sets the background color
 //             to background color set in config. Acts as a
@@ -47,7 +47,7 @@ const styles = StyleSheet.create({
 
         width: "100%",
         height: "100%",
-        backgroundColor: colors.background,
+        backgroundColor: dark_colors.background,
     }
 })
 

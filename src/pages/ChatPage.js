@@ -19,7 +19,7 @@ import SubTitle from '../comps/SubTitle';
 import ImageInput from '../comps/ImageInput';
 import ImageMessage from '../comps/ImageMessage';
 import ProfileCircle from '../comps/SpinningProfileCircle';
-import { colors } from '../config'
+import { dark_colors } from '../config'
 import { calls, mmAPI } from '../api/mmAPI';
 import * as logger from '../functions/logger';
 import * as media from '../functions/media';
@@ -64,7 +64,7 @@ export default function ChatPage({ route, navigation }) {
             headerLeft: () => (
                 <IconButton
                     icon="ios-chevron-back-outline"
-                    color={colors.pBeamBright}
+                    color={dark_colors.pBeamBright}
                     brand="Ionicons"
                     size={36}
                     onPress={() => {
@@ -522,8 +522,10 @@ export default function ChatPage({ route, navigation }) {
             //endregion
             //region [IF] the message is of type image [THEN] download the image and push it
             if (message.type === "Image") {
-                //Download the message's image
-                await getMessageImage(message);
+                //[IF] the message was received (not sent locally) [THEN] Download the message's image
+                if (!message.undelivered)
+                    await getMessageImage(message);
+
                 setData(existingData => {
                     existingData.unshift(message);
                     return [...existingData];
@@ -652,7 +654,7 @@ export default function ChatPage({ route, navigation }) {
         if (data.length > 0 && tokenExists({initial: false})) {
             return (
                 <View style={styles.refresh}>
-                    <ActivityIndicator color={colors.pBeam} size="small" />
+                    <ActivityIndicator color={dark_colors.pBeam} size="small" />
                 </View>
             );
         } else if (!tokenExists({ initial: false })) {
@@ -660,7 +662,7 @@ export default function ChatPage({ route, navigation }) {
                 <View style={styles.beginChat}>
                     <BeamTitle size={18}>Begining of Chat</BeamTitle>
                     <SubTitle size={14}>Say Something to {route.params.name}</SubTitle>
-                    <SubTitle color={colors.text3}>Created on {(new Date(Date.parse(route.params.created))).toLocaleDateString()}</SubTitle>
+                    <SubTitle color={dark_colors.text3}>Created on {(new Date(Date.parse(route.params.created))).toLocaleDateString()}</SubTitle>
                 </View>
             </>);
         } else {
@@ -741,7 +743,7 @@ export default function ChatPage({ route, navigation }) {
         <IconButton
             icon="camera"
             brand="Ionicons"
-            color={colors.text3}
+            color={dark_colors.text3}
             style={{ marginBottom: 6 }}
             size={34}
             onPress={openCamera}
@@ -750,7 +752,7 @@ export default function ChatPage({ route, navigation }) {
         <IconButton
             icon="duplicate"
             brand="Ionicons"
-            color={colors.text3}
+            color={dark_colors.text3}
             size={34}
             style={{ marginBottom: 6, }}
             onPress={openPhotos}
@@ -759,7 +761,7 @@ export default function ChatPage({ route, navigation }) {
         <IconButton
             icon="md-chevron-down-circle"
             brand="Ionicons"
-            color={colors.text3}
+            color={dark_colors.text3}
             style={{ marginBottom: 6 }}
             size={34}
             onPress={() => {
@@ -773,7 +775,7 @@ export default function ChatPage({ route, navigation }) {
         <IconButton
             icon="md-chevron-forward-circle"
             brand="Ionicons"
-            color={colors.text3}
+            color={dark_colors.text3}
             style={{ marginBottom: 6 }}
             size={34}
             onPress={() => setButtonsMinimized(false)}
@@ -793,7 +795,7 @@ export default function ChatPage({ route, navigation }) {
         <IconButton
             icon="arrow-forward-circle"
             brand="Ionicons"
-            color={(textInput.length >= 1 || msgIsImage) ? colors.pBeam : colors.pBeamDisabled}
+            color={(textInput.length >= 1 || msgIsImage) ? dark_colors.pBeam : dark_colors.pBeamDisabled}
             disabled={(!(textInput.length >= 1 || msgIsImage))}
             size={34}
             style={styles.sendButton}
@@ -882,7 +884,7 @@ const styles = StyleSheet.create({
     //region page
     page: {
         justifyContent: "flex-end",
-        backgroundColor: colors.container
+        backgroundColor: dark_colors.container
     },
     //endregion
     //region sendButton
@@ -895,7 +897,7 @@ const styles = StyleSheet.create({
         flexDirection: "row",
         paddingTop: 8,
         paddingBottom: 4,
-        borderColor: colors.text4,
+        borderColor: dark_colors.text4,
         borderTopWidth: 1,
         shadowColor: "black",
         shadowRadius: 2,
@@ -903,7 +905,7 @@ const styles = StyleSheet.create({
         shadowOpacity: 0.5,
         paddingHorizontal: 10,
         alignItems: "flex-end",
-        backgroundColor: colors.background
+        backgroundColor: dark_colors.background
     },
     //endregion
     //region refresh

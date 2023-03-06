@@ -1,7 +1,7 @@
 import React from 'react';
 import { Text } from 'react-native';
 
-import { colors, css } from '../config';
+import { dark_colors, css } from '../config';
 
 //DESCRIPTION: A title comp with the text color of the
 //             text1 set in config file.
@@ -9,7 +9,7 @@ import { colors, css } from '../config';
 //             text for most componants
 
 function SubTitle({
-    color = colors.text1,
+    color = dark_colors.text1,
     size = 12,
     style,
     children,

@@ -1,6 +1,6 @@
 import React, { useCallback } from 'react';
 import { StyleSheet, Modal, View, TouchableOpacity, FlatList, Dimensions } from 'react-native';
-import { colors, css, rules } from '../config';
+import { dark_colors, css, rules } from '../config';
 import IconButton from './IconButton';
 import SimpleButton from './SimpleButton';
 import SubTitle from './SubTitle';
@@ -19,18 +19,18 @@ export default function HelpPrivateChatsPage({ visible, onClose, onSearch, openB
             <TouchableOpacity style={styles.page} onPress={() => onClose()} activeOpacity={1}>
                 <TouchableOpacity style={styles.container} activeOpacity={1}>
                     <View style={styles.header}>
-                        <IconButton color={colors.background} icon="ios-close-circle" brand="Ionicons" size={32} />
-                        <SubTitle color={colors.pBeamBright} style={styles.title} size={18}>What can I do here?</SubTitle>
-                        <IconButton color={colors.text1} icon="ios-close-circle" brand="Ionicons" size={32} onPress={onClose} />
+                        <IconButton color={dark_colors.background} icon="ios-close-circle" brand="Ionicons" size={32} />
+                        <SubTitle color={dark_colors.pBeamBright} style={styles.title} size={18}>What can I do here?</SubTitle>
+                        <IconButton color={dark_colors.text1} icon="ios-close-circle" brand="Ionicons" size={32} onPress={onClose} />
                     </View>
                     <View style={styles.content}>
-                        <SubTitle color={colors.pBeamBright} style={styles.title} size={16}>Private Chats</SubTitle>
+                        <SubTitle color={dark_colors.pBeamBright} style={styles.title} size={16}>Private Chats</SubTitle>
                         <SubTitle style={styles.subtitle} size={16}>As you may have guessed, private chats</SubTitle>
                         <SubTitle style={styles.subtitle} size={16}>are private between two users, so when you</SubTitle>
                         <SubTitle style={styles.subtitle} size={16}>message someone your chat will be here.</SubTitle>
                     </View>
                     <View style={styles.content}>
-                        <SubTitle color={colors.pBeamBright} style={styles.title} size={16}>User Management</SubTitle>
+                        <SubTitle color={dark_colors.pBeamBright} style={styles.title} size={16}>User Management</SubTitle>
                         <SubTitle style={styles.subtitle} size={16}>You can use this page to block users or</SubTitle>
                         <SubTitle style={styles.subtitle} size={16}>view their profile by clicking the three dots.</SubTitle>
                         <SubTitle style={styles.subtitle} size={16}>Also, you can search for users, but you</SubTitle>
@@ -39,7 +39,7 @@ export default function HelpPrivateChatsPage({ visible, onClose, onSearch, openB
                     <View style={{height: 10}} />
                     <SimpleButton onPress={search} title="Search for someone" />
                     <TouchableOpacity style={{ marginTop: 10 }} onPress={bugReport}>
-                        <SubTitle style={styles.title} color={colors.text1} size={16}>Report Bug</SubTitle>
+                        <SubTitle style={styles.title} color={dark_colors.text1} size={16}>Report Bug</SubTitle>
                     </TouchableOpacity>
                 </TouchableOpacity>
             </TouchableOpacity>
@@ -75,17 +75,17 @@ const styles = StyleSheet.create({
         fontWeight: "400"
     },
     container: {
-        backgroundColor: colors.background,
+        backgroundColor: dark_colors.background,
         width: "100%",
         height: Dimensions.get('window').height * 0.64,
-        borderColor: colors.pBeamBright,
+        borderColor: dark_colors.pBeamBright,
         borderTopWidth: 2,
         ...css.beamShadow
     },
     content: {
         justifyContent: "flex-start",
         alignItems: "center",
-        backgroundColor: colors.container,
+        backgroundColor: dark_colors.container,
         margin: 8,
         borderRadius: 20,
         padding: 20,

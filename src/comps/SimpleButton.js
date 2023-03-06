@@ -1,7 +1,7 @@
 import React from 'react';
 import { StyleSheet, Text, TouchableOpacity, ActivityIndicator, View, Platform } from 'react-native';
 
-import { colors, css } from '../config';
+import { dark_colors, css } from '../config';
 
 //DESCRIPTION: A button component which is 100% with and cicular radius
 //             It posses loading and disabled support.
@@ -17,13 +17,13 @@ function SimpleButton({
     loading = false,
 }) {
     return (
-        <TouchableOpacity style={[{ ...styles.bContainer, borderWidth: disabled ? ( Platform.OS=="android" ? 2 : 0) : 3, borderColor: disabled ? colors.pBeamDisabled : colors.pBeam }, outerStyle]} onPress={onPress} disabled={disabled}>
+        <TouchableOpacity style={[{ ...styles.bContainer, borderWidth: disabled ? ( Platform.OS=="android" ? 2 : 0) : 3, borderColor: disabled ? dark_colors.pBeamDisabled : dark_colors.pBeam }, outerStyle]} onPress={onPress} disabled={disabled}>
             <View style={[styles.innerContainer, innerStyle]}>
                 {!loading &&
                     <Text style={styles.text}>{title}</Text>
                 }
                 {loading &&
-                    <ActivityIndicator size="small" color={colors.text1} />
+                    <ActivityIndicator size="small" color={dark_colors.text1} />
                 }
             </View>
         </TouchableOpacity>
@@ -34,13 +34,13 @@ const styles = StyleSheet.create({
     bContainer: {
         justifyContent: "center",
         //backgroundColor: colors.background,
-        backgroundColor: colors.dark,
+        backgroundColor: dark_colors.dark,
         alignItems: "center",
         padding: 15,
         marginHorizontal: 10,
         marginVertical: 4,
         elevation: 4,
-        borderColor: colors.pBeam,
+        borderColor: dark_colors.pBeam,
         borderWidth: 3,
         borderRadius: 30,
         ...css.beamShadow
@@ -48,7 +48,7 @@ const styles = StyleSheet.create({
     text: {
         fontSize: 18,
         fontWeight: 'bold',
-        color: colors.text1,
+        color: dark_colors.text1,
     },
     innerContainer: {
         width: "100%",
