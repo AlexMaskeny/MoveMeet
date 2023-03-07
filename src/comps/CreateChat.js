@@ -5,20 +5,22 @@ import uuid from "react-native-uuid";
 import NetInfo from "@react-native-community/netinfo";
 import { Auth } from 'aws-amplify';
 import * as Location from 'expo-location';
+
 //endregion
 //region 1st Party Imports
-import { dark_colors, rules, strings } from '../config';
 import IconButton from './IconButton';
 import SimpleButton from './SimpleButton';
 import SimpleInput from './SimpleInput';
 import SubTitle from './SubTitle';
 import Chat from './Chat';
-import * as media from '../functions/media';
-import * as logger from '../functions/logger'
-import * as locConversion from '../functions/locConversion';
 import Beam from './Beam';
 import BackgroundEditor from './BackgroundEditor';
 import { calls, mmAPI } from '../api/mmAPI';
+import { dark_colors, rules, strings } from '../config';
+import * as media from '../functions/media';
+import * as logger from '../functions/logger'
+import * as locConversion from '../functions/locConversion';
+import * as perms from '../functions/perms';
 //endregion
 
 export default function CreateChat({ visible, onClose, currentUser, navigation }) {
@@ -162,15 +164,10 @@ export default function CreateChat({ visible, onClose, currentUser, navigation }
     //endregion
     //region [FUNC ASYNC] "enableLocation = async ()" = Called when the user wants to enable their location
     const enableLocation = async () => {
-        const result = await Location.getForegroundPermissionsAsync();
-        if (result.canAskAgain) {
-            const result = await Location.requestForegroundPermissionsAsync();
-            if (result.granted) {
-                navigation.navigate("LoadingPage");
-                onClose();
-            }
-        } else {
-            Alert.alert("Go to your settings", "In order to enable " + strings.APPNAME + " to access your location, you need to enable it in your settings");
+        const result = await perms.getLocation(true);
+        if (result === "foreground" || result === "background") {
+            navigation.navigate("LoadingPage");
+            onClose();
         }
     }
     //endregion

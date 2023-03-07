@@ -82,7 +82,7 @@ export default function ChatPage({ route, navigation }) {
                     }}
                 />
             )
-        })
+        });
     }, [navigation, route])
     //endregion
     //region [HOOK] "useFocusEffect, [rerender]" = Get data on open page & on rerender

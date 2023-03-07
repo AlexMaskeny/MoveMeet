@@ -62,8 +62,6 @@ export default function LoginPage({navigation}) {
 
             //region [IF] the user successfully logged in via cognito [THEN] log the user in locally & update their dynamodb values to a logged in state
             if (response) {
-                await perms.getLocation();
-                await perms.getNotifications();
                 await perms.signIn();
                 logger.log("Login Successful")
                 navigation.navigate("LoadingPage") //Actually navigate to loadingpage

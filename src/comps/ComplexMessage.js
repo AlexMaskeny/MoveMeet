@@ -22,7 +22,7 @@ function ComplexMessage({ navigation, opposingUserId, userId, children, ppic, us
     const [showContentReport, setShowContentReport] = useState(false);
 
     const onView = async () => {
-        if (opposingUserId != userId) {
+        if (opposingUserId !== userId) {
             navigation.dispatch(CommonActions.navigate({
                 name: "OProfilePage",
                 key: opposingUserId,
@@ -108,7 +108,7 @@ const styles = StyleSheet.create({
 
     },
     tStyle: {
-        color: dark_colors.text3,
+        color: dark_colors.text2,
         fontSize: 16,
         flex: 2,
     },

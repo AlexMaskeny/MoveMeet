@@ -75,7 +75,7 @@ export default function DiscoverPage({ navigation}) {
                 //endregion
 
                 //Now get the nearby users
-                await onRefresh();
+                onRefresh();
             } catch (error) {
                 logger.warn(error);
             }

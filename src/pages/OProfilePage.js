@@ -182,6 +182,8 @@ export default function OProfilePage({ navigation, route }) {
     //region [FUNC ASYNC] "message = async ()" = Trigger when the user clicks "Message". Navigates currentUser to a privateChat with opposingUser. (Does friendship checks)
     const message = async () => {
         try {
+            if (currentUser.current.id === opposingUser.current.id) return;
+
             //Change the "Message" button to an activity indicator
             setLoading(true);
 

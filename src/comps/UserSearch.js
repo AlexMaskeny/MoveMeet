@@ -24,7 +24,7 @@ export default function UserSearch({ visible, onClose, navigation, currentUser }
     }
 
     const navigateProfile = (itemID) => {
-        if (itemID != currentUser.id) {
+        //if (itemID != currentUser.id) {
             navigation.dispatch(CommonActions.navigate({
                 name: "OProfilePage",
                 key: itemID,
@@ -33,17 +33,19 @@ export default function UserSearch({ visible, onClose, navigation, currentUser }
                 }
             }));
             onClose();
-        }
+        //}
     }
 
     const renderItem = useCallback(({item}) => {
         return (
             <View style={styles.user}>
-                <Image
-                    source={{ uri: item.profilePicture.full }}
-                    defaultSource={{ uri: item.profilePicture.loadFull }}
-                    style={styles.image}
-                />
+                <TouchableOpacity onPress={()=>navigateProfile(item.id)}>
+                    <Image
+                        source={{ uri: item.profilePicture.full }}
+                        defaultSource={{ uri: item.profilePicture.loadFull }}
+                        style={styles.image}
+                    />
+                </TouchableOpacity>
                 <View style={styles.userRight}>
                     <TouchableOpacity onPress={()=>navigateProfile(item.id)} style={{flexDirection: "row", alignItems: "center", justifyContent: "space-between"} }>
                         <SubTitle style={styles.title} size={20}>{item.username}</SubTitle>
@@ -104,7 +106,7 @@ export default function UserSearch({ visible, onClose, navigation, currentUser }
                         if (
                             /^[a-zA-Z]+$/.test(text[text.length - 1]) || text.length == 0 ||
                             /^[0-9]+$/.test(text[text.length - 1]) || text[text.length - 1] == '_' ||
-                            text[text.length - 1] == '.' || text[text.length - 1] == ' '
+                            text[text.length - 1] == '.'
                         ) {
                             setSearch(text);
                             try { clearTimeout(timeout.current) } catch { }
@@ -119,7 +121,7 @@ export default function UserSearch({ visible, onClose, navigation, currentUser }
                                             call: calls.LIST_USERS_BY_USERNAME,
                                             instance: instances.LEAST,
                                             input: {
-                                                username: text
+                                                username: text.toLowerCase()
                                             }
                                         })
                                         if (result.items.length > 0) {

@@ -10,8 +10,6 @@ import {
     ActivityIndicator,
     Platform
 } from 'react-native';
-import * as Notifications from 'expo-notifications';
-import * as Location from 'expo-location';
 import NetInfo from "@react-native-community/netinfo";
 import uuid from "react-native-uuid";
 //endregion
@@ -26,7 +24,7 @@ import IconButton from '../comps/IconButton';
 import BackgroundEditor from '../comps/BackgroundEditor';
 import { calls, mmAPI } from '../api/mmAPI';
 import { dark_colors, css, strings } from '../config';
-import * as logger from '../functions/logger'; 
+import * as logger from '../functions/logger';
 import * as media from '../functions/media';
 //endregion
 
@@ -53,37 +51,10 @@ export default function SignupPage4({ navigation, route }) {
                 return;
             }
             //endregion
-            //region Request access to the user's location
-            const result1 = await Location.getForegroundPermissionsAsync();
-            if (!result1.granted) await Location.requestForegroundPermissionsAsync();
             let params = {
                 id: route.params.userID,
-                allowNotifications: false,
                 loggedOut: false,
             }
-            //endregion
-            //region Request access to send user notifications
-            const result2 = await Notifications.getPermissionsAsync();
-            if (result2.granted) {
-                const token = await Notifications.getExpoPushTokenAsync();
-                params = {
-                    ...params,
-                    allowNotifications: true,
-                    expoToken: token.data
-                }
-            }
-            else {
-                const result = await Notifications.requestPermissionsAsync();
-                if (result.granted) {
-                    const token = await Notifications.getExpoPushTokenAsync();
-                    params = {
-                        ...params,
-                        allowNotifications: true,
-                        expoToken: token.data
-                    }
-                }
-            }
-            //endregion
 
             //[IF] the user typed in a bio [THEN] change the user's bio to it
             if (bio.length > 0) params = { ...params, bio: bio };
@@ -119,7 +90,7 @@ export default function SignupPage4({ navigation, route }) {
                     }
                 }
             }
-            //endregion
+                //endregion
             //region [ELSE] the user picked a image background [SO] upload it and set the user's background to that image
             else {
                 await mmAPI.store("FULLBACKGROUND" + id + ".jpg", background.full);
@@ -134,7 +105,7 @@ export default function SignupPage4({ navigation, route }) {
                         bucket: "proxychatf2d762e9bc784204880374b0ca905be4120629-dev",
                         region: "us-east-2",
                     }
-                }      
+                }
             }
             //endregion
 
@@ -205,16 +176,16 @@ export default function SignupPage4({ navigation, route }) {
     //endregion
     //region [COMPONENT] "BioInput" = The text input for the user's new bio
     const BioInput = useCallback(()=>
-        <SimpleInput
-            autoCorrect={true}
-            multiline={true}
-            maxLength={160}
-            cStyle={styles.textInput}
-            tStyle={{ alignSelf: 'flex-start' }}
-            placeholder="Bio"
-            onChangeText={(text) => setBio(text)}
-        />
-    ,[]);
+            <SimpleInput
+                autoCorrect={true}
+                multiline={true}
+                maxLength={160}
+                cStyle={styles.textInput}
+                tStyle={{ alignSelf: 'flex-start' }}
+                placeholder="Bio"
+                onChangeText={(text) => setBio(text)}
+            />
+        ,[]);
     //endregion
     //region [COMPONENT] "SubmitButton = ({style})" = This is seperated because the submit buttons are essentially the same between color/image background types
     const SubmitButton = ({style}) => (
@@ -242,7 +213,7 @@ export default function SignupPage4({ navigation, route }) {
                                 <ProfileInput />
                                 <BioInput />
                             </View>
-                            <SubmitButton style={[styles.colorSubmit, {backgroundColor: background.isColor ? "rgba(0,0,0,0.2)" : dark_colors.container}]} />
+                            <SubmitButton style={styles.submit} />
                         </View>
                     }
                     {!background.isColor &&
@@ -251,7 +222,7 @@ export default function SignupPage4({ navigation, route }) {
                                 <ProfileInput />
                                 <BioInput />
                             </View>
-                            <SubmitButton style={styles.imageSubmit} />
+                            <SubmitButton style={styles.submit} />
                         </ImageBackground>
                     }
                     <Beam style={{ marginBottom: 20 }} />
@@ -347,21 +318,13 @@ const styles = StyleSheet.create({
         justifyContent: "space-between"
     },
     //endregion
-    //region colorSubmit
-    colorSubmit: {
+    //region submit
+    submit: {
         flexDirection: 'row',
         marginTop: 12,
         borderColor: dark_colors.text1,
         shadowColor: dark_colors.text1,
-    },
-    //endregion
-    //region imageSubmit
-    imageSubmit: {
-        flexDirection: 'row',
-        marginTop: 12,
-        borderColor: dark_colors.text1,
-        shadowColor: dark_colors.text1,
-        backgroundColor: dark_colors.background
+        backgroundColor: dark_colors.container
     },
     //endregion
 });

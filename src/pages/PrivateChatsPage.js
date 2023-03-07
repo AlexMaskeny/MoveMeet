@@ -20,7 +20,7 @@ import * as logger from '../functions/logger';
 import * as timeLogic from '../functions/timeLogic';
 //endregion
 
-export default function PrivateChatsPage({ navigation }) {
+export default function PrivateChatsPage({ navigation, route }) {
     /* =============[ VARS ]============ */
     //region useRef variables
     const userChatsSub = useRef([]);
@@ -38,6 +38,8 @@ export default function PrivateChatsPage({ navigation }) {
     const [showSearch, setShowSearch] = useState(false); //set true on open. On close or navigate set to false
     const [showHelp, setShowHelp] = useState(false);
     const [showBug, setShowBug] = useState(false);
+    const [lastChatID, setLastChatID] = useState();
+    const [returnTrip, setReturnTrip] = useState(false);
     //endregion
     const netInfo = useNetInfo();
 
@@ -70,7 +72,7 @@ export default function PrivateChatsPage({ navigation }) {
         })
     }, [navigation]);
     //endregion
-    //region [HOOK] "useFocusEffect, [rerender]" = Get data on open page & on rerender
+    //region [HOOK] "useFocusEffect, [rerender, lastChatID, returnTrip]" = Get data on open page & on rerender
     useFocusEffect(useCallback(() => {
         //region Enable the time clock
         if (timeClockSub.current) clearInterval(timeClockSub.current);
@@ -90,7 +92,11 @@ export default function PrivateChatsPage({ navigation }) {
                             id: cognitoUser.attributes.sub
                         }
                     });
-                    await onRefresh();
+                    if (returnTrip) {
+                        rearrangeChats(lastChatID);
+                        setReturnTrip(false);
+                    }
+                    onRefresh();
                 }
             } catch (error) {
                 logger.warn(error);
@@ -118,7 +124,7 @@ export default function PrivateChatsPage({ navigation }) {
             //endregion
             //endregion
         }
-    }, [rerender]));
+    }, [rerender, lastChatID, returnTrip]));
     //endregion
 
     /* =============[ FUNCS ]============ */
@@ -194,6 +200,7 @@ export default function PrivateChatsPage({ navigation }) {
                         //endregion
 
                         //We can only read the first 10 chars of AWSDates.
+                        chat.fullCreatedAt = chat.createdAt; // used in sorting
                         chat.createdAt = chat.createdAt.substring(0, 10);
 
                         //region Get the latest message [the warning is okay]
@@ -293,6 +300,8 @@ export default function PrivateChatsPage({ navigation }) {
     //endregion
     //region [FUNC ASYNC] "navigate = async (chat)" = Navigates the chat passed in. Triggered when opening a chat.
     const navigate = async (chat) => {
+        setReturnTrip(true);
+        setLastChatID(chat.id);
         try {
             if (chat.last1.length >= 1) {
                 if (!chat.last1[0].read.includes(currentUser.current.id)) {
@@ -303,8 +312,7 @@ export default function PrivateChatsPage({ navigation }) {
                             id: chat.last1[0].id,
                             read: chat.last1[0].read
                         }
-                    })
-                    chat.glow = false
+                    });
                     setChats(existingData => {
                        let chatIndex = existingData.findIndex(el => el.id === chat.id);
                        existingData[chatIndex].glow = false;
@@ -314,6 +322,32 @@ export default function PrivateChatsPage({ navigation }) {
             }
         } catch (error) {
             logger.error(error);
+        }
+    }
+    //endregion
+    //region [FUNC ASYNC] "rearrangeChats = (chatID)" = Finds the chat with the specified ChatID, updates it. Sorts chats.
+    const rearrangeChats = async (chatID) => {
+        try {
+            const last1 = (await mmAPI.query({
+                call: calls.LIST_MESSAGES_BY_TIME,
+                instance: "chatsPage",
+                input: {
+                    chatMessagesId: chatID,
+                    limit: 1
+                }
+            })).items;
+            if (last1.length > 0) {
+                setChats(existingData => {
+                    const chatIndex = existingData.findIndex(el => el.id === chatID);
+                    existingData[chatIndex].last1 = last1;
+                    existingData[chatIndex].glow = false;
+                    existingData[chatIndex].latest = timeLogic.ago((Date.now() - Date.parse(last1[0].createdAt)) / 1000);
+                    sortChats(existingData);
+                    return [...existingData];
+                });
+            }
+        } catch (error) {
+            logger.warn(error);
         }
     }
     //endregion
@@ -329,32 +363,10 @@ export default function PrivateChatsPage({ navigation }) {
     //region [FUNCTION]   "sortChats = (chatData)" = Put the recent messages on top. If no recent messages, put the most recent friendship on top
     const sortChats = (chatData) => {
         chatData.sort((a, b) => {
-            if (a.last1.length > 0 && b.last1.length > 0) {
-                if (Date.parse(a.last1[0].createdAt) > Date.parse(b.last1[0].createdAt)) {
-                    return -1;
-                } else {
-                    return 1;
-                }
-            } else if (a.last1.length > 0 && b.last1.length <= 0) {
-                if (Date.parse(a.last1[0].createdAt) > Date.parse(b.createdAt)) {
-                    return -1;
-                } else {
-                    return 1;
-                }
-            } else if (a.last1.length <= 0 && b.last1.length > 0) {
-                if (Date.parse(a.createdAt) > Date.parse(b.last1[0].createdAt)) {
-                    return -1;
-                } else {
-                    return 1;
-                }
-            }
-            else {
-                if (Date.parse(a.createdAt) > Date.parse(b.createdAt)) {
-                    return -1;
-                } else {
-                    return 1;
-                }
-            }
+            let aDate = a.last1.length === 0 ? Date.parse(a.fullCreatedAt) : Date.parse(a.last1[0].createdAt);
+            let bDate = b.last1.length === 0 ? Date.parse(b.fullCreatedAt) : Date.parse(b.last1[0].createdAt);
+            if (aDate > bDate) return -1;
+            else return 1;
         });
     }
     //endregion

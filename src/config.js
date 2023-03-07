@@ -9,9 +9,31 @@
 //[CALL COMP] "example, [updateOn]" = component using the useCallback hook explanation
 //Everything else has no prefix
 
-//region [DATA] "const colors" = the app's colors
+//region [DATA] "const dark_colors" = the app's dark colors
 export const dark_colors = {
     background: "#121212", //A dark grey rgba(18, 18, 18,1)
+    container: "#1E1E1E", //A dark grey, but less dark than background
+    dark: "#0D0D0D",
+    transContainer: "rgba(14,14,14,",
+    pBeamBright: "#8CE0FF",
+    pBeam: "#8CE0FF", //"rgba(245,182,195,0.72)", Blue Beam
+    pBeamDisabled: "#8CE0FF", //"rgba(245,182,195,0.3)", Dull Blue Beam
+    pBeamShadow: "#11BEFF", //#F96381", Blue Beam without transparency, slightly whiter
+    passiveImg: "rgba(142, 142, 142, 0.9)",
+    text1: "#b5b5b5", //Lighest Grey Text
+    text2: "#A6A6A6", //Second Lighest Grey Text
+    text3: "#b5b5b5", //Third Lighest Grey Text
+    text4: "rgba(137,137,137,0.80)",
+    text5: "rgba(255,255,255,0.80)",
+    text6: "rgba(255,255,255,0.90)",
+    error: "#FF4D4D",
+    errorTransparent: "rgba(255,77,77,0.05)",
+    overlayBackground: "rgba(0,0,0,0.5)"
+}
+//endregion
+//region [DATA] "const white_colors" = the app's white colors
+export const white_colors = {
+    background: "white", //A dark grey rgba(18, 18, 18,1)
     container: "#1E1E1E", //A dark grey, but less dark than background
     dark: "#0D0D0D",
     transContainer: "rgba(14,14,14,",
@@ -71,4 +93,4 @@ export const rules = {
 export const debug = false; //changes whether error messages print
 export const enhancedDebug = false;
 export const footerHeight = 80;
-export const version = "1.0.2";
+export const version = "1.0.3";

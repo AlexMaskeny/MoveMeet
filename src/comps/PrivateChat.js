@@ -1,5 +1,6 @@
 import React from 'react';
 import { StyleSheet, View, TouchableOpacity } from 'react-native';
+import {CommonActions} from "@react-navigation/native";
 
 import { dark_colors, css } from '../config';
 import SubTitle from './SubTitle';
@@ -23,18 +24,20 @@ export default function PrivateChat({
 }) {
     const navigate = () => {
         onPress();
-        navigation.navigate("PChatNav", {
-            screen: "ChatPage",
-            key: id,
-            params: {
-                name: title,
-                created: created,
-                id: id,
-                userChatMembersID,
-                user,
-                private: true,
-            }
-        });
+        navigation.dispatch(
+            CommonActions.navigate({
+                name: "ChatPage",
+                key: id,
+                params: {
+                    name: title,
+                    created: created,
+                    id: id,
+                    userChatMembersID,
+                    user,
+                    private: true,
+                }
+            })
+        );
     }
     return (<>
         <TouchableOpacity style={[styles.container, glow ? styles.beam : {}]} onPress={navigate}>

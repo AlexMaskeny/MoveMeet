@@ -3,18 +3,19 @@ import React, { useCallback, useRef, useEffect, useState } from 'react';
 import { StyleSheet, Image, ActivityIndicator, View, Platform } from 'react-native';
 import {Auth} from 'aws-amplify';
 import AsyncStorage from '@react-native-async-storage/async-storage';
-import * as Location from 'expo-location';
 import NetInfo from '@react-native-community/netinfo';
 import { useFocusEffect } from '@react-navigation/native';
 import * as Notifications from 'expo-notifications';
+import * as Location from 'expo-location';
 //endregion
 //region 1st Party Imports
-import * as logger from '../functions/logger';
-import * as locConversion from '../functions/locConversion';
 import Screen from '../comps/Screen';
-import { storage, dark_colors, rules, version } from '../config';
 import Broadcast from '../comps/Broadcast';
+import { storage, dark_colors, rules, version } from '../config';
 import { calls, instances, mmAPI } from '../api/mmAPI';
+import * as logger from '../functions/logger';
+import * as perms from '../functions/perms';
+import * as locConversion from '../functions/locConversion';
 //endregion
 
 //region Local Constants
@@ -77,7 +78,7 @@ export default function LoadingPage({navigation, route}) {
                 //region [IF] route.params.signOut == true [THEN] log user out. [warning is okay]
                 if (route.params?.signOut) {
                     //region Disable allowNotifications for the user and set their status to logged out
-                    await mmAPI.mutate({
+                    mmAPI.mutate({
                         call: calls.UPDATE_USER,
                         input: {
                             id: user.current.id,
@@ -97,7 +98,7 @@ export default function LoadingPage({navigation, route}) {
                     //Iterate through each chat the user is a part of. Remove them from it
                     for (let i = 0; i < chatMembers.items.length; i++) {
                         if (!chatMembers.items[i].chat.private) {
-                            await mmAPI.mutate({
+                            mmAPI.mutate({
                                 call: calls.DELETE_CHAT_MEMBERS,
                                 instance: "background",
                                 input: {
@@ -115,52 +116,8 @@ export default function LoadingPage({navigation, route}) {
                 //endregion
 
                 //check if the user has notifications enabled
-                const notificationStatus = await Notifications.getPermissionsAsync();
-                //region [IF] we don't have access to notifications [AND] can't request them [THEN] disable notifications
-                if ((Platform.OS === "android") ?
-                    (notificationStatus.status === "denied") :
-                    (notificationStatus.ios.status === Notifications.IosAuthorizationStatus.DENIED)
-                ) {
-                    await mmAPI.mutate({
-                        call: calls.UPDATE_USER,
-                        input: {
-                            id: user.current.id,
-                            allowNotifications: false,
-                        },
-                    })
-                    user.current.allowNotifications = false;
-                }
-                //endregion
-                //region [IF] we don't have access to notifications [AND] can request them [THEN] request access
-                if ((Platform.OS === "android") ?
-                    (notificationStatus.status === "undetermined") :
-                    (notificationStatus.ios.status === Notifications.IosAuthorizationStatus.NOT_DETERMINED)
-                ) {
-                    const result = await Notifications.requestPermissionsAsync();
-                    if (result.granted) {
-                        const key = await Notifications.getExpoPushTokenAsync();
-                        await mmAPI.mutate({
-                            call: calls.UPDATE_USER,
-                            input: {
-                                id: user.current.id,
-                                allowNotifications: true,
-                                expoToken: key.data,
-                            }
-                        });
-                        user.current.allowNotifications = true;
-                    } else {
-                        await mmAPI.mutate({
-                            call: calls.UPDATE_USER,
-                            input: {
-                                id: user.current.id,
-                                allowNotifications: false,
-                            },
-                        })
-                        user.current.allowNotifications = false;
-                    }
-                }
-                //endregion
-                //region [IF] after the last 2 regions we have access to notifications [THEN] subscribe to notifications [warning is okay]
+                user.current.allowNotifications = await perms.getNotifications();
+                //region [IF] the user has notifications enabled [THEN] subscribe to notifications [warning is okay]
                 if (user.current.allowNotifications) {
                     not.current = Notifications.addNotificationResponseReceivedListener(notification => {
                         //retryIndex is used to retry sending notifications 4 times (once ever 1200ms) before giving up.
@@ -211,7 +168,7 @@ export default function LoadingPage({navigation, route}) {
                                         if (friendshipIndex !== -1) { //It should never be equal to -1
                                             if (friendships[friendshipIndex].status === "1") friendships[friendshipIndex].status = "0";
                                             if (friendships[friendshipIndex].status === "3") friendships[friendshipIndex].status = "2";
-                                            await mmAPI.mutate({
+                                            mmAPI.mutate({
                                                 call: calls.UPDATE_USER,
                                                 input: {
                                                     id: user.current.id,
@@ -270,8 +227,8 @@ export default function LoadingPage({navigation, route}) {
                 //endregion
 
                 //check if the user has locations enabled
-                const locationStatus = await Location.getForegroundPermissionsAsync();
-                if (locationStatus.granted) {
+                let locationStatus = await perms.getLocation();
+                if (locationStatus === "foreground") {
                     //region Begin updating the current user's location in the database [warning is okay]
                     loc.current = await Location.watchPositionAsync(
                         {
@@ -290,7 +247,7 @@ export default function LoadingPage({navigation, route}) {
                                     const convertedLocs = locConversion.toUser(location.coords.latitude, location.coords.longitude);
                                     const netInfo = await NetInfo.fetch();
                                     if (netInfo.isInternetReachable && netInfo.isConnected) {
-                                        await mmAPI.mutate({
+                                        mmAPI.mutate({
                                             call: calls.UPDATE_USER,
                                             input: {
                                                 id: user.current.id,
@@ -302,10 +259,11 @@ export default function LoadingPage({navigation, route}) {
                                 //endregion
                             } catch (error) {
                                 logger.warn(error);
-                                if (error != NO_USER)
+                                if (error !== NO_USER)
                                     logger.warn(error.errors);
-                                else
-                                    unsubscribe();
+                                else {
+                                    throw NO_USER;
+                                }
                             }
                     });
                     //endregion
@@ -320,8 +278,8 @@ export default function LoadingPage({navigation, route}) {
                             currentUser.current = await Auth.currentAuthenticatedUser();
                             if (!currentUser.current) throw NO_USER;
                             //endregion
-                            //region Only update chat membership every 10s no matter what
-                            if (Date.now() - lastLCRunDate.current < 10000) return;
+                            //region Only update chat membership every 2*rules.locationUpdateFrequency (2s) no matter what
+                            if (Date.now() - lastLCRunDate.current < 2*rules.locationUpdateFrequency) return;
                             lastLCRunDate.current = Date.now();
                             //endregion
                             //region Make sure we still have access to get the user's location. If not unsubscribe. [warning is okay]
@@ -363,7 +321,7 @@ export default function LoadingPage({navigation, route}) {
                                     bData.push(oldChats.items[i]);
                                     if (newChats.items.findIndex(el => el.id === oldChats.items[i].chatID) === -1) {
                                         if (!oldChats.items[i].chat.private) {
-                                            await mmAPI.mutate({
+                                            mmAPI.mutate({
                                                 call: calls.DELETE_CHAT_MEMBERS,
                                                 instance: "background",
                                                 input: {
@@ -374,7 +332,7 @@ export default function LoadingPage({navigation, route}) {
                                     }
                                 } else
                                     //To be safe we, we check if there are duplicate chat memberships and delete them.
-                                    await mmAPI.mutate({
+                                    mmAPI.mutate({
                                         call: calls.DELETE_CHAT_MEMBERS,
                                         instance: "background",
                                         input: {
@@ -390,7 +348,7 @@ export default function LoadingPage({navigation, route}) {
                                     if (cData.findIndex(el => el.id === newChats.items[i].id) === -1) {
                                         cData.push(newChats.items[i]);
                                         if (!newChats.items[i].private) {
-                                            await mmAPI.mutate({
+                                            mmAPI.mutate({
                                                 call: calls.CREATE_CHAT_MEMBERS,
                                                 instance: "background",
                                                 input: {
@@ -416,10 +374,9 @@ export default function LoadingPage({navigation, route}) {
                     }
                     //Update chat membership once then every 10 seconds
                     await updateChatMembership();
-                    lc.current = setInterval(updateChatMembership, rules.locationUpdateFrequency);
+                    lc.current = setInterval(updateChatMembership, 2*rules.locationUpdateFrequency);
                     //endregion
                 }
-
                 //region Show any available broadcasts
                 //Get all broadcasts
                 const broadcasts = (

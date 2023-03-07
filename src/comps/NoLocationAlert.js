@@ -1,12 +1,12 @@
 import React from 'react';
 import { View, StyleSheet, Alert } from 'react-native';
 import { MaterialIcons } from '@expo/vector-icons';
-import * as Location from 'expo-location';
 
-import { dark_colors, css, strings } from '../config';
 import BeamTitle from './BeamTitle';
 import SubTitle from './SubTitle';
 import SimpleButton from './SimpleButton';
+import { dark_colors, css, strings } from '../config';
+import * as perms from '../functions/perms';
 
 
 export default function NoLocationAlert({
@@ -15,13 +15,8 @@ export default function NoLocationAlert({
     ...otherProps
 }) {
     const enableLocation = async () => {
-        const result = await Location.getForegroundPermissionsAsync();
-        if (result.canAskAgain) {
-            const result = await Location.requestForegroundPermissionsAsync();
-            if (result.granted) enable();
-        } else {
-            Alert.alert("Go to your settings", "In order to enable " + strings.APPNAME + " to access your location, you need to enable it in your settings");
-        }
+        const result = await perms.getLocation(true);
+        if (result === "foreground" || result === "backgorund") enable();
     }
     return (
         <View style={styles.noLocationAlert}>

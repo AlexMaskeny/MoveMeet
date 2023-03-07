@@ -10,9 +10,9 @@ import * as logger from '../functions/logger';
 
 export default function ExplorePage({}) {
     return (
-        <View>
-            <BeamTitle>Explore Page</BeamTitle>
-        </View>
+        <Screen theme="white">
+            <BeamTitle>Alex</BeamTitle>
+        </Screen>
     );
 }
 

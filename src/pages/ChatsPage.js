@@ -42,6 +42,8 @@ export default function ChatsPage({ navigation }) {
     const [showHelp, setShowHelp] = useState(false);                 //Should display the help modal?
     const [showBug, setShowBug] = useState(false);                   //Should display the bug report modal?
     const [checkingForUsers, setCheckingForUsers] = useState(false); //Should display the checkingForUsers modal?
+    const [lastChatID, setLastChatID] = useState();
+    const [returnTrip, setReturnTrip] = useState(false);
     //endregion
     const netInfo = useNetInfo();
 
@@ -74,7 +76,7 @@ export default function ChatsPage({ navigation }) {
         })
     }, [navigation])
     //endregion
-    //region [HOOK] "useFocusEffect, []" = Get data on open page & on rerender
+    //region [HOOK] "useFocusEffect, [lastChatID, returnTrip]" = Get data on open page & on rerender
     useFocusEffect(useCallback(() => {
         //region Enable the time clock
         if (timeClockSub.current) clearInterval(timeClockSub.current);
@@ -126,8 +128,14 @@ export default function ChatsPage({ navigation }) {
                 logger.eLog("[SUBMANAGER] onMemberStatusChange subscription begun.");
                 //endregion
 
+                //rearrange chats when going back
+                if (returnTrip) {
+                    rearrangeChats(lastChatID);
+                    setReturnTrip(false);
+                }
+
                 //Now, get the chats the user is a member of.
-                await onRefresh();
+                onRefresh();
             } catch (error) {
                 logger.warn(error);
             }
@@ -160,7 +168,7 @@ export default function ChatsPage({ navigation }) {
             //endregion
             //endregion
         }
-    }, []));
+    }, [lastChatID, returnTrip]));
     //endregion
 
     /* =============[ FUNCS ]============ */
@@ -232,7 +240,7 @@ export default function ChatsPage({ navigation }) {
                             //If there is a last message, and it was sent a while ago (defined in config), then disable it and skip it.
                             try {
                                 if ((Date.now() - Date.parse(last3.items[0].createdAt)) / 1000 > 60 * 60 * rules.chatDeletionTime) {
-                                    await mmAPI.mutate({
+                                    mmAPI.mutate({
                                         call: calls.UPDATE_CHAT,
                                         input: {
                                             id: chat.id,
@@ -245,7 +253,7 @@ export default function ChatsPage({ navigation }) {
                             //If there is no last message, then if the chat was created a while ago (defined in config), then disable it and skip it.
                             try {
                                 if (last3.items.length === 0 && (Date.now() - Date.parse(chat.createdAt)) / 1000 > 60 * 60 * rules.chatDeletionTime) {
-                                    await mmAPI.mutate({
+                                    mmAPI.mutate({
                                         call: calls.UPDATE_CHAT,
                                         input: {
                                             id: chat.id,
@@ -293,6 +301,7 @@ export default function ChatsPage({ navigation }) {
                             }
                             //endregion
 
+                            chat.fullCreatedAt = chat.createdAt; //Used in sorting
                             chat.createdAt = chat.createdAt.substring(0, 10);
                             chat.numMembers = chat.members.items.length;
 
@@ -427,27 +436,48 @@ export default function ChatsPage({ navigation }) {
         });
     }
     //endregion
-    //region [FUNCTION]   "sortChats = (chatData)" = Put the most recently active chat on top. If no recently active chat, put the most recently created chat on top
+    //region [FUNC ASYNC] "rearrangeChats = (chatID)" = Finds the chat with the specified ChatID, updates it. Sorts chats.
+    const rearrangeChats = async (chatID) => {
+        try {
+            let last3 = (await mmAPI.query({
+                call: calls.LIST_MESSAGES_BY_TIME,
+                instance: "chatsPage",
+                input: {
+                    chatMessagesId: chatID,
+                    limit: 3
+                }
+            })).items;
+            if (last3.length > 0) {
+                await getLast3(last3);
+                setChats(existingData => {
+                    const chatIndex = existingData.findIndex(el => el.id === chatID);
+                    existingData[chatIndex].last3 = last3;
+                    existingData[chatIndex].glow = false;
+                    existingData[chatIndex].latest = timeLogic.ago((Date.now() - Date.parse(last3[0].createdAt)) / 1000);
+                    sortChats(existingData);
+                    return [...existingData];
+                });
+            }
+        } catch (error) {
+            logger.warn(error);
+        }
+    }
+    //endregion
+    //region [FUNCTION]   "sortChats = (chatData)" = Put the most recent chat on top. A chat has an activity IF: it was created OR a message was sent
     const sortChats = (chatData) => {
         chatData.sort((a, b) => {
-            if (a.last3.length === 0 && b.last3.length !== 0) {
-                return 1;
-            } else if (a.last3.length !== 0 && b.last3.length === 0) {
-                return -1;
-            } else if (a.last3.length === 0 && b.last3.length === 0) {
-                return 0;
-            } else {
-                if (Date.parse(a.last3[0].createdAt) > Date.parse(b.last3[0].createdAt)) {
-                    return -1;
-                } else {
-                    return 1;
-                }
-            }
-        })
+            //aDate and bData are the date of the most recent activity in each corresponding chat.
+            let aDate = a.last3.length === 0 ? Date.parse(a.fullCreatedAt) : Date.parse(a.last3[0].createdAt);
+            let bDate = b.last3.length === 0 ? Date.parse(b.fullCreatedAt) : Date.parse(b.last3[0].createdAt);
+            if (aDate > bDate) return -1;
+            else return 1;
+        });
     }
     //endregion
     //region [FUNCTION]   "navigate = async (item)" = When clicking "open chat" this function is called. Navigates to that chat.
     const navigate = async (item) => {
+        setLastChatID(item.id);
+        setReturnTrip(true);
         try {
             if (item.last3.length >= 1) {
                 if (!item.last3[0].read.includes(currentUser.current.id)) {

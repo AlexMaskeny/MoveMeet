@@ -8,8 +8,8 @@ import { dark_colors } from '../config';
 //UTILIZED:    Utilized in all pages
 
 
-function Screen({ children, style, colorBack = false, innerStyle }) {
-    if (colorBack) return (
+function Screen({ children, style, colorBack = false, innerStyle, theme = "dark" }) {
+    if (colorBack && theme === "dark") return (
         <View style={styles.img}>
             <SafeAreaView style={[styles.screen, style]}>
                 <View style={[styles.inner, innerStyle]}>
@@ -18,7 +18,7 @@ function Screen({ children, style, colorBack = false, innerStyle }) {
             </SafeAreaView>
         </View>
     )
-    else return (
+    else if (!colorBack && theme === "dark") return (
         <ImageBackground source={require("../../assets/darkback.png")} style={styles.img} resizeMode="cover">
             <SafeAreaView style={[styles.screen, style]}>
                 <View style={[styles.inner, innerStyle]}>
@@ -26,7 +26,8 @@ function Screen({ children, style, colorBack = false, innerStyle }) {
                 </View>
             </SafeAreaView>
         </ImageBackground>
-    );
+    )
+
 }
 
 const styles = StyleSheet.create({
@@ -44,7 +45,6 @@ const styles = StyleSheet.create({
 
     },
     img: {
-
         width: "100%",
         height: "100%",
         backgroundColor: dark_colors.background,

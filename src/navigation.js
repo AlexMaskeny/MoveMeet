@@ -82,22 +82,6 @@ function navigation() {
                 tabBarStyle: SecondNavStyle.tabBarStyle,
             }}
         >
-            {/*<Secondary.Screen*/}
-            {/*    name="ExploreNav"*/}
-            {/*    component={ExploreNav}*/}
-            {/*    options={({ navigation }) => (*/}
-            {/*        {*/}
-            {/*            tabBarIcon: ({ color }) =>*/}
-            {/*                <IconButton*/}
-            {/*                    icon="rocket"*/}
-            {/*                    brand="Ionicons"*/}
-            {/*                    color={color}*/}
-            {/*                    size={36}*/}
-            {/*                    onPress={() => navigation.navigate("ExploreNav")}*/}
-            {/*                />*/}
-            {/*        }*/}
-            {/*    )}*/}
-            {/*/>*/}
             <Secondary.Screen
                 name="TChatNav"
                 component={TChatNav}
@@ -257,16 +241,6 @@ function navigation() {
     );
     //endregion
 
-    //TESTING
-    //region ExploreNav
-    const Explore = createStackNavigator();
-    const ExploreNav = () => (
-        <Explore.Navigator screenOptions={chatNavOptions}>
-            <Explore.Screen name="ExplorePage" component={ExplorePage} options={{ title: "Explore" }} />
-            <Explore.Screen name="OtherPage" component={ExplorePage} options={{ title: "Other Page" }} />
-        </Explore.Navigator>
-    );
-    //endregion
     return (
         <NavigationContainer>
                 <PrimaryNav />
